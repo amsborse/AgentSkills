@@ -6,7 +6,12 @@
    the strongest and most repeated signals, every proposal with its evidence clusters and
    confidence, rejected clusters with reasons, and conflicts.
 2. The `learning/<date>` branch in each affected repository: `git diff main...learning/<date>`.
+   Where the main checkout is shared with other agents, the branch lives in its own worktree
+   (`git worktree list`); project commits carry their evidence cluster ids in the message.
 3. Any rule's evidence: `$HL evidence <cluster-id>` prints every redacted statement behind it.
+4. `$HL support` must exit cleanly. Re-extraction can retire a cluster id (its statements were
+   reclassified as injected or template text); it is then reported as missing. Drop or replace
+   the id and rerun `$HL support --write` before merging.
 
 ## Approving
 
@@ -14,6 +19,8 @@ Approval is a normal Git merge done by the user (or a pull request they open and
 Because skills are installed as links, merging into the checkout that `~/agent-skills` points
 to makes the change live in Claude Code, Codex, OpenCode and Cursor at once. For project skills,
 merging in that project is enough. To approve only some rules, edit the branch before merging.
+A new skill folder also needs `scripts/install.sh` once after the merge; until then no agent
+loads it, which is what keeps an unreviewed skill inert.
 
 ## Synchronizing
 
@@ -29,7 +36,7 @@ merging in that project is enough. To approve only some rules, edit the branch b
 
 | Undo | How |
 | --- | --- |
-| A proposal not yet merged | `git branch -D learning/<date>` |
+| A proposal not yet merged | `git branch -D learning/<date>` (first `git worktree remove <path>` if it has one) |
 | A merged change | `git revert <commit>` (and push) |
 | Stop reading a source | `$HL consent --disable <source>`, then `$HL forget --source <source>` |
 | Stop model review | `$HL consent --model deny` |
