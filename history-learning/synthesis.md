@@ -31,11 +31,14 @@ before reporting them done", not "The user complained 6 times that…".
 1. Search `reports/catalog.md` for a skill or instruction file that already owns the topic.
    Improve it: add the rule to its checklist, or sharpen a vague line. Do not create a parallel
    skill.
-2. Global rules about how the user works across all repositories go into skills in the shared
-   agent-skills repository. Group them by theme (for example communication and reporting,
-   verification before done, autonomy and approvals, UI quality bar), not one skill per rule.
+2. Global rules about how the user works across all repositories go into the shared file
+   `working-agreements/AGENTS.md` in the agent-skills repository, under its themed sections.
+   Repositories import that file (see its "Importing" section), so a global rule is written
+   once and never copied into a project. Global knowledge that is a procedure rather than a
+   standing rule (a workflow, a tool's usage) becomes its own skill.
 3. Project knowledge (architecture, commands, pitfalls of a specific repository) goes in that
    project's own skills (`<repo>/.agents/skills/` or its `AGENTS.md`), never into the shared repo.
+   A repository that does not import the shared file yet gets the two import lines, not copies.
    Fold rules into the section that already owns the topic; do not add a "learnings" section,
    which drifts from the rest of the file.
 4. Skills that would only fire inside one tool still use the portable format: `SKILL.md` with
