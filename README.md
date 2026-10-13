@@ -8,6 +8,7 @@ demand), and nothing in here is specific to one repository.
 ```text
 agent-skills/
   nightly-evolution/        the skill (SKILL.md + 10 supporting files + scripts/evolve.mjs engine)
+  history-learning/         learn from past agent conversations (SKILL.md + 5 supporting files + scripts/hl.mjs)
   scripts/install.sh        link skills into every detected agent (idempotent)
   scripts/validate.sh       structure, engine, tests, installed links, repo policies
   tests/                    node:test suites (engine lifecycle, installer)
@@ -76,6 +77,29 @@ and finalizes before the policy window closes. See `nightly-evolution/SKILL.md` 
 memory survives branches that are never merged. Its files are written so that the repo's own
 `prettier --check .` accepts them. Volatile state lives under `.git/`, and worktrees default
 to `../<repo>-worktrees/`, because linters and formatters do not read `.git/info/exclude`.
+
+## history-learning
+
+Learns durable preferences, repeated corrections, decisions and working patterns from every
+coding agent's local history (Claude Code and its profiles, Codex, the Cursor IDE and its agent
+transcripts, OpenCode, Antigravity, Kiro, Qwen) and turns them into evidence-backed skill
+proposals on a local `learning/<date>` branch for review. It complements
+[ShadowClone](https://github.com/theonly1me/shadowclone): ShadowClone handles the sources it
+supports natively, and this skill adds read-only adapters for the stores it does not read.
+
+```sh
+HL="node ~/agent-skills/history-learning/scripts/hl.mjs"
+$HL inventory                 # metadata-only coverage of every store (no consent needed)
+$HL consent --enable claude-code,codex --model allow --budget 60000
+$HL learn                     # extract (changed sessions only), cluster, budgeted digest
+$HL report                    # private learning report
+```
+
+History is only ever read. Sources and model review start disabled. Text is redacted before
+it is stored, and only a token-budgeted digest of clustered statements is shown to a
+reviewing agent. All derived data lives in `~/.agent-history-learning/`, never in this public
+repository; `scripts/validate.sh` fails if credentials, emails, home paths or the local
+username appear in tracked files. See `history-learning/SKILL.md`.
 
 ## Changing a skill
 

@@ -79,6 +79,31 @@ if (!quick) {
   else bad(`node --test failed: ${summary}\n${t.stdout.split('\n').filter((l) => /✖|not ok|Error/.test(l)).slice(0, 20).join('\n')}`);
 }
 
+process.stdout.write('\nPrivacy (this repository is public)\n');
+{
+  const { makeRedactor } = await import('../history-learning/scripts/lib/redact.mjs');
+  const redact = makeRedactor();
+  const blocking = ['PRIVATE_KEY', 'JWT', 'API_KEY', 'URL_CREDENTIALS', 'BEARER', 'EMAIL', 'HOME', 'USERNAME'];
+  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: REPO_ROOT, encoding: 'utf8' }).stdout.split('\n').filter((f) => f && !/\.(png|jpe?g|gif|webp|ico)$/i.test(f));
+  let leaks = 0;
+  for (const f of files) {
+    let text;
+    try {
+      text = fs.readFileSync(path.join(REPO_ROOT, f), 'utf8');
+    } catch {
+      continue;
+    }
+    const hits = redact(text.replace(/\b[\w.+-]+@(example\.(com|org)|users\.noreply\.github\.com|corp\.io)\b/g, '')).hits;
+    // Test fixtures carry deliberately fake credentials to prove they are redacted.
+    const found = blocking.filter((k) => hits[k] && !(f.startsWith('tests/') && !['HOME', 'USERNAME'].includes(k)));
+    if (found.length) {
+      leaks++;
+      bad(`${f}: ${found.map((k) => `${k} x${hits[k]}`).join(', ')}`);
+    }
+  }
+  if (!leaks) ok(`${files.length} files free of credentials, emails, home paths and the local username`);
+}
+
 process.stdout.write('\nInstallation\n');
 for (const agent of detectAgents()) {
   if (agent.coveredBy) {
