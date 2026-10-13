@@ -25,37 +25,49 @@ export function buildDigest({ clusters, evidence, budget, includeKnown = false, 
     if (!perCategory.has(c.category)) perCategory.set(c.category, []);
     perCategory.get(c.category).push(c);
   }
-  let used = 0;
-  const files = [];
+  const blockOf = (c) => {
+    const ex = c.members
+      .map((id) => byId.get(id))
+      .filter(Boolean)
+      .sort((a, b) => Number(b.durable) - Number(a.durable) || (a.ts < b.ts ? 1 : -1))
+      .slice(0, 3);
+    return [
+      `## ${c.id} · ${c.confidence.level} (${c.confidence.basis}) · ${c.sessions} sessions · ${c.size} statements · ${c.scope}`,
+      `kinds ${Object.entries(c.kinds).map(([k, v]) => `${k}:${v}`).join(' ')} · durable ${c.durable} · temporary ${c.temporary} · agents ${c.agents.join(', ')} · projects ${c.projects.slice(0, 6).join(', ')} · ${c.first?.slice(0, 10)}..${c.last?.slice(0, 10)}`,
+      ...ex.map((r) => `- "${clip(r.text, 300)}"${r.spec ? ' (from a long task spec)' : ''}${r.prev ? `\n  prev: "${clip(r.prev, 200)}"` : ''}`),
+      '',
+    ].join('\n');
+  };
+  const header = (cat) => [`# ${cat}`, '', 'Each block is one cluster of near-identical statements you typed, redacted. `prev` is the end of the agent reply you were responding to.', ''];
+  const chosen = new Map([...perCategory.keys()].map((k) => [k, header(k)]));
+  let used = [...chosen.values()].reduce((n, l) => n + estTokens(l.join('\n')), 0);
   const included = [];
-  const share = Math.floor(budget / Math.max(perCategory.size, 1));
-  for (const [cat, list] of perCategory) {
-    const lines = [`# ${cat}`, '', 'Each block is one cluster of near-identical statements you typed, redacted. `prev` is the end of the agent reply you were responding to.', ''];
-    let catTokens = estTokens(lines.join('\n'));
-    for (const c of list) {
-      const ex = c.members
-        .map((id) => byId.get(id))
-        .filter(Boolean)
-        .sort((a, b) => Number(b.durable) - Number(a.durable) || (a.ts < b.ts ? 1 : -1))
-        .slice(0, 3);
-      const block = [
-        `## ${c.id} · ${c.confidence.level} (${c.confidence.basis}) · ${c.sessions} sessions · ${c.size} statements · ${c.scope}`,
-        `kinds ${Object.entries(c.kinds).map(([k, v]) => `${k}:${v}`).join(' ')} · durable ${c.durable} · temporary ${c.temporary} · agents ${c.agents.join(', ')} · projects ${c.projects.slice(0, 6).join(', ')} · ${c.first?.slice(0, 10)}..${c.last?.slice(0, 10)}`,
-        ...ex.map((r) => `- "${clip(r.text, 300)}"${r.spec ? ' (from a long task spec)' : ''}${r.prev ? `\n  prev: "${clip(r.prev, 200)}"` : ''}`),
-        '',
-      ].join('\n');
+  // Round-robin by rank so every category gets its strongest clusters before any gets its weakest.
+  const cursors = new Map([...perCategory.keys()].map((k) => [k, 0]));
+  for (let progress = true; progress; ) {
+    progress = false;
+    for (const [cat, list] of perCategory) {
+      const i = cursors.get(cat);
+      if (i >= list.length) continue;
+      const block = blockOf(list[i]);
       const t = estTokens(block);
-      if (catTokens + t > share || used + t > budget) break;
-      lines.push(block);
-      catTokens += t;
+      if (used + t > budget) {
+        cursors.set(cat, list.length);
+        continue;
+      }
+      chosen.get(cat).push(block);
       used += t;
-      included.push(c.id);
+      included.push(list[i].id);
+      cursors.set(cat, i + 1);
+      progress = true;
     }
-    if (lines.length > 4) {
-      const file = path.join(out, `${cat}.md`);
-      writeText(file, lines.join('\n'));
-      files.push({ category: cat, file, tokens: catTokens, clusters: lines.length - 4 });
-    }
+  }
+  const files = [];
+  for (const [cat, lines] of chosen) {
+    if (lines.length <= 4) continue;
+    const file = path.join(out, `${cat}.md`);
+    writeText(file, lines.join('\n'));
+    files.push({ category: cat, file, tokens: estTokens(lines.join('\n')), clusters: lines.length - 4 });
   }
   const index = { generatedAt: new Date().toISOString(), budget, used, eligible: eligible.length, included: included.length, files };
   writeJson(path.join(out, 'index.json'), index);

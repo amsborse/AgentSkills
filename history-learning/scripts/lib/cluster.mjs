@@ -28,7 +28,7 @@ export function clusterEvidence(records) {
     if (!templateSessions.has(r.prefix)) templateSessions.set(r.prefix, new Set());
     templateSessions.get(r.prefix).add(r.session);
   }
-  const templates = new Set([...templateSessions].filter(([, s]) => s.size >= 4).map(([p]) => p));
+  const templates = new Set([...templateSessions].filter(([, s]) => s.size >= 5).map(([p]) => p));
   const clusters = [];
   const index = new Map();
   let dropped = 0;

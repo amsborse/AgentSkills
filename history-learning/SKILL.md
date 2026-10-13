@@ -45,9 +45,12 @@ HL="node ~/agent-skills/history-learning/scripts/hl.mjs"
 5. **Synthesize** by reading the digest and the catalog, following `synthesis.md`: improve
    existing skills before creating new ones, separate global from project scope, keep cluster
    ids as evidence and a confidence level on every rule, reject one-off or temporary asks.
-   Write `proposals.json` to the state directory, then `$HL mark --digest`.
-6. **Stage** the changes on a `learning/<date>` branch in the right repository, run
-   `scripts/validate.sh`, commit locally, and produce `$HL report`. Review, approval, sync and
+   Write `proposals.json` to the state directory, run `$HL support` (it recomputes every
+   rule's sessions and confidence from its clusters and fails on overstated or unknown ones),
+   then `$HL mark --digest`.
+6. **Stage** the changes on a `learning/<date>` branch (in a separate worktree when the repo's
+   main checkout is shared with other agents), write each skill's evidence file with
+   `$HL support --write`, run `scripts/validate.sh`, commit locally, and produce `$HL report`. Review, approval, sync and
    undo: `review.md`.
 
 ## Incremental learning
@@ -63,7 +66,8 @@ ShadowClone natively learns from `~/.claude`, Codex, OpenCode, Pi, the Cursor CL
 Antigravity CLI. This skill covers the stores it does not (Claude profiles such as
 `~/.claude-work`, the Cursor IDE database and agent transcripts, Antigravity IDE, Kiro, Qwen)
 and the cross-agent deduplication. How to run both without letting either publish or edit
-agent configs: `shadowclone.md`.
+agent configs: `shadowclone.md`. On native Windows ShadowClone 0.0.34 cannot initialise its
+store (an ownership check that needs POSIX uids); `hl` covers every source there.
 
 ## Commands
 
@@ -78,6 +82,7 @@ agent configs: `shadowclone.md`.
 | `learn` | the incremental pipeline above |
 | `evidence <cluster-id>` | every redacted statement behind a cluster |
 | `mark <ids>\|--digest` | clusters reviewed; omitted from the next digest |
+| `support [--write]` | per-rule sessions, projects and computed confidence; `--write` emits each skill's evidence file |
 | `report` | `reports/learning.md` and refreshed coverage |
 | `forget [--source s]` | delete derived evidence (all, or one source); history untouched |
 | `status` | consent and state summary |

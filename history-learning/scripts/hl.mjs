@@ -11,6 +11,7 @@ import { buildDigest, markSynthesized } from './lib/digest.mjs';
 import { allEvidence, extract } from './lib/extract.mjs';
 import { buildInventory, coverageReport } from './lib/inventory.mjs';
 import { learningReport } from './lib/report.mjs';
+import { ruleSupport, writeEvidence } from './lib/support.mjs';
 import { parseArgs, readJson, stateDir, writeJson, writeText } from './lib/util.mjs';
 
 const USAGE = `Usage: hl <command> [options]
@@ -32,6 +33,9 @@ Learning (local, deterministic, incremental)
   learn                           inventory + extract + cluster + digest (changed sessions only)
   evidence <cluster-id>           every redacted statement behind one cluster
   mark <cluster-id,...>|--digest  record clusters as synthesized (skipped by the next digest)
+  support [--write]               recompute each proposed rule's sessions and confidence from
+                                  its clusters; --write puts a counts-only evidence.md in each
+                                  proposal's path
   report                          reports/learning.md: coverage, extraction, clusters, proposals
   forget [--source s]             delete derived evidence (all or one source); history untouched
   status                          state summary
@@ -130,6 +134,25 @@ async function main() {
       const ids = args.digest ? readJson(path.join(stateDir(), 'digest', 'included.json'), []) : list(args._[1]);
       markSynthesized(ids, cl.clusters);
       out(`marked ${ids.length} clusters as synthesized`);
+      break;
+    }
+    case 'support': {
+      const skills = ruleSupport();
+      let problems = 0;
+      for (const s of skills) {
+        out(`${s.action} ${s.skill} (${s.scope})`);
+        for (const r of s.rules) {
+          const p = r.support;
+          const flags = [p.overstated ? `OVERSTATED (stated ${r.confidence})` : '', p.missing.length ? `MISSING ${p.missing.join(',')}` : ''].filter(Boolean);
+          problems += flags.length;
+          out(`  ${p.computed.level.padEnd(12)} s=${String(p.sessions).padEnd(3)} projects=${p.projects} agents=${p.agents.length} ${r.id || r.text.slice(0, 60)} ${flags.join(' ')}`);
+        }
+      }
+      if (args.write) for (const f of writeEvidence(skills, (s) => s.path)) out(`wrote ${f}`);
+      if (problems) {
+        err(`${problems} rule(s) overstate confidence or cite unknown clusters`);
+        process.exitCode = 1;
+      }
       break;
     }
     case 'report': {

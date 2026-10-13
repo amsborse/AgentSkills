@@ -18,6 +18,22 @@ cross-agent deduplication. Both stay behind the same consent and review rules.
 | Kiro, Qwen | not read | `kiro`, `qwen` |
 | `CLAUDE.md`, `AGENTS.md`, skills, git metadata | `agent-context`, `declared-rules`, `skill-library`, `git-metadata` | `hl catalog` (read-only listing) |
 
+## Windows status (0.0.34)
+
+On native Windows every command that touches the store, including the safe `init` below, stops
+with "Storage directory must be owned by the current user". The check compares the directory's
+`stat().uid` with `process.getuid()`, which does not exist on Windows, so it can never pass.
+It is a security check, so do not patch the installed bundle to get around it. WSL is not a
+drop-in alternative: its Linux side needs its own Node, and from there it would read Windows
+history over `/mnt/c` with paths it does not understand.
+
+Consequences on Windows: ShadowClone's index and `learn --deep` (with `--engine codex` or
+`--engine cursor-agent`) are unavailable, and `hl` plus a reviewing agent session covers every
+source instead. The deep-distillation engines also need their CLI on `PATH`: `codex` (the
+desktop app bundles one that is not on `PATH`) or `cursor-agent` (not installed by the Cursor
+IDE). Recheck after upgrading: `shadowclone --version`, then the `init` below. Reporting the
+uid check upstream is the user's call.
+
 ## Safe setup
 
 A plain `shadowclone init` that answers yes to learning enables every present source at once,

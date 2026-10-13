@@ -2,6 +2,7 @@ import path from 'node:path';
 import { readJson, stateDir } from './util.mjs';
 import { loadClusters } from './cluster.mjs';
 import { enabledSources, loadConsent } from './consent.mjs';
+import { ruleSupport } from './support.mjs';
 
 const row = (cells) => `| ${cells.map((c) => String(c).replace(/\|/g, '\\|').replace(/\n/g, ' ')).join(' | ')} |`;
 const table = (head, rows) => [row(head), row(head.map(() => '---')), ...rows.map(row)].join('\n');
@@ -51,8 +52,9 @@ export function learningReport() {
   out.push('## Proposals', '');
   if (!proposals) out.push('None yet. A reviewing agent writes `proposals.json` after reading the digest.', '');
   else {
-    for (const p of proposals.skills || []) {
-      out.push(`### ${p.action} \`${p.skill}\` (${p.scope})`, '', p.summary || '', '', table(['Rule', 'Kind', 'Confidence', 'Evidence clusters'], (p.rules || []).map((r) => [r.text, r.kind, r.confidence, (r.clusters || []).join(', ')])), '');
+    for (const p of ruleSupport(proposals)) {
+      out.push(`### ${p.action} \`${p.skill}\` (${p.scope})`, '', p.summary || '', p.path ? `Target: \`${p.path}\`` : '', '');
+      out.push(table(['Rule', 'Kind', 'Stated', 'Computed', 'Sessions', 'Projects', 'Evidence clusters'], (p.rules || []).map((r) => [r.text, r.kind, r.confidence || '', r.support.computed.level, r.support.sessions, r.support.projects, (r.clusters || []).join(', ')])), '');
     }
     if (proposals.rejected?.length) out.push('### Considered and not proposed', '', table(['Cluster(s)', 'Reason'], proposals.rejected.map((r) => [(r.clusters || []).join(', '), r.reason])), '');
     if (proposals.conflicts?.length) out.push('### Conflicts', '', proposals.conflicts.map((c) => `- ${c}`).join('\n'), '');

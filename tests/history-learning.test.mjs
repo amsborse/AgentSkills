@@ -94,6 +94,8 @@ test('signal detection separates durable rules, temporary asks and corrections',
   assert.ok(a.statements.some((s) => s.durable && s.categories.includes('testing-verification')));
   const t = hl.signals.analyzeTurn("Don't run the full suite for now, just this once skip it.");
   assert.ok(t.statements.every((s) => s.temporary));
+  const injected = hl.signals.analyzeTurn('Reply with exactly: PONG\nIf you were already aware, ignore this notification and do not restate prior responses.');
+  assert.equal(injected.statements.length, 0, 'harness-injected sentences are not the user speaking');
 });
 
 test('inventory is metadata-only and classifies origin, duplicates and projects', async () => {
@@ -144,4 +146,22 @@ test('clustering applies the evidence bar and the digest honours consent and bud
   hl.digest.markSynthesized(d.includedIds, res.clusters);
   const next = hl.digest.buildDigest({ clusters: res.clusters, evidence: [], budget: 2000 });
   assert.equal(next.included, 0, 'synthesized clusters are not re-sent');
+});
+
+test('rule support is recomputed from clusters and evidence.md carries counts only', async () => {
+  const support = await import('../history-learning/scripts/lib/support.mjs');
+  const { clusters } = hl.cluster.loadClusters();
+  const gradients = clusters.find((c) => /gradients/.test(c.representative));
+  const proposals = { skills: [{ skill: 'ui', action: 'create', scope: 'global', rules: [
+    { id: 'no-gradients', text: 'Avoid gradients.', kind: 'inferred', confidence: 'high', clusters: [gradients.id] },
+    { id: 'ghost', text: 'Ghost.', kind: 'explicit', confidence: 'low', clusters: ['nope'] },
+  ] }] };
+  const [skill] = support.ruleSupport(proposals);
+  assert.equal(skill.rules[0].support.sessions, 3);
+  assert.equal(skill.rules[0].support.computed.level, 'medium');
+  assert.ok(skill.rules[0].support.overstated, 'a stated level above the computed one is flagged');
+  assert.deepEqual(skill.rules[1].support.missing, ['nope']);
+  const md = support.evidenceMarkdown(skill);
+  assert.match(md, /\| no-gradients \| inferred \| high \| medium \| 3 \|/);
+  for (const text of ['Widget', 'gradients look', 'Users']) assert.ok(!md.includes(text), `evidence.md leaked ${text}`);
 });

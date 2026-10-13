@@ -9,7 +9,7 @@ const DISSATISFIED = /\b(ugly|generic|bland|cheap[- ]looking|slop|terrible|awful
 const PREFERENCE = /\b(i (want|prefer|like|love|hate|dislike|don'?t (like|want)|need|expect)|i'?d (rather|prefer|like)|prefer(red)?|please (always|never|don'?t|do not|make sure|avoid|use|keep)|make sure|must( not)?|should (always|never|not)|rather than|instead of|avoid|do not|don'?t ever|no more)\b/i;
 const DURABLE = /\b(always|never|every time|each time|from now on|going forward|in (the )?future|by default|in general|as a rule|across (all|every)|for (all|every) (project|repo|task)|everywhere|whenever|any time|remember (to|that)|standing (rule|instruction))\b/i;
 const TEMPORARY = /\b(for now|this time|just this once|temporar(y|ily)|today|tonight|right now|for this (task|pr|change|session|one|commit)|this one|at the moment|until (we|i|it)|quick(ly)? (test|hack))\b/i;
-const PRAISE = /\b(perfect|exactly( right| what i)?|love (it|this|that)|looks (great|amazing|good|clean|premium)|nailed it|well done|works now|that works|this is (great|good|perfect|much better)|much better|great job)\b/i;
+const PRAISE = /\b(perfect|exactly (right|what i)|love (it|this|that)|looks (great|amazing|good|clean|premium)|nailed it|well done|works now|that works|this is (great|good|perfect|much better)|much better|great job)\b/i;
 
 export const CATEGORIES = {
   'ui-visual': /\b(design|ui|ux|layout|spacing|padding|margin|typograph\w*|fonts?|colou?rs?|palette|premium|aesthetic\w*|visual\w*|css|tailwind|component|card|hero|gradient|shadow|dark mode|light mode|responsive|mobile|icons?|landing|dashboard|pixel|contrast|whitespace|look(s|ing)? like)\b/i,
@@ -32,7 +32,10 @@ const splitStatements = (text) =>
     .replace(/```[\s\S]*?```/g, ' ')
     .split(/\n+|(?<=[.!?])\s+(?=[A-Z0-9"'(])/)
     .map((s) => s.replace(/^[\s>*\-•\d.)]+/, '').trim())
-    .filter((s) => s.length >= 8 && s.length <= 500);
+    .filter((s) => s.length >= 8 && s.length <= 500 && !HARNESS.test(s));
+
+/** Sentences agent harnesses inject into the user's turn; they are not the user speaking. */
+const HARNESS = /ignore this notification and do not restate|if multiple subagents have (now )?completed|if reporting what model you are|^reply with exactly\b|^respond with (exactly|only)\b/i;
 
 export function categorize(s) {
   return Object.entries(CATEGORIES)

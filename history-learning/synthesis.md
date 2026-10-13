@@ -36,8 +36,12 @@ before reporting them done", not "The user complained 6 times that…".
    verification before done, autonomy and approvals, UI quality bar), not one skill per rule.
 3. Project knowledge (architecture, commands, pitfalls of a specific repository) goes in that
    project's own skills (`<repo>/.agents/skills/` or its `AGENTS.md`), never into the shared repo.
+   Fold rules into the section that already owns the topic; do not add a "learnings" section,
+   which drifts from the rest of the file.
 4. Skills that would only fire inside one tool still use the portable format: `SKILL.md` with
    `name` and `description` only, plus supporting files.
+5. The user's global agent configuration (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, ...) is
+   never edited by this workflow. If a rule belongs there, say so in the report.
 
 ## Skill shape
 
@@ -45,8 +49,10 @@ before reporting them done", not "The user complained 6 times that…".
   the user actually says.
 - `SKILL.md` under 500 lines: the rules, each with a confidence tag such as `(high)` or
   `(medium, inferred)`. Put detail in supporting files linked by name (progressive disclosure).
-- `evidence.md` in the skill: cluster ids, session counts, date ranges and confidence per rule,
-  with no quotes, project names or paths when the skill lives in a public repository.
+- `evidence.md` in the skill, written by `$HL support --write`: cluster ids, session, project and
+  agent counts, date range and confidence per rule; no quotes, project names or paths.
+- A rule's confidence is never higher than `$HL support` computes from its clusters. Citing
+  several clusters for one rule is how independent phrasings of it add up.
 
 ## proposals.json
 
@@ -60,9 +66,9 @@ Write to the state directory:
       "skill": "verification-before-done",
       "action": "create | update",
       "scope": "global | project:<name>",
-      "path": "repo-relative path to the SKILL.md",
+      "path": "absolute path of the skill directory (evidence.md is written there)",
       "summary": "why this change",
-      "rules": [{ "text": "...", "kind": "explicit | inferred", "confidence": "high | medium | low", "clusters": ["a1b2c3d4e5"] }]
+      "rules": [{ "id": "short-slug", "text": "...", "kind": "explicit | inferred", "confidence": "high | medium | low", "clusters": ["a1b2c3d4e5"] }]
     }
   ],
   "rejected": [{ "clusters": ["..."], "reason": "temporary | one-off | covered by <skill> | private | insufficient" }],

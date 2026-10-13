@@ -7,10 +7,13 @@ const INJECTED = /^\s*(<environment_context>|<user_instructions>|<permissions in
 
 const codexHome = (env = process.env) => (env.CODEX_HOME ? path.resolve(env.CODEX_HOME) : path.join(HOME, '.codex'));
 
+/** Parts the desktop app injects (`<in-app-browser-context>`, `<heartbeat>`, ...) open with a tag. */
+const TAGGED_PART = /^\s*<[a-z][\w-]*[\s>]/i;
+
 function messageText(payload) {
   if (typeof payload.content === 'string') return payload.content.trim();
   return (payload.content || [])
-    .filter((c) => c && /text$/.test(c.type || '') && !INJECTED.test(c.text || ''))
+    .filter((c) => c && /text$/.test(c.type || '') && !INJECTED.test(c.text || '') && !TAGGED_PART.test(c.text || ''))
     .map((c) => c.text)
     .join('\n')
     .trim();

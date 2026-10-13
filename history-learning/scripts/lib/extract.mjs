@@ -8,6 +8,13 @@ import { clip, readJson, sha, stateDir, writeJson } from './util.mjs';
 
 const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
 
+/**
+ * A session opened by a long prompt that assigns a named agent identity ("You are Kaarigar, the
+ * software engineer…") was started by an orchestrator. Generic personas ("You are a senior
+ * engineer") are left alone because people type those too.
+ */
+const ROLE_PREAMBLE = /^\s*[Yy]ou are (?!(?:a|an|the|my|our)\b)[A-Z][\w-]+,? (?:the|a|an)\b/;
+
 function loadEvidence(file) {
   if (!fs.existsSync(file)) return [];
   return fs
@@ -35,7 +42,7 @@ export async function extract({ full = false, limit = Infinity, log = () => {} }
   const owner = new Map(Object.entries(full ? {} : readJson(seenFile, {})));
   const redact = makeRedactor({ extraTerms: consent.redactTerms });
   const bySource = new Map();
-  const stats = { sessions: 0, skippedUnchanged: 0, turns: 0, duplicateTurns: 0, statements: 0, redactions: {} };
+  const stats = { sessions: 0, scriptedSessions: 0, skippedUnchanged: 0, turns: 0, duplicateTurns: 0, statements: 0, redactions: {} };
 
   const primaryEnabled = new Map(inv.sessions.map((s) => [`${s.source}:${s.id}`, allowed.has(s.sourceId)]));
   const todo = inv.sessions.filter((s) => {
@@ -52,8 +59,17 @@ export async function extract({ full = false, limit = Infinity, log = () => {} }
     if (n++ >= limit) break;
     const adapter = adapterFor(s.source);
     const records = [];
+    let first = true;
+    let scripted = false;
     try {
       for await (const t of adapter.turns(s)) {
+        if (first) {
+          first = false;
+          if (ROLE_PREAMBLE.test(t.text) && t.text.length > 800) {
+            scripted = true;
+            break;
+          }
+        }
         const turnKey = t.key || sha(t.ts ? `${t.ts}|${t.text}` : `${s.dupKey}|${t.text}`);
         stats.turns++;
         if (owner.has(turnKey) && owner.get(turnKey) !== key) {
@@ -62,7 +78,7 @@ export async function extract({ full = false, limit = Infinity, log = () => {} }
         }
         owner.set(turnKey, key);
         const { spec, statements } = analyzeTurn(t.text);
-        const prefix = sha(normalize(t.text).slice(0, 120), 12);
+        const prefix = sha(normalize(t.text).slice(0, 48), 12);
         statements.forEach((st, i) => {
           const r = redact(st.text);
           for (const [k, v] of Object.entries(r.hits)) stats.redactions[k] = (stats.redactions[k] || 0) + v;
@@ -76,8 +92,9 @@ export async function extract({ full = false, limit = Infinity, log = () => {} }
       continue;
     }
     stats.sessions++;
+    if (scripted) stats.scriptedSessions++;
     stats.statements += records.length;
-    processed[key] = { mtimeMs: s.mtimeMs, at: new Date().toISOString(), statements: records.length };
+    processed[key] = { mtimeMs: s.mtimeMs, at: new Date().toISOString(), statements: records.length, ...(scripted ? { scripted: true } : {}) };
     if (!bySource.has(s.sourceId)) bySource.set(s.sourceId, new Map());
     bySource.get(s.sourceId).set(key, records);
     if (stats.sessions % 50 === 0) log(`  ${stats.sessions} sessions, ${stats.statements} statements`);
