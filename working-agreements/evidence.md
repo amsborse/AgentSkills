@@ -18,6 +18,7 @@ the computed level.
 | done-means-verified | explicit | medium | high | 7 | 5 | 3 | 2026-07 to 2026-10 | 4b34edeaf1, 22adaf53d8, 72d08348ec, ad948f5d77 |
 | reproduce-reported-breakage | inferred | high | high | 9 | 6 | 2 | 2026-03 to 2026-09 | acbed906d3, fabbdae7ff, 545a13f0f2 |
 | regression-test | explicit | high | high | 18 | 5 | 4 | 2026-06 to 2026-10 | 1becf0be41, 6cc13389eb, 404f767e75, 33709b6d97 |
+| tests-reachable-state | explicit | medium | high | 7 | 1 | 2 | 2026-09 to 2026-09 | d093d2f33d, 186e6a3f30, fdca8a8c22, f25fb826ef |
 | never-weaken-checks | explicit | high | high | 12 | 1 | 2 | 2026-09 to 2026-10 | 0ab6ab0442, 06b35d6417, 6477eb6918, daebc5ddfa, 15dbe9089e, 6b0383abe6 |
 | unknown-stays-unknown | explicit | high | high | 23 | 3 | 2 | 2026-09 to 2026-10 | dfc691d779, 108206685a, a69c70ff69, a074240e3f, 93db300121, d1b3057cc0, 23ff179b5f, f464079c00, 3291fc6691, fbc73ef9cd, f5e9d3bdf8 |
 | missing-evidence-is-not-pass | explicit | low | low | 1 | 1 | 1 | 2026-10 to 2026-10 | f0a0651f95, 13b4082fa1, c57e2a8e97 |

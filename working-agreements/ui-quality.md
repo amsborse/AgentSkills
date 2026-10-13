@@ -25,4 +25,4 @@ design skill that is installed.
 ## Evidence
 
 A UI change is done only when a screenshot of the real page shows it, per the verification
-rules in `SKILL.md`.
+rules in `AGENTS.md`.

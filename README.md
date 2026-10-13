@@ -9,7 +9,7 @@ demand), and nothing in here is specific to one repository.
 agent-skills/
   nightly-evolution/        the skill (SKILL.md + 10 supporting files + scripts/evolve.mjs engine)
   history-learning/         learn from past agent conversations (SKILL.md + 5 supporting files + scripts/hl.mjs)
-  working-agreements/       learned standing rules for every agent (SKILL.md + ui-quality.md + evidence.md)
+  working-agreements/       shared rules every repo imports (AGENTS.md + ui-quality.md + evidence.md; SKILL.md wrapper)
   scripts/install.sh        link skills into every detected agent (idempotent)
   scripts/validate.sh       structure, engine, tests, installed links, repo policies
   tests/                    node:test suites (engine lifecycle, installer)
@@ -108,6 +108,28 @@ The owner's standing rules for every coding agent (release safety, verification 
 scope, autonomous runs, and a UI quality bar), learned by `history-learning` from repeated
 explicit instructions and corrections. Each rule carries a confidence tag; `evidence.md` lists
 the supporting cluster ids and session counts, with no quotes, project names or paths.
+
+The rules live once, in `working-agreements/AGENTS.md`, and repositories import that file
+instead of copying it:
+
+```md
+<!-- in the repository's AGENTS.md (Codex, Cursor, OpenCode, Antigravity) -->
+## Shared working agreements
+
+The owner's cross-repository rules live in one shared file,
+`~/agent-skills/working-agreements/AGENTS.md`. Read it before starting work. This file wins
+where the two conflict. If that path does not exist on this machine, say so once and continue.
+```
+
+```md
+<!-- in the repository's CLAUDE.md (Claude Code loads @imports automatically) -->
+@~/agent-skills/working-agreements/AGENTS.md
+```
+
+Only Claude Code has a real import; the other agents follow the pointer in `AGENTS.md`. A
+machine without `~/agent-skills` (a VM, CI, a cloud agent) does not see the shared rules until
+the repository is cloned there and `scripts/install.sh` is run. The skill wrapper
+(`working-agreements/SKILL.md`) covers sessions in repositories that do not import it yet.
 
 ## Changing a skill
 
