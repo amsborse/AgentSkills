@@ -9,7 +9,7 @@ demand), and nothing in here is specific to one repository.
 agent-skills/
   nightly-evolution/        the skill (SKILL.md + 10 supporting files + scripts/evolve.mjs engine)
   history-learning/         learn from past agent conversations (SKILL.md + 5 supporting files + scripts/hl.mjs)
-  working-agreements/       shared rules every repo imports (AGENTS.md + ui-quality.md + evidence.md; SKILL.md wrapper)
+  working-agreements/       shared rules every repo imports (AGENTS.md + ui-quality.md + evidence files; SKILL.md wrapper)
   scripts/install.sh        link skills into every detected agent (idempotent)
   scripts/validate.sh       structure, engine, tests, installed links, repo policies
   tests/                    node:test suites (engine lifecycle, installer)
@@ -105,9 +105,10 @@ username appear in tracked files. See `history-learning/SKILL.md`.
 ## working-agreements
 
 The owner's standing rules for every coding agent (release safety, verification and honesty,
-scope, autonomous runs, and a UI quality bar), learned by `history-learning` from repeated
-explicit instructions and corrections. Each rule carries a confidence tag; `evidence.md` lists
-the supporting cluster ids and session counts, with no quotes, project names or paths.
+scope, autonomous runs, and UI taste), learned by `history-learning` from repeated explicit
+instructions and corrections, plus a topic pass over everything the owner said about visual
+design and motion. Each rule carries a strength tag; `evidence.md` and `ui-evidence.md` list the
+supporting session and project counts, with no quotes, project names or paths.
 
 The rules live once, in `working-agreements/AGENTS.md`, and repositories import that file
 instead of copying it:

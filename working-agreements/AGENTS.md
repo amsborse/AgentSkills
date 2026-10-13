@@ -64,9 +64,48 @@ from corrections rather than stated. Per-rule counts: `evidence.md` in this fold
   final report) instead of interrupting. Non-destructive changes inside the repository need no
   confirmation; destructive, irreversible and paid actions do. (high)
 
-## UI, visual design and motion
+## UI taste
 
-For any UI, styling or animation change, read `ui-quality.md` in this folder first.
+How the owner wants interfaces to look and move, judged from about 2,300 of their own statements
+on visual design and motion across 19 projects. A repository's design system wins on specifics
+(tokens, components, layout); this is the bar on top of it. Tags here count sessions where the
+owner typed it themselves (`ui-evidence.md`); details and anti-patterns are in `ui-quality.md`.
+
+- The bar is premium and crafted: it should look like a small senior team spent months on it, at
+  the level of Apple, Stripe or Linear, never like a template, a default component library or
+  "vibe coded" work. If it does not look like much work was done, it is not done. (high)
+- Each product has one signature living visual (a symbol, field or hero animation) that acts as
+  its brand mark. It belongs to the page, blended in with masks and atmosphere, never a boxed
+  canvas or a widget in a card, and never so large it leaves dead space. (high; the integration
+  part is judgement)
+- Dark mode is deep and layered (gradients, pools of light, controlled glow), never flat black.
+  Premium comes from control, not volume. (high)
+- Light mode is designed, not inverted: warm paper-like surfaces, soft shadows instead of glow,
+  cards visibly separated from the background, no hard-coded dark colors. Every component works
+  in both modes. (high)
+- Color is restrained: one dominant accent used surgically, and colors never compete. Color that
+  carries meaning (status, tier, overdue) is wanted, with a legend or tooltip, never color alone.
+  (high)
+- Text is always sharp and readable: no low-contrast, faded or washed-out text. (high) No
+  translucent header, footer or panel without a solid enough backing. (medium)
+- Confident, editorial typography and generous spacing; reading pages are calmer than landing
+  pages. (high)
+- Cards are compact, show only the essentials and one primary action; detail lives on hover, an
+  expand or a side panel. The same card, dropdown and theme components on every page. (high)
+- Never replace a design the owner liked: add the new one as a selectable option or toggle.
+  (high)
+- A reference image means match it closely, verify with a screenshot and iterate until it does.
+  (high)
+- Clarity first: the first viewport answers the main question; no clutter or redundant controls;
+  visuals instead of text lists. (high) Numbers are explained in plain language on hover.
+  (medium)
+- Motion is continuous, physical and calm: one synchronized movement, elements travel to their
+  new place, no snaps, jumps, two-step flips or visible loop restarts, smooth at 60fps, and every
+  animation communicates something. No gimmick effects such as electric borders, sparks or
+  leftover debug visuals. (high)
+- Show the system working: progress on items while jobs run, numbers counting up, charts
+  animating in at a moderate pace. (high) Respect reduced motion, pause offscreen work and keep
+  visuals light on CPU. (medium)
 
 ## Importing
 
