@@ -165,3 +165,20 @@ test('rule support is recomputed from clusters and evidence.md carries counts on
   assert.match(md, /\| no-gradients \| inferred \| high \| medium \| 3 \|/);
   for (const text of ['Widget', 'gradients look', 'Users']) assert.ok(!md.includes(text), `evidence.md leaked ${text}`);
 });
+
+test('a topic pass needs model consent, reads uncued statements, and topic support counts typed sessions', async () => {
+  const topic = await import('../history-learning/scripts/lib/topic.mjs');
+  await assert.rejects(topic.topicPass({ name: 'ui', categories: ['ui-visual'] }), /not consented/);
+  hl.consent.updateConsent({ model: 'allow', budget: 5000 });
+  const t = await topic.topicPass({ name: 'ui', categories: ['ui-visual', 'animation'], budget: 5000 });
+  assert.ok(t.statements >= 1 && t.used <= 5000);
+  const md = fs.readFileSync(t.file, 'utf8');
+  assert.match(md, /gradients/i);
+  for (const text of ['sk-ant-', 'example.com', 'risky commands']) assert.ok(!md.includes(text), `topic digest contains ${text}`);
+  const rows = topic.topicSupport({ name: 'ui', patterns: { 'no-gradients': '\\bgradients?\\b', absent: '\\bzebra\\b' } });
+  const g = rows.find((r) => r.id === 'no-gradients');
+  assert.ok(g.typedSessions >= 2 && g.projects === 1);
+  assert.equal(rows.find((r) => r.id === 'absent').strength, 'judgement');
+  const ev = topic.topicSupportMarkdown('ui', rows);
+  assert.ok(!ev.includes('Widget') && !ev.includes('cheap'), 'topic evidence carries counts only');
+});

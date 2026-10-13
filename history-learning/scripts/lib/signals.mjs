@@ -27,7 +27,7 @@ export const CATEGORIES = {
   'research-accuracy': /\b(research\w*|sources?|citations?|accura\w*|hallucinat\w*|fact\w*|up[- ]to[- ]date|latest|docs|documentation)\b/i,
 };
 
-const splitStatements = (text) =>
+export const splitStatements = (text) =>
   text
     .replace(/```[\s\S]*?```/g, ' ')
     .split(/\n+|(?<=[.!?])\s+(?=[A-Z0-9"'(])/)

@@ -12,6 +12,7 @@ import { allEvidence, extract } from './lib/extract.mjs';
 import { buildInventory, coverageReport } from './lib/inventory.mjs';
 import { learningReport } from './lib/report.mjs';
 import { ruleSupport, writeEvidence } from './lib/support.mjs';
+import { topicPass, topicSupport, topicSupportMarkdown } from './lib/topic.mjs';
 import { parseArgs, readJson, stateDir, writeJson, writeText } from './lib/util.mjs';
 
 const USAGE = `Usage: hl <command> [options]
@@ -32,6 +33,12 @@ Learning (local, deterministic, incremental)
   digest [--budget n] [--all]     budgeted per-category digest for a reviewing agent
   learn                           inventory + extract + cluster + digest (changed sessions only)
   evidence <cluster-id>           every redacted statement behind one cluster
+  topic <name> --categories a,b [--match regex] [--budget n]
+                                  every statement about a subject, cue or not (taste is
+                                  described more than commanded); topics/<name>.md
+  topic-support <name> --patterns <rules.json> [--write <file>]
+                                  sessions and projects behind each rule drafted from a topic
+                                  ({ "rule-id": "regex" }); --write a counts-only table
   mark <cluster-id,...>|--digest  record clusters as synthesized (skipped by the next digest)
   support [--write]               recompute each proposed rule's sessions and confidence from
                                   its clusters; --write puts a counts-only evidence.md in each
@@ -134,6 +141,24 @@ async function main() {
       const ids = args.digest ? readJson(path.join(stateDir(), 'digest', 'included.json'), []) : list(args._[1]);
       markSynthesized(ids, cl.clusters);
       out(`marked ${ids.length} clusters as synthesized`);
+      break;
+    }
+    case 'topic': {
+      const name = args._[1];
+      if (!name || !args.categories) throw new Error('usage: hl topic <name> --categories ui-visual,animation [--budget n]');
+      const t = await topicPass({ name, categories: list(args.categories), match: args.match, budget: args.budget ? Number(args.budget) : undefined, log: err });
+      out(`topic ${t.name}: ${t.statements} distinct statements from ${t.sessions} sessions; ${t.included} included, ~${t.used}/${t.budget} tokens -> ${t.file}`);
+      break;
+    }
+    case 'topic-support': {
+      const name = args._[1];
+      if (!name || !args.patterns) throw new Error('usage: hl topic-support <name> --patterns <rules.json> [--write <evidence.md>]');
+      const rows = topicSupport({ name, patterns: JSON.parse(fs.readFileSync(args.patterns, 'utf8')) });
+      for (const r of rows) out(`  ${r.strength.padEnd(10)} typed=${String(r.typedSessions).padEnd(3)} s=${String(r.sessions).padEnd(3)} projects=${String(r.projects).padEnd(3)} ${r.id}`);
+      if (typeof args.write === 'string') {
+        writeText(args.write, topicSupportMarkdown(name, rows));
+        out(`wrote ${args.write}`);
+      }
       break;
     }
     case 'support': {

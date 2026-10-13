@@ -53,6 +53,12 @@ HL="node ~/agent-skills/history-learning/scripts/hl.mjs"
    `$HL support --write`, run `scripts/validate.sh`, commit locally, and produce `$HL report`. Review, approval, sync and
    undo: `review.md`.
 
+Taste (UI look, motion, writing voice) is mostly described, not commanded, so cue-based
+extraction under-reads it. For such a subject run a topic pass, `$HL topic <name> --categories
+ui-visual,animation --match <vocabulary> --budget <n>`, read the whole digest, draft rules by
+judgement, then give each rule a keyword pattern and check its support with `$HL topic-support`
+(see "Topic passes" in `synthesis.md`).
+
 ## Incremental learning
 
 `$HL learn` re-inventories, extracts only sessions whose files changed, re-clusters, and (if
@@ -83,6 +89,8 @@ store (an ownership check that needs POSIX uids); `hl` covers every source there
 | `evidence <cluster-id>` | every redacted statement behind a cluster |
 | `mark <ids>\|--digest` | clusters reviewed; omitted from the next digest |
 | `support [--write]` | per-rule sessions, projects and computed confidence; `--write` emits each skill's evidence file |
+| `topic <name> --categories a,b [--match re] [--budget n]` | every statement on one subject, cue or not; budgeted `topics/<name>.md` |
+| `topic-support <name> --patterns f [--write f]` | sessions and projects behind rules drafted from a topic, counts only |
 | `report` | `reports/learning.md` and refreshed coverage |
 | `forget [--source s]` | delete derived evidence (all, or one source); history untouched |
 | `status` | consent and state summary |

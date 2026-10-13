@@ -80,3 +80,20 @@ Write to the state directory:
 ```
 
 Then run `$HL mark --digest` so the next incremental digest only shows new or grown clusters.
+
+## Topic passes
+
+Use one when a subject is described rather than commanded (taste, voice, product feel) and the
+cluster digest under-represents it.
+
+1. `$HL topic <name> --categories ... --match <vocabulary regex> --budget <n>` reads every
+   consented interactive session and writes a deduplicated, redacted, budgeted digest. Typed
+   and repeated statements rank first; long pasted specs last. Narrow with `--match` until the
+   included share fits the budget.
+2. Read the whole digest and draft rules by judgement: what is consistently asked for, what is
+   consistently rejected, and which statements conflict (the newer one wins; record the
+   resolution next to the rules).
+3. Give each rule a keyword pattern in a `{ "rule-id": "regex" }` file kept beside the skill, then
+   `$HL topic-support <name> --patterns <file> --write <skill>/<name>-evidence.md`. Strength is
+   from sessions the owner typed it in: high at 5 or more, medium at 2 to 4, otherwise the rule
+   is tagged judgement. Keyword counts are approximate; never tag a rule above its count.
