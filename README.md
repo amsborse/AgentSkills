@@ -9,6 +9,7 @@ demand), and nothing in here is specific to one repository.
 agent-skills/
   nightly-evolution/        the skill (SKILL.md + 10 supporting files + scripts/evolve.mjs engine)
   history-learning/         learn from past agent conversations (SKILL.md + 5 supporting files + scripts/hl.mjs)
+  working-agreements/       learned standing rules for every agent (SKILL.md + ui-quality.md + evidence.md)
   scripts/install.sh        link skills into every detected agent (idempotent)
   scripts/validate.sh       structure, engine, tests, installed links, repo policies
   tests/                    node:test suites (engine lifecycle, installer)
@@ -100,6 +101,13 @@ it is stored, and only a token-budgeted digest of clustered statements is shown 
 reviewing agent. All derived data lives in `~/.agent-history-learning/`, never in this public
 repository; `scripts/validate.sh` fails if credentials, emails, home paths or the local
 username appear in tracked files. See `history-learning/SKILL.md`.
+
+## working-agreements
+
+The owner's standing rules for every coding agent (release safety, verification and honesty,
+scope, autonomous runs, and a UI quality bar), learned by `history-learning` from repeated
+explicit instructions and corrections. Each rule carries a confidence tag; `evidence.md` lists
+the supporting cluster ids and session counts, with no quotes, project names or paths.
 
 ## Changing a skill
 
