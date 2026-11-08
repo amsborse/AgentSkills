@@ -10,6 +10,13 @@ agent-skills/
   nightly-evolution/        the skill (SKILL.md + 10 supporting files + scripts/evolve.mjs engine)
   history-learning/         learn from past agent conversations (SKILL.md + 5 supporting files + scripts/hl.mjs)
   working-agreements/       shared rules every repo imports (AGENTS.md + ui-quality.md + evidence files; SKILL.md wrapper)
+  cinematic-plate/          replicate a cinematic reference as an art plate + live WebGL/SVG layers
+  codex-frontend/           delegate an isolated frontend task to Codex via codex-bridge
+  codex-review/             read-only second-opinion code review from Codex
+  codex-visual/             Codex visual concepts, image generation and screenshot review
+  improve/                  audit an area, implement the safe improvements, list the rest
+  spec/                     turn a one-line goal into a full engineering brief
+  verify/                   verify a change where the user sees it, with real evidence
   scripts/install.sh        link skills into every detected agent (idempotent)
   scripts/validate.sh       structure, engine, tests, installed links, repo policies
   tests/                    node:test suites (engine lifecycle, installer)
