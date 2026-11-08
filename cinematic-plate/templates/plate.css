@@ -1,0 +1,227 @@
+.hero-plate {
+  --hero-red: #ef4444;
+  --hero-sage: #86b59a;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-plate-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  /* The plate can sit below the top edge on desktop; its sky fades into the page. */
+  mask-image: linear-gradient(to bottom, transparent 0, #000 9%);
+}
+
+.hero-plate-art,
+.hero-plate-canvas,
+.hero-plate-routes {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-plate-art {
+  object-fit: fill;
+  user-select: none;
+}
+
+.hero-plate-canvas {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.hero-plate-canvas[data-ready="true"] {
+  opacity: 1;
+}
+
+.hero-plate-routes {
+  overflow: visible;
+  fill: none;
+}
+
+.hero-plate-route {
+  stroke-linecap: round;
+  stroke-width: 2.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.hero-plate-route.is-route {
+  stroke: color-mix(in srgb, var(--color-gold) 78%, transparent);
+  stroke-dasharray: 2 7;
+}
+
+.hero-plate-route.is-dependency {
+  stroke: color-mix(in srgb, var(--color-gold) 52%, transparent);
+  stroke-dasharray: 1 6;
+  stroke-width: 1.6;
+}
+
+.hero-plate-route.is-blocked,
+.hero-plate-route.is-dimmed {
+  stroke: color-mix(in srgb, var(--hero-red) 62%, transparent);
+  stroke-dasharray: 4 6;
+  stroke-width: 1.6;
+}
+
+.hero-plate-route.is-fallback,
+.hero-plate-route.is-recovery {
+  stroke: color-mix(in srgb, var(--hero-sage) 85%, transparent);
+  stroke-dasharray: 2 6;
+}
+
+.hero-plate-leader {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-gold) 62%, transparent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hero-plate-leader.is-failed {
+  stroke: color-mix(in srgb, var(--hero-red) 70%, transparent);
+}
+
+.hero-callout.hero-plate-callout {
+  position: absolute;
+  display: flex;
+  width: max-content;
+  max-width: 13rem;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0;
+  animation: hero-plate-fade 420ms ease both;
+}
+
+.hero-plate-callout-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+  color: var(--color-gold);
+}
+
+.hero-plate-callout-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.hero-callout.hero-plate-callout strong {
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+.hero-callout.hero-plate-callout .hero-plate-callout-text span {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+}
+
+.hero-plate-callout.is-left {
+  flex-direction: row;
+  transform: translate(calc(-100% - 0.5rem), -55%);
+}
+
+.hero-plate-callout.is-right {
+  transform: translate(0.5rem, -55%);
+}
+
+.hero-plate-callout.is-failed strong {
+  color: var(--hero-red);
+}
+
+.hero-plate-hotspot {
+  position: absolute;
+  width: max(2.25rem, calc(84px * var(--plate-s, 1)));
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.hero-plate-hotspot:hover,
+.hero-plate-hotspot.is-active {
+  border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-gold) 12%, transparent);
+}
+
+.hero-plate-hotspot:focus-visible {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.hero-plate-hotspot.is-failed {
+  border-color: color-mix(in srgb, var(--hero-red) 60%, transparent);
+}
+
+.hero-plate-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-bg) 88%, transparent) 24%,
+      color-mix(in srgb, var(--color-bg) 30%, transparent) 42%,
+      transparent 54%
+    ),
+    linear-gradient(180deg, transparent 72%, var(--color-bg) 100%);
+}
+
+@keyframes hero-plate-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hero-callout.hero-plate-callout,
+  .hero-plate-leader {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-plate {
+    bottom: auto;
+    height: min(48vh, 34rem);
+  }
+
+  .hero-plate-veil {
+    background: linear-gradient(180deg, transparent 0%, transparent 70%, var(--color-bg) 100%);
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-plate {
+    height: 22rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-plate-canvas,
+  .hero-plate-hotspot {
+    transition: none;
+  }
+
+  .hero-plate-callout {
+    animation: none;
+  }
+}
