@@ -17,6 +17,7 @@ agent-skills/
   improve/                  audit an area, implement the safe improvements, list the rest
   spec/                     turn a one-line goal into a full engineering brief
   verify/                   verify a change where the user sees it, with real evidence
+  unslop/                   de-slop an AI-looking UI in nine passes (vendored from heydamir/unslop, CC BY 4.0)
   scripts/install.sh        link skills into every detected agent (idempotent)
   scripts/validate.sh       structure, engine, tests, installed links, repo policies
   tests/                    node:test suites (engine lifecycle, installer)
