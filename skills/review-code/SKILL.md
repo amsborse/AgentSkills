@@ -15,7 +15,8 @@ metadata:
 
 - **Codex (default when `codex-bridge` is on PATH):** an unanchored second read. Read
   `~/agent-skills/shared/codex-bridge.md` once per session first.
-- **No bridge, or out of quota:** try `--agent opencode`. If that is also unavailable, review it
+- **Out of quota** (`"quotaExhausted": true`): rerun with `--agent antigravity`, then
+  `--agent opencode` (order in `~/agent-skills/shared/agent-routing.md`). If none is available, review it
   yourself in the same output format. In Claude Code, the built-in `/code-review` is an
   alternative the user can run.
 

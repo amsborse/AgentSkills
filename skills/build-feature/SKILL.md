@@ -21,7 +21,8 @@ Follow `~/agent-skills/working-agreements/AGENTS.md` throughout (scope, verifica
   assumptions in one line, implement P0 then P1 without waiting unless something is destructive.
 - **Large** (new subsystem, many files, or the user asked for a spec): write the brief with
   `workflows/spec.md`, show it and stop for approval. After approval, split independent parts and
-  hand isolated ones to Codex with the `coordinate-agents` skill.
+  hand isolated ones out with the `coordinate-agents` skill: UI parts to Codex, simple parts to
+  Antigravity, the complex core stays with you (`~/agent-skills/shared/agent-routing.md`).
 
 ## Steps
 

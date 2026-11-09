@@ -157,6 +157,8 @@
       ],
       "keywords": [
         "codex",
+        "antigravity",
+        "agy",
         "delegate",
         "agents",
         "subagents",
@@ -164,7 +166,9 @@
         "worktree",
         "orchestrate",
         "handoff",
-        "opencode"
+        "opencode",
+        "routing",
+        "fallback"
       ],
       "composes": [
         "review-code",

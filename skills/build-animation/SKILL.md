@@ -24,8 +24,8 @@ gimmicks, and every animation communicates something.
   IntersectionObserver and `visibilitychange`.
 - **Reference image of a cinematic scene:** follow `workflows/cinematic-plate/cinematic-plate.md`
   (a generated text-free plate plus live layers; templates and scripts are in that folder).
-- **Isolated heavy effect:** you may delegate the implementation to Codex with the
-  `coordinate-agents` skill, then review it yourself.
+- **Isolated heavy effect:** delegate the implementation to Codex (UI work, per
+  `~/agent-skills/shared/agent-routing.md`) with the `coordinate-agents` skill, then review it yourself.
 - **Motion audit:** record or screenshot the states, then list snaps, jank, competing motions and
   missing reduced-motion handling, each with a fix.
 

@@ -33,4 +33,4 @@ Read `~/agent-skills/shared/codex-bridge.md` once per session before the first c
    (`git worktree remove <path>`; delete the `codex/<slug>` branch once merged locally). Never push or merge to main.
 7. **Report:** run id, files changed, checks run with results, and anything you rewrote or rejected.
 
-If Codex is out of quota, the same command works with `--agent opencode` (OpenCode Go models only); see `~/agent-skills/shared/codex-bridge.md`.
+The same steps work for every bridge agent: add `--agent antigravity` for simple tasks or `--agent opencode`. Pick the agent and the fallback order from `~/agent-skills/shared/agent-routing.md`; when a summary has `"quotaExhausted": true`, rerun with the next agent instead of retrying.

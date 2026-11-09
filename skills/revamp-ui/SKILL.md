@@ -15,6 +15,11 @@ The bar is the UI taste section of `~/agent-skills/working-agreements/AGENTS.md`
 anti-patterns in `~/agent-skills/working-agreements/ui-quality.md`. A repository's design system
 wins on specifics. Never replace a design the owner liked: add the new one as an option or toggle.
 
+UI implementation is Codex's work by default (`~/agent-skills/shared/agent-routing.md`): hand
+isolated components, pages and assets to Codex through the `coordinate-agents` skill, keep the
+direction, review and verification yourself, and fall back to Antigravity, then yourself, when
+Codex reports `quotaExhausted`.
+
 ## Size it
 
 - **Polish** (one screen, "clean this up"): screenshot it, then run the audit and passes from

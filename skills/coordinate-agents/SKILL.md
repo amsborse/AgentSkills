@@ -3,7 +3,7 @@ name: coordinate-agents
 description: Split work across agents — delegate an isolated implementation to OpenAI Codex through codex-bridge in its own git worktree, run independent parts in parallel subagents, then review and integrate the results yourself. Includes the former /codex-frontend workflow. Use for "use Codex for this", "delegate to Codex", "split this work", "run agents in parallel" or "orchestrate agents".
 metadata:
   aliases: "use codex, delegate to codex, codex frontend, split this work, parallel agents, orchestrate agents, multi agent"
-  keywords: "codex, delegate, agents, subagents, parallel, worktree, orchestrate, handoff, opencode"
+  keywords: "codex, antigravity, agy, delegate, agents, subagents, parallel, worktree, orchestrate, handoff, opencode, routing, fallback"
   composes: "review-code, verify"
   requires: "codex-bridge?, subagents?, git"
   risk: "medium"
@@ -20,11 +20,17 @@ Only for work that is genuinely independent (separate files or modules, a clear 
 or a second opinion. Keep tightly coupled work in one agent. Small tasks you can finish in a few
 steps stay with you.
 
-## Codex (implementation)
+## Who gets which work
 
-Follow `workflows/codex-implement.md`: brief file, its own worktree, `codex-bridge run
---sandbox workspace-write`, then review and bring the change back. Bridge rules are in
-`~/agent-skills/shared/codex-bridge.md`.
+Follow `~/agent-skills/shared/agent-routing.md`: UI work goes to Codex, simple isolated tasks to
+Antigravity (`--agent antigravity`), complex work stays with you. When a run reports
+`quotaExhausted`, move to the next agent in that row.
+
+## Delegated implementation (Codex, Antigravity, OpenCode)
+
+Follow `workflows/codex-implement.md` with the agent the routing picked: brief file, its own
+worktree, `codex-bridge run --agent <agent> --sandbox workspace-write`, then review and bring the
+change back. Bridge rules are in `~/agent-skills/shared/codex-bridge.md`.
 
 ## Parallel subagents (Claude)
 

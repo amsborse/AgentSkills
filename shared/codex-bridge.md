@@ -1,14 +1,16 @@
 # codex-bridge: how Claude calls Codex
 
 Shared by the `review-code` and `coordinate-agents` skills and the `revamp-ui` codex-visual workflow.
+Which agent to use for which work, and the fallback order, is in `agent-routing.md`.
 
-The no-push, no-commit rules below bind the **delegated agent** (Codex or OpenCode). They don't
+The no-push, no-commit rules below bind the **delegated agent** (Codex, Antigravity or OpenCode). They don't
 change what the orchestrating agent may do: it still follows the working agreements, which allow a
 push only when the user asked for it in this task.
 
 ## What it is
 
-- `codex-bridge` (on PATH via `~/.local/bin`, source `~/.local/lib/codex-bridge/codex-bridge.mjs`) wraps
+- `codex-bridge` (on PATH via `~/.local/bin`, source `~/agent-skills/tools/codex-bridge/codex-bridge.mjs`, tests in
+  `tests/codex-bridge.test.mjs`) wraps
   the Codex CLI that ships inside the Codex desktop app (`OpenAI.Codex` Store package,
   `app\resources\codex.exe`). It resolves that path through `Get-AppxPackage`, so app updates don't break it.
 - `codex` on PATH is a pass-through shim to the same binary.
@@ -51,7 +53,9 @@ on failure. Exit code is 0 only for `ok`. Full logs (`prompt.md`, `events.jsonl`
 - **Prompt size:** keep prompts under 30k chars; put long context in a file in the workspace and
   reference its path.
 - **Quota:** each call uses the ChatGPT plan's Codex allowance. Make one well-briefed call rather than
-  many small ones. If a run fails with a usage-limit error, report it and stop; don't retry in a loop.
+  many small ones. A failed run whose summary has `quotaExhausted: true` (matched from errors and stderr:
+  quota, rate limit, resource exhausted, usage limit, 429) means the allowance is gone: switch to the next
+  agent in `agent-routing.md`; don't retry in a loop.
 - **Verification is yours:** Codex output is a proposal. Read the diff or files, run the checks, and
   confirm in the running app before calling anything done.
 
@@ -73,3 +77,20 @@ on failure. Exit code is 0 only for `ok`. Full logs (`prompt.md`, `events.jsonl`
   status/diff/log/show/blame, `rg`, `ls` and `cat`.
 - The summary JSON adds `agent`; `threadId` is the OpenCode session id and `usage` has
   `input, output, reasoning, cacheRead, cacheWrite, steps, cost`.
+
+## Antigravity backend (`--agent antigravity`)
+
+- Runs the Antigravity CLI (`agy`, `%LOCALAPPDATA%agyinagy.exe`, or `AGY_EXE`) headless with
+  `-p ... --output-format stream-json`. The routing policy gives it simple tasks.
+- Billing: the signed-in Google account. Every `*_API_KEY` variable and `GOOGLE_APPLICATION_CREDENTIALS`
+  are stripped from the child. `codex-bridge doctor --agent antigravity` shows version, sign-in and models.
+- `--model` takes a name from `agy models` (e.g. `gemini-3.8-flash-medium`); `--effort` and `--add-dir`
+  pass through. Codex-only flags and `--image` are rejected.
+- Sandbox: always `--sandbox` (shell commands cannot write the workspace) plus `allow command(*)`.
+  Read-only (the default, and always for `review`) also denies `write_file(*)`. In `workspace-write` the
+  file tools can edit, but commands still cannot write, so builds, formatters and installs fail there.
+  agy permission rules only match exactly or `*`, so per-command deny lists (like OpenCode's) are not
+  possible; the contract and the sandbox are the guard.
+- A run that ends with no answer and denied actions, or without a result event, is `failed`, not `ok`.
+  `threadId` is the agy conversation id; `usage` has `input_tokens, output_tokens, thinking_tokens,
+  total_tokens, turns`.
