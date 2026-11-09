@@ -1,0 +1,810 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "automate-browser",
+      "path": "skills/automate-browser",
+      "description": "Automate a browser workflow — navigate, fill forms, click through flows, extract page data, take screenshots, or turn a repeated manual task into a reusable script — with the cheapest reliable browser tool available and explicit confirmation before anything outward-facing (submitting, purchasing, posting, sending). Use for \"automate this browser workflow\", \"fill this form\", \"scrape this page\", \"click through this flow\" or \"make a script for this web task\".",
+      "aliases": [
+        "automate this browser workflow",
+        "automate the browser",
+        "browser automation",
+        "fill this form",
+        "scrape this page",
+        "click through this flow",
+        "web automation"
+      ],
+      "keywords": [
+        "browser",
+        "playwright",
+        "chrome",
+        "puppeteer",
+        "selenium",
+        "form",
+        "scrape",
+        "crawl",
+        "click",
+        "login",
+        "screenshot",
+        "automation",
+        "web"
+      ],
+      "composes": [
+        "verify",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "build-animation",
+      "path": "skills/build-animation",
+      "description": "Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for \"add an animation\", \"hero animation\", \"make it move\", a motion review, or replicating a cinematic reference.",
+      "aliases": [
+        "add animation",
+        "animate this",
+        "hero animation",
+        "make it move",
+        "motion design",
+        "cinematic plate",
+        "signature visual",
+        "review the animations"
+      ],
+      "keywords": [
+        "animation",
+        "motion",
+        "transition",
+        "webgl",
+        "shader",
+        "canvas",
+        "svg",
+        "three.js",
+        "hero",
+        "scroll",
+        "easing",
+        "framer motion"
+      ],
+      "composes": [
+        "verify",
+        "revamp-ui",
+        "coordinate-agents"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "image-generation",
+          "optional": true
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "low",
+      "workflows": [
+        "skills/build-animation/workflows/cinematic-plate"
+      ]
+    },
+    {
+      "name": "build-feature",
+      "path": "skills/build-feature",
+      "description": "Build a feature end to end — ground it in the code, write a short brief, implement, test, verify on the real target and review. Scales from a small change (just do it and verify) to a large feature (spec first, worktree, parallel workers). Use when asked to build, add or implement a feature, \"build this end to end\", or \"write a spec/brief\" for one (the former /spec).",
+      "aliases": [
+        "build this feature",
+        "build a feature",
+        "implement this feature",
+        "add a feature",
+        "new feature",
+        "end to end",
+        "write a spec",
+        "spec this",
+        "write a brief"
+      ],
+      "keywords": [
+        "feature",
+        "implement",
+        "build",
+        "spec",
+        "brief",
+        "requirements",
+        "endpoint",
+        "component",
+        "api"
+      ],
+      "composes": [
+        "understand-code",
+        "test-everything",
+        "verify",
+        "review-code",
+        "coordinate-agents"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        },
+        {
+          "capability": "git",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/build-feature/workflows/spec.md"
+      ]
+    },
+    {
+      "name": "coordinate-agents",
+      "path": "skills/coordinate-agents",
+      "description": "Split work across agents — delegate an isolated implementation to OpenAI Codex through codex-bridge in its own git worktree, run independent parts in parallel subagents, then review and integrate the results yourself. Includes the former /codex-frontend workflow. Use for \"use Codex for this\", \"delegate to Codex\", \"split this work\", \"run agents in parallel\" or \"orchestrate agents\".",
+      "aliases": [
+        "use codex",
+        "delegate to codex",
+        "codex frontend",
+        "split this work",
+        "parallel agents",
+        "orchestrate agents",
+        "multi agent"
+      ],
+      "keywords": [
+        "codex",
+        "delegate",
+        "agents",
+        "subagents",
+        "parallel",
+        "worktree",
+        "orchestrate",
+        "handoff",
+        "opencode"
+      ],
+      "composes": [
+        "review-code",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        },
+        {
+          "capability": "subagents",
+          "optional": true
+        },
+        {
+          "capability": "git",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/coordinate-agents/workflows/codex-implement.md"
+      ]
+    },
+    {
+      "name": "fix-bug",
+      "path": "skills/fix-bug",
+      "description": "Find and fix a bug — reproduce it on the real target, find the root cause, write a failing regression test, fix, and confirm the fix where the user saw the bug. Use for errors, crashes, failing tests or CI, wrong behavior, \"this is broken\", \"still broken\" or \"I still see the old one\".",
+      "aliases": [
+        "fix this bug",
+        "find and fix",
+        "debug this",
+        "it is broken",
+        "still broken",
+        "not working",
+        "failing test",
+        "fix ci"
+      ],
+      "keywords": [
+        "bug",
+        "fix",
+        "debug",
+        "error",
+        "broken",
+        "failing",
+        "crash",
+        "exception",
+        "stack trace",
+        "regression",
+        "flaky"
+      ],
+      "composes": [
+        "verify",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "history-learning",
+      "path": "skills/history-learning",
+      "description": "Learn durable preferences, corrections, decisions and working patterns from historical coding-agent conversations (Claude Code, Codex, Cursor, OpenCode, Antigravity, Kiro, Qwen) and turn them into reviewed, evidence-backed skill updates. Use when asked to learn from past conversations or chat history, mine repeated corrections or preferences, update skills from experience, run incremental history learning, or audit what has been learned. Read-only over history, consent-gated per source, redacts before any model sees text, and never publishes or overwrites skills on its own.",
+      "aliases": [
+        "learn from past conversations",
+        "mine my chat history",
+        "incremental history learning",
+        "audit what has been learned"
+      ],
+      "keywords": [
+        "history",
+        "learning",
+        "conversations",
+        "transcripts",
+        "preferences",
+        "corrections"
+      ],
+      "composes": [
+        "manage-skills"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "improve",
+      "path": "skills/improve",
+      "description": "Audit a project or area for improvements, rank them, implement the safe ones and verify them in one pass, then list the rest as numbered options. Also covers behavior-preserving refactors and measured performance work. Use when the user runs /improve [area], asks \"what can be improved\" (and would otherwise follow up with \"implement all\"), or asks to refactor, clean up or speed something up.",
+      "aliases": [
+        "what can be improved",
+        "improve this",
+        "refactor",
+        "clean up the code",
+        "optimize performance",
+        "make it faster",
+        "simplify this"
+      ],
+      "keywords": [
+        "improve",
+        "refactor",
+        "cleanup",
+        "performance",
+        "optimize",
+        "simplify",
+        "tech debt",
+        "quality",
+        "speed"
+      ],
+      "composes": [
+        "verify",
+        "test-everything",
+        "review-code"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "manage-skills",
+      "path": "skills/manage-skills",
+      "description": "Manage this skill catalog — find which skill fits a request, create or update a skill, vet and adopt a third-party skill, reinstall or repair skill discovery for Claude, Codex and other agents, and learn new rules from past agent conversations (history-learning). Use for \"which skill should I use\", \"add a skill\", \"update my skills\", \"install skills\", \"learn from my history\" or when a skill seems missing or broken.",
+      "aliases": [
+        "manage skills",
+        "which skill",
+        "add a skill",
+        "create a skill",
+        "update my skills",
+        "install skills",
+        "learn from history",
+        "learn from my conversations",
+        "skill router"
+      ],
+      "keywords": [
+        "skill",
+        "skills",
+        "catalog",
+        "registry",
+        "router",
+        "install",
+        "discovery",
+        "history",
+        "learning",
+        "vendor",
+        "adopt"
+      ],
+      "composes": [
+        "security-audit"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "nightly-evolution",
+      "path": "skills/nightly-evolution",
+      "description": "Autonomous overnight improvement of a repository on an isolated nightly/evolution-YYYY-MM-DD branch, producing one evidence-backed draft PR per night. Covers performance, code quality, architecture, UI/UX, modernization, security, reliability, AI efficiency, cost, developer experience and product opportunities. Use on a night-loop tick, or when asked to \"run nightly evolution\", \"evolve this repo overnight\" or \"do an improvement pass\". Not for fixing a specific reported bug.",
+      "aliases": [
+        "run nightly evolution",
+        "evolve this repo overnight",
+        "do an improvement pass"
+      ],
+      "keywords": [
+        "nightly",
+        "evolution",
+        "overnight",
+        "improvement",
+        "experiment",
+        "draft pr"
+      ],
+      "composes": [
+        "run-autonomous"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "production-ready",
+      "path": "skills/production-ready",
+      "description": "Take a project from \"works on my machine\" to ready for real users: a readiness audit across security, tests, error handling and observability, performance, configuration and secrets, build and deploy, data safety and docs, then fix the gaps in priority order and prove each with evidence. Does not deploy or publish unless asked. Use for \"make this project production ready\", \"prepare for launch\", \"harden this\", \"release readiness\" or \"is this ready to ship\".",
+      "aliases": [
+        "production ready",
+        "make this production ready",
+        "prepare for launch",
+        "harden this",
+        "release readiness",
+        "ready to ship",
+        "go live checklist"
+      ],
+      "keywords": [
+        "production",
+        "launch",
+        "release",
+        "harden",
+        "readiness",
+        "observability",
+        "logging",
+        "monitoring",
+        "deploy",
+        "ci",
+        "rollback",
+        "backup",
+        "reliability"
+      ],
+      "composes": [
+        "security-audit",
+        "test-everything",
+        "improve",
+        "verify",
+        "review-code"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        },
+        {
+          "capability": "browser",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "research",
+      "path": "skills/research",
+      "description": "Research a topic, technology, library or question in depth: plan sub-questions, gather primary sources, cross-check claims, run a contrarian pass, and deliver a cited synthesis with confidence levels and what stays unknown. Also covers comparing libraries or tools, evaluating a repo before adopting it, and checking data or experiment results. Scales from a quick answer to a multi-agent deep dive. Use for \"research this topic deeply\", \"compare X and Y\", \"evaluate this library\" or \"what's the state of the art\".",
+      "aliases": [
+        "research this",
+        "research this topic",
+        "deep research",
+        "deeply research",
+        "compare options",
+        "evaluate this library",
+        "evaluate this repo",
+        "state of the art",
+        "literature review"
+      ],
+      "keywords": [
+        "research",
+        "sources",
+        "compare",
+        "evaluate",
+        "library",
+        "alternatives",
+        "benchmark",
+        "study",
+        "paper",
+        "investigate",
+        "data",
+        "experiment"
+      ],
+      "composes": [
+        "understand-code"
+      ],
+      "requires": [
+        {
+          "capability": "web-search",
+          "optional": true
+        },
+        {
+          "capability": "subagents",
+          "optional": true
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "revamp-ui",
+      "path": "skills/revamp-ui",
+      "description": "Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for \"revamp my website UI\", \"make it look premium\", \"unslop\", \"redesign\", \"UI audit\" or \"match this reference\".",
+      "aliases": [
+        "revamp ui",
+        "revamp my website",
+        "redesign",
+        "redesign the ui",
+        "unslop",
+        "polish the ui",
+        "make it look premium",
+        "looks ai generated",
+        "ui audit",
+        "design concepts",
+        "match this design"
+      ],
+      "keywords": [
+        "ui",
+        "ux",
+        "design",
+        "website",
+        "landing page",
+        "dashboard",
+        "layout",
+        "typography",
+        "color",
+        "theme",
+        "dark mode",
+        "light mode",
+        "visual",
+        "polish",
+        "css",
+        "tailwind"
+      ],
+      "composes": [
+        "verify",
+        "build-animation",
+        "coordinate-agents"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "image-generation",
+          "optional": true
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/revamp-ui/workflows/codex-visual.md",
+        "skills/revamp-ui/workflows/unslop"
+      ]
+    },
+    {
+      "name": "review-code",
+      "path": "skills/review-code",
+      "description": "Review a diff, branch, commit or PR for real bugs, performance problems, needless complexity and missing tests, and verify every finding before reporting it. By default the review is an independent read-only pass by OpenAI Codex through codex-bridge (the former /codex-review); without the bridge it is a careful self-review. Use for \"review this\", \"code review\", \"second opinion\", \"have Codex check it\", or before calling a large change done.",
+      "aliases": [
+        "review this",
+        "code review",
+        "review my changes",
+        "review the diff",
+        "review this pr",
+        "second opinion",
+        "codex review"
+      ],
+      "keywords": [
+        "review",
+        "diff",
+        "pull request",
+        "pr",
+        "critique",
+        "findings",
+        "branch",
+        "commit"
+      ],
+      "composes": [
+        "fix-bug"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "run-autonomous",
+      "path": "skills/run-autonomous",
+      "description": "Run a long or multi-step task autonomously — overnight, while the user is away, or until a list of milestones is done — with an isolated branch or worktree, a written ledger of progress and decisions, bounded retries, and a final evidence-backed report. Includes the nightly-evolution routine (one draft PR of improvements per night). Never pushes, merges or deploys unless asked. Use for \"run this task autonomously overnight\", \"keep going until done\", \"work on this while I sleep\" or \"run nightly evolution\".",
+      "aliases": [
+        "run this task autonomously",
+        "run autonomously",
+        "overnight",
+        "while i sleep",
+        "keep going until done",
+        "nightly evolution",
+        "work unattended"
+      ],
+      "keywords": [
+        "autonomous",
+        "unattended",
+        "overnight",
+        "nightly",
+        "loop",
+        "ledger",
+        "milestones",
+        "long running",
+        "background",
+        "schedule"
+      ],
+      "composes": [
+        "build-feature",
+        "fix-bug",
+        "improve",
+        "verify",
+        "coordinate-agents",
+        "review-code"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        },
+        {
+          "capability": "scheduler",
+          "optional": true
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "security-audit",
+      "path": "skills/security-audit",
+      "description": "Audit a codebase or change for security problems — secrets, authentication and authorization, injection, XSS/CSRF/SSRF, unsafe deserialization, dependency CVEs, risky install scripts, permissions and data exposure — with a threat model sized to the system, concrete exploit scenarios, and fixes. Also reviews third-party skills, plugins and MCP servers before adoption. Read-only unless fixes are asked for. Use for \"security audit\", \"security review\", \"threat model\", \"is this safe\" or \"check for secrets\".",
+      "aliases": [
+        "security audit",
+        "security review",
+        "threat model",
+        "find vulnerabilities",
+        "is this safe",
+        "check for secrets",
+        "audit dependencies",
+        "review this skill for safety"
+      ],
+      "keywords": [
+        "security",
+        "vulnerability",
+        "secret",
+        "credential",
+        "auth",
+        "authorization",
+        "injection",
+        "xss",
+        "csrf",
+        "ssrf",
+        "cve",
+        "dependency",
+        "owasp",
+        "permission",
+        "sandbox"
+      ],
+      "composes": [
+        "fix-bug",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "test-everything",
+      "path": "skills/test-everything",
+      "description": "Plan, write and run tests across the stack — unit, integration, end-to-end and visual — find the gaps that matter, fix flaky tests at the cause, and report real results. Use for \"test everything\", \"add tests\", \"improve test coverage\", \"set up e2e tests\", a test strategy, or when a change needs proof beyond reading the code.",
+      "aliases": [
+        "test everything",
+        "write tests",
+        "add tests",
+        "test coverage",
+        "improve coverage",
+        "run all tests",
+        "e2e tests",
+        "test strategy"
+      ],
+      "keywords": [
+        "test",
+        "tests",
+        "testing",
+        "coverage",
+        "unit",
+        "integration",
+        "e2e",
+        "playwright",
+        "vitest",
+        "jest",
+        "pytest",
+        "flaky",
+        "snapshot"
+      ],
+      "composes": [
+        "verify",
+        "fix-bug"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        },
+        {
+          "capability": "browser",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "understand-code",
+      "path": "skills/understand-code",
+      "description": "Understand and explain a codebase or one area of it — architecture, entry points, data flow, dependencies, conventions and risky spots — with file:line evidence, as a short map or a diagram. Use for \"understand the architecture of this repository\", \"how does X work\", \"explain this codebase\", onboarding, or before changing unfamiliar code.",
+      "aliases": [
+        "understand the architecture",
+        "architecture of this repository",
+        "explain this codebase",
+        "how does this work",
+        "onboard me",
+        "map the repo",
+        "walk me through"
+      ],
+      "keywords": [
+        "architecture",
+        "understand",
+        "explain",
+        "codebase",
+        "repository",
+        "onboarding",
+        "diagram",
+        "dependency",
+        "structure",
+        "flow"
+      ],
+      "composes": [
+        "research"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "verify",
+      "path": "skills/verify",
+      "description": "Verify a change where the user actually looks at it (local browser, Vercel/production URL, LG TV, Windows desktop app, Chrome extension) and report pass/fail with real evidence. Use when the user runs /verify, says something is \"still broken\" / \"I still see the old one\", or before claiming a UI or runtime fix is done.",
+      "aliases": [
+        "verify",
+        "verify this",
+        "check it works",
+        "i still see the old one",
+        "test in the browser",
+        "take a screenshot",
+        "confirm the fix"
+      ],
+      "keywords": [
+        "verify",
+        "evidence",
+        "screenshot",
+        "browser",
+        "production",
+        "deploy",
+        "tv",
+        "desktop",
+        "extension",
+        "check"
+      ],
+      "composes": [
+        "fix-bug"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": true
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "working-agreements",
+      "path": "skills/working-agreements",
+      "description": "The owner's standing rules for any coding agent, learned from their own repeated instructions and corrections across Claude Code, Codex, Cursor, OpenCode and Antigravity. Use at the start of any coding, debugging, UI or automation task in the owner's repositories; before reporting work as done or fixed; before any commit, push, merge, deploy or paid model call; when touching secrets, git state or another agent's work; during long autonomous or overnight runs; and for any UI, visual design or animation change. A repository's AGENTS.md and the current task's explicit instructions take precedence.",
+      "aliases": [
+        "working agreements",
+        "my rules",
+        "house rules",
+        "how i work"
+      ],
+      "keywords": [
+        "rules",
+        "agreements",
+        "preferences",
+        "conventions",
+        "ui taste"
+      ],
+      "composes": [],
+      "requires": [],
+      "risk": "low",
+      "workflows": []
+    }
+  ]
+}

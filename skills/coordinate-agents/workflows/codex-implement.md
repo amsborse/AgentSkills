@@ -1,11 +1,6 @@
----
-name: codex-frontend
-description: Delegate an isolated frontend implementation task (React, TypeScript, CSS, SVG, Canvas, WebGL, Three.js) to OpenAI Codex via the local codex-bridge, in its own git worktree, then review and bring the change back. Use when the user runs /codex-frontend or asks Codex to build or rework a component, animation or visual effect. Claude owns the architecture, review and final integration.
----
+# Codex implementation workflow (formerly /codex-frontend)
 
-# /codex-frontend
-
-Read `~/.claude/skills/codex-visual/BRIDGE.md` once per session before the first call.
+Read `~/agent-skills/shared/codex-bridge.md` once per session before the first call.
 
 ## Steps
 
@@ -32,10 +27,10 @@ Read `~/.claude/skills/codex-visual/BRIDGE.md` once per session before the first
    Use `run_in_background: true`; implementation runs often take several minutes.
 5. **Review it as your own work** in the worktree: `git -C <worktree> diff`, read every changed file,
    run typecheck, tests and lint, and exercise it in the running app with a screenshot. Optionally run
-   `/codex-review` against the worktree for a second pass.
+   the `review-code` skill against the worktree for a second pass.
 6. **Bring it back** onto your working branch by committing in the worktree and cherry-picking, or
    applying the diff, only after it passes. Then remove the worktree
    (`git worktree remove <path>`; delete the `codex/<slug>` branch once merged locally). Never push or merge to main.
 7. **Report:** run id, files changed, checks run with results, and anything you rewrote or rejected.
 
-If Codex is out of quota, the same command works with `--agent opencode` (OpenCode Go models only); see `../codex-visual/BRIDGE.md`.
+If Codex is out of quota, the same command works with `--agent opencode` (OpenCode Go models only); see `~/agent-skills/shared/codex-bridge.md`.

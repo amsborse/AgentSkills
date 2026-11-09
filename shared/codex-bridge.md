@@ -1,6 +1,10 @@
 # codex-bridge: how Claude calls Codex
 
-Shared by `/codex-visual`, `/codex-frontend` and `/codex-review`.
+Shared by the `review-code` and `coordinate-agents` skills and the `revamp-ui` codex-visual workflow.
+
+The no-push, no-commit rules below bind the **delegated agent** (Codex or OpenCode). They don't
+change what the orchestrating agent may do: it still follows the working agreements, which allow a
+push only when the user asked for it in this task.
 
 ## What it is
 

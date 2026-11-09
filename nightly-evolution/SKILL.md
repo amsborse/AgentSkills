@@ -3,6 +3,11 @@ name: nightly-evolution
 description: Autonomous overnight improvement of a repository on an isolated nightly/evolution-YYYY-MM-DD branch, producing one evidence-backed draft PR per night. Covers performance, code quality, architecture, UI/UX, modernization, security, reliability, AI efficiency, cost, developer experience and product opportunities. Use on a night-loop tick, or when asked to "run nightly evolution", "evolve this repo overnight" or "do an improvement pass". Not for fixing a specific reported bug.
 license: MIT
 metadata:
+  aliases: "run nightly evolution, evolve this repo overnight, do an improvement pass"
+  keywords: "nightly, evolution, overnight, improvement, experiment, draft pr"
+  composes: "run-autonomous"
+  requires: "git, shell"
+  risk: "high"
   version: "1"
   engine: scripts/evolve.mjs
 ---

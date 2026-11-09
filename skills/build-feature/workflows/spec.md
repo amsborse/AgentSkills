@@ -1,9 +1,4 @@
----
-name: spec
-description: Turn a one-line goal into the user's full "Act as a principal …" engineering brief (role, context to preserve, prioritized requirements, constraints, acceptance checks), grounded in the actual code, then implement it after approval. Use when the user runs /spec <goal> or asks to "write a spec/brief" for a feature or redesign.
----
-
-# /spec <goal>
+# Spec workflow (formerly /spec)
 
 The user normally pastes long briefs in this shape. Build it for them from a short goal so they
 don't have to.
@@ -27,10 +22,10 @@ don't have to.
 
    Constraints: no new dependencies or paid APIs unless listed; extend existing components;
    performance budget <if relevant>; both light and dark themes <if UI>.
-   Done when: <acceptance checks, and how /verify will check them on the real target>
+   Done when: <acceptance checks, and how the `verify` skill will check them on the real target>
    ```
 
    Pull constraints from ~/agent-skills/working-agreements (UI taste, scope, verification) and
    the project's AGENTS.md/CLAUDE.md rather than inventing new ones.
 3. **Show it and stop** with numbered questions only for real unknowns. When the user says go
-   (or edits it), implement P0 then P1, run /verify, and report in 2–5 sentences.
+   (or edits it), implement P0 then P1, run the `verify` skill, and report in 2–5 sentences.

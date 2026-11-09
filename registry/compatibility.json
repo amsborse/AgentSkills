@@ -1,0 +1,63 @@
+{
+  "$comment": "Hand-maintained. How each agent discovers these skills. 'verified' records what was tested on this machine and when; null means not tested.",
+  "agents": {
+    "claude-code": {
+      "skillDirs": [
+        "~/.claude/skills",
+        "~/.claude-<profile>/skills"
+      ],
+      "link": "junction (Windows) / symlink",
+      "discovery": "name and description of every skill in context each turn; SKILL.md loaded on use",
+      "optionalHook": "UserPromptSubmit route-hook.mjs via --router-hook on",
+      "verified": {
+        "date": "2026-11-09",
+        "how": "fresh claude -p session (haiku) in a scratch project whose .claude/skills held Windows junctions to skills/*; it quoted the linked descriptions verbatim",
+        "scope": "project-level .claude/skills; user-level ~/.claude/skills is the same loader"
+      }
+    },
+    "codex": {
+      "skillDirs": [
+        "~/.agents/skills",
+        "<repo>/.agents/skills",
+        "$CODEX_HOME/skills (deprecated, still scanned)"
+      ],
+      "link": "symlink documented; Windows junction verified",
+      "discovery": "name and description in context; follows symlinked skill folders",
+      "optionalBlock": "marked pointer block in $CODEX_HOME/AGENTS.md via --codex-block on",
+      "verified": {
+        "date": "2026-11-09",
+        "version": "codex-cli 0.167.0-alpha.3.2",
+        "how": "fresh codex exec (read-only) in a scratch repo whose .agents/skills held junctions to understand-code and run-autonomous; it quoted both descriptions verbatim, and answered NONE when the junctions were absent",
+        "scope": "repo-level <repo>/.agents/skills; user-level ~/.agents/skills not exercised to avoid touching the real home"
+      }
+    },
+    "cursor": {
+      "skillDirs": [
+        "~/.agents/skills",
+        "~/.cursor/skills",
+        "~/.claude/skills",
+        "~/.codex/skills"
+      ],
+      "discovery": "reads Agent Skills folders, including Claude's and Codex's",
+      "verified": null
+    },
+    "gemini-cli": {
+      "skillDirs": [
+        "~/.gemini/skills",
+        "~/.agents/skills"
+      ],
+      "verified": null
+    },
+    "opencode": {
+      "skillDirs": [
+        "~/.config/opencode/skills",
+        "~/.claude/skills",
+        "~/.agents/skills"
+      ],
+      "verified": null
+    },
+    "other": {
+      "fallback": "the repository's AGENTS.md points to ~/agent-skills/working-agreements/AGENTS.md; skills can be read as plain Markdown from ~/agent-skills/skills/<name>/SKILL.md"
+    }
+  }
+}

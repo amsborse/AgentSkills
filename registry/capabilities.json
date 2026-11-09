@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "capabilities": {
+    "browser": {
+      "requiredBy": [
+        "automate-browser",
+        "build-animation",
+        "revamp-ui"
+      ],
+      "optionalFor": [
+        "production-ready",
+        "test-everything",
+        "verify"
+      ]
+    },
+    "codex-bridge": {
+      "requiredBy": [],
+      "optionalFor": [
+        "build-animation",
+        "coordinate-agents",
+        "revamp-ui",
+        "review-code",
+        "run-autonomous"
+      ]
+    },
+    "git": {
+      "requiredBy": [
+        "build-feature",
+        "coordinate-agents",
+        "nightly-evolution",
+        "review-code",
+        "run-autonomous"
+      ],
+      "optionalFor": []
+    },
+    "image-generation": {
+      "requiredBy": [],
+      "optionalFor": [
+        "build-animation",
+        "revamp-ui"
+      ]
+    },
+    "scheduler": {
+      "requiredBy": [],
+      "optionalFor": [
+        "run-autonomous"
+      ]
+    },
+    "shell": {
+      "requiredBy": [
+        "build-feature",
+        "fix-bug",
+        "history-learning",
+        "improve",
+        "manage-skills",
+        "nightly-evolution",
+        "production-ready",
+        "run-autonomous",
+        "security-audit",
+        "test-everything",
+        "understand-code",
+        "verify"
+      ],
+      "optionalFor": []
+    },
+    "subagents": {
+      "requiredBy": [],
+      "optionalFor": [
+        "coordinate-agents",
+        "research"
+      ]
+    },
+    "web-search": {
+      "requiredBy": [],
+      "optionalFor": [
+        "research"
+      ]
+    }
+  }
+}

@@ -6,11 +6,19 @@ import { fileURLToPath } from 'node:url';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
+// Skills that stay at the repository root because scripts outside this repository
+// (night loops) call them by path; they are installed under the same names.
+export const ROOT_SKILLS = ['nightly-evolution', 'history-learning'];
+
 export function skillDirs(root = REPO_ROOT) {
-  return fs
-    .readdirSync(root, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && !d.name.startsWith('.') && fs.existsSync(path.join(root, d.name, 'SKILL.md')))
-    .map((d) => d.name);
+  const skills = path.join(root, 'skills');
+  const nested = isDir(skills)
+    ? fs.readdirSync(skills, { withFileTypes: true })
+      .filter((d) => d.isDirectory() && fs.existsSync(path.join(skills, d.name, 'SKILL.md')))
+      .map((d) => path.posix.join('skills', d.name))
+    : [];
+  const top = ROOT_SKILLS.filter((name) => fs.existsSync(path.join(root, name, 'SKILL.md')));
+  return [...nested, ...top].sort((a, b) => path.posix.basename(a).localeCompare(path.posix.basename(b)));
 }
 
 function onPath(cmd) {
@@ -57,7 +65,8 @@ export function detectAgents(home = os.homedir(), env = process.env) {
   }
 
   const codexHome = env.CODEX_HOME ? path.resolve(env.CODEX_HOME) : path.join(home, '.codex');
-  if (isDir(codexHome) || onPath('codex')) agents.push({ id: 'codex', name: 'Codex', present: true, targets: [path.join(codexHome, 'skills')] });
+  const sharedAgents = path.join(home, '.agents', 'skills');
+  if (isDir(codexHome) || fs.existsSync(sharedAgents) || onPath('codex')) agents.push({ id: 'agents', name: 'Agents (Codex, Cursor, Gemini)', present: true, targets: [sharedAgents], migrated: [path.join(codexHome, 'skills')] });
 
   const claudeDefault = path.join(home, '.claude', 'skills');
   const claudeTargets = agents.find((a) => a.id === 'claude-code')?.targets || [];
@@ -69,7 +78,7 @@ export function detectAgents(home = os.homedir(), env = process.env) {
   }
 
   if (isDir(path.join(home, '.cursor'))) {
-    const covered = claudeTargets.includes(claudeDefault) ? claudeDefault : agents.some((a) => a.id === 'codex') ? path.join(codexHome, 'skills') : null;
+    const covered = claudeTargets.includes(claudeDefault) ? claudeDefault : agents.some((a) => a.id === 'agents') ? sharedAgents : null;
     agents.push(covered ? { id: 'cursor', name: 'Cursor', present: true, targets: [], coveredBy: covered } : { id: 'cursor', name: 'Cursor', present: true, targets: [path.join(home, '.cursor', 'skills')] });
   }
   return agents;
@@ -106,4 +115,35 @@ export function removeLink(link) {
   } catch {
     fs.rmdirSync(link);
   }
+}
+
+const comparable = (p) => {
+  const resolved = path.resolve(p);
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+};
+
+export function repoLinkTarget(link, root = REPO_ROOT) {
+  let st;
+  try { st = fs.lstatSync(link); } catch { return false; }
+  if (!(st.isSymbolicLink() || (process.platform === 'win32' && st.isDirectory() && (() => {
+    try { return comparable(fs.realpathSync.native(link)) !== comparable(link); } catch { return true; }
+  })()))) return false;
+  let target;
+  try { target = fs.realpathSync.native(link); } catch {
+    // Dangling links still expose their intended target through readlink.
+    try { target = path.resolve(path.dirname(link), fs.readlinkSync(link)); } catch { return false; }
+  }
+  const base = comparable(root);
+  const dest = comparable(target);
+  return dest === base || dest.startsWith(`${base}${path.sep}`);
+}
+
+// A link the installer owns: it points into this checkout and at a skill folder (one with a
+// SKILL.md), or it dangles there (a skill that was renamed or removed). A user's own link to
+// some other folder of the checkout (docs/, a script dir) is not ours and is never pruned.
+export function ownedRepoLink(link, root = REPO_ROOT) {
+  if (!repoLinkTarget(link, root)) return false;
+  let target;
+  try { target = fs.realpathSync.native(link); } catch { return true; }
+  return fs.existsSync(path.join(target, 'SKILL.md'));
 }

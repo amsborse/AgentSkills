@@ -1,6 +1,12 @@
 ---
 name: verify
 description: Verify a change where the user actually looks at it (local browser, Vercel/production URL, LG TV, Windows desktop app, Chrome extension) and report pass/fail with real evidence. Use when the user runs /verify, says something is "still broken" / "I still see the old one", or before claiming a UI or runtime fix is done.
+metadata:
+  aliases: "verify, verify this, check it works, i still see the old one, test in the browser, take a screenshot, confirm the fix"
+  keywords: "verify, evidence, screenshot, browser, production, deploy, tv, desktop, extension, check"
+  composes: "fix-bug"
+  requires: "browser?, shell"
+  risk: "low"
 ---
 
 # /verify

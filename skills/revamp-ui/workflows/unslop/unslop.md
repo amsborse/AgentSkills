@@ -1,12 +1,4 @@
----
-name: unslop
-description: Turns vibecoded, AI-looking UI into a designed interface with its own character. Finds a direction from the product itself, then fixes spacing, color, icons, copy, type, layout, details, visuals and motion in that order, and can generate a real hero visual with an image tool when one is available. Use when the user asks to unslop, polish, clean up or redesign a screen so it stops looking AI-generated, or when a UI shows the usual tells like purple gradients, glows, gradient text, emoji labels, "New ✨" badges, glossy blobs, uppercase tracked labels, pulsing elements or uneven spacing. Works on React, Tailwind, HTML and CSS, for dashboards, apps and landing pages.
-license: CC-BY-4.0
-metadata:
-  author: Damir Sokolovsky
-  x: https://x.com/heydamir
-  site: https://heydamir.design/unslop
----
+<!-- Vendored from heydamir/unslop by Damir Sokolovsky (https://heydamir.design/unslop), CC BY 4.0, see LICENSE and NOTICE.md in this folder. Modified: frontmatter removed and script paths made absolute so it runs as a workflow of revamp-ui. -->
 
 # Unslop
 
@@ -33,7 +25,7 @@ Which visual styles tend to work, and which fail, is in [references/visuals.md](
 ## Run it
 
 1. **Look at the screen.** Find the files that render it. If you can run the app or open the file in a browser and take a screenshot, do it, so you judge what people see and not only the code.
-   - Only a link to a live site, no code? Save the page with `node <skill folder>/scripts/snapshot.mjs <url> unslop/original.html` and work on a copy of that file. Add `--dark` or `--light` to match the theme the user sees. It also saves `original.live.png`, a screenshot of the live page, so render the saved copy and compare the two before you start. Animated backgrounds drawn by scripts do not survive, so describe them in the audit from the live page.
+   - Only a link to a live site, no code? Save the page with `node ~/agent-skills/skills/revamp-ui/workflows/unslop/scripts/snapshot.mjs <url> unslop/original.html` and work on a copy of that file. Add `--dark` or `--light` to match the theme the user sees. It also saves `original.live.png`, a screenshot of the live page, so render the saved copy and compare the two before you start. Animated backgrounds drawn by scripts do not survive, so describe them in the audit from the live page.
    - Only a screenshot? Rebuild the screen as one static HTML file first, matching it closely, and treat that as the original.
    - In both cases the result is a redesigned page in code that the user can hand to whoever owns the real site, so say that in the report.
 2. **Audit.** Go through [references/signs.md](references/signs.md) and list every sign you find, one line each with where it lives.
@@ -203,7 +195,7 @@ It adds a few minutes, so make it only when the user wants it.
    - `data-slop="Gradient text"` and so on marks the slop for a short first beat, at most five, on the clearest examples that sit apart from each other, with short tags. It is optional, the reference video has none.
 6. **Only the screen and its background.** The video shows the story page as it is, with no extra window, border or shadow around it, so the page's own background fills the frame and the screen is the only box. If the screen sits in a window that grows to desktop proportions, anchor it to the left in the story so it widens to the right instead of gliding sideways. The story page renders 1440 wide and at least 900 tall, so do not size things from `100vh`, and keep `position: fixed` for background layers only.
 7. **Camera.** `<meta name="unslop-frame" content="0 0 960">` sets which part of the page fills the frame, as x, y and width in page pixels. Point x and y at the screen's own top left corner, so the frame starts with the page background around it, and crop close on where the most visible change happens, usually the sidebar or headline and the first cards.
-8. **Render.** `node <skill folder>/scripts/story.mjs unslop-story/story.html unslop-story.mp4`, square by default, `--wide` for 16:9. It needs Playwright and ffmpeg, so if either is missing, tell the user the one command that installs it. To watch it live first, run it with `--play` instead of the output path, and it loops in a browser window until closed. Pull a few frames with ffmpeg and look at them before you hand it over. Checking the story file and the video does not count toward the render limit of a run.
+8. **Render.** `node ~/agent-skills/skills/revamp-ui/workflows/unslop/scripts/story.mjs unslop-story/story.html unslop-story.mp4`, square by default, `--wide` for 16:9. It needs Playwright and ffmpeg, so if either is missing, tell the user the one command that installs it. To watch it live first, run it with `--play` instead of the output path, and it loops in a browser window until closed. Pull a few frames with ffmpeg and look at them before you hand it over. Checking the story file and the video does not count toward the render limit of a run.
 9. **The story file is a presentation piece.** The clean result still ships as normal code in the project's own stack, without `.s` classes or story attributes. Every video carries a small `unslop by @heydamir` credit, as the license asks.
 
 ## Do not

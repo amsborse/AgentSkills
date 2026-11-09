@@ -1,8 +1,3 @@
----
-name: cinematic-plate
-description: Turn a reference image or design of a cinematic scene (hero art, sculpture, landscape, product diorama) into a live web hero that matches it closely — a generated text-free art plate plus thin live layers (one-pass WebGL shader for water/light/glow, SVG leaders, HTML callouts, hotspots) — instead of rebuilding the scene in 3D. Use when the user gives a design/reference image and wants it replicated as a page section, says the UI "looks bad compared to the ref", or runs /cinematic-plate.
----
-
 # /cinematic-plate
 
 Proven on the amsborse.github.io hero (2026-11-07): a procedural three.js scene could not get
@@ -27,13 +22,13 @@ and ~100 KB per image. Reuse the templates; do not re-derive them.
 1. **Read the reference and the site.** Note the composition (where the subject sits, what is
    empty for text), the elements that must be live, and the site's tokens/theme mechanism.
    Decide scope with the user only if it is unclear; otherwise state it in one line.
-2. **Generate the plate** with `/codex-visual` image mode (free via codex-bridge), attaching the
+2. **Generate the plate** with the image mode of `~/agent-skills/skills/revamp-ui/workflows/codex-visual.md` (free via codex-bridge), attaching the
    reference: "text-free, no UI, no labels, same framing, subject on the right ~40–92% width,
    empty dark space left for type, <W>x<H>", one dark and one light variant (light = warm
    paper, soft shadows, not inverted). Open the PNGs and reject ones that miss key elements
    (count rings, falls, objects against the reference) — regenerate rather than patch.
    Keep sources in `design/` (never committed).
-3. **Export:** `python -I ~/.claude/skills/cinematic-plate/scripts/export-plate.py <png> public/<dir> plate-dark` (and light).
+3. **Export:** `python -I ~/agent-skills/skills/build-animation/workflows/cinematic-plate/scripts/export-plate.py <png> public/<dir> plate-dark` (and light).
 4. **Map anchors:** open the plate once, read pixel positions of each module/subject feature,
    and fill `plateMap.ts` (modules, sphere/rings/falls/horizon/ripple, focus rect). These drive
    the shader masks, hotspots and leaders — wrong anchors are the main source of drift.
@@ -41,7 +36,7 @@ and ~100 KB per image. Reuse the templates; do not re-derive them.
    option (`?hero=3d`) rather than deleting it. Add deterministic URL params (`heroTime`,
    `heroState`) so screenshots are reproducible.
 6. **Iterate on real screenshots:** start the dev server in the background, then
-   `node ~/.claude/skills/cinematic-plate/scripts/shoot.mjs <project> <scratchpad> http://localhost:<port> "?heroTime=4" <themeKey>`.
+   `node ~/agent-skills/skills/build-animation/workflows/cinematic-plate/scripts/shoot.mjs <project> <scratchpad> http://localhost:<port> "?heroTime=4" <themeKey>`.
    Read dark-1440 next to the reference first; fix the biggest gap, re-shoot. Check every width.
 7. **Verify and record:** typecheck, unit, e2e, build; regression test per bug (failing first);
    update the project's QA/perf docs with measured numbers only. Commit by path, no push.

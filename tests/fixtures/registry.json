@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "skills": [
+    { "name": "revamp-ui", "aliases": ["redesign ui", "polish interface"], "keywords": ["layout", "typography", "design"] },
+    { "name": "review-code", "aliases": ["review code"], "keywords": ["audit", "code", "quality"] },
+    { "name": "verify", "aliases": ["verify changes"], "keywords": ["browser", "check"] }
+  ]
+}

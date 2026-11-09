@@ -1,26 +1,45 @@
 # agent-skills
 
-Shared, version-controlled agent skills for every repository on this machine, installed into
-Claude Code, Codex, OpenCode and Cursor from one source. Each skill follows the open Agent
-Skills format (`SKILL.md` with `name`/`description` frontmatter plus supporting files loaded on
-demand), and nothing in here is specific to one repository.
+Task-oriented skills for every coding agent on this machine (Claude Code, Codex, Cursor,
+OpenCode, Gemini CLI), installed from one source. Ask for what you want in plain words; the agent
+picks the matching skill, and each skill sizes itself to the job. Skills follow the open Agent
+Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
+
+## Just ask
+
+| You say | Skill |
+| --- | --- |
+| "Revamp my website UI" | `revamp-ui` |
+| "Build this feature end to end" | `build-feature` |
+| "Research this topic deeply" | `research` |
+| "Find and fix this bug" | `fix-bug` |
+| "Understand the architecture of this repository" | `understand-code` |
+| "Make this project production ready" | `production-ready` |
+| "Automate this browser workflow" | `automate-browser` |
+| "Run this task autonomously overnight" | `run-autonomous` |
+| "Review my changes" / "second opinion from Codex" | `review-code` |
+| "Add a hero animation" | `build-animation` |
+| "Test everything" | `test-everything` |
+| "Security audit this repo" | `security-audit` |
+| "What can be improved?" / "refactor this" | `improve` |
+| "Check it works" / "I still see the old one" | `verify` |
+| "Delegate this to Codex" | `coordinate-agents` |
+| "Which skill should I use?" / "add a skill" | `manage-skills` |
+
+All 17 skills, with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
+fits? `node scripts/route.mjs "your request"`.
 
 ```text
 agent-skills/
-  nightly-evolution/        the skill (SKILL.md + 10 supporting files + scripts/evolve.mjs engine)
-  history-learning/         learn from past agent conversations (SKILL.md + 5 supporting files + scripts/hl.mjs)
-  working-agreements/       shared rules every repo imports (AGENTS.md + ui-quality.md + evidence files; SKILL.md wrapper)
-  cinematic-plate/          replicate a cinematic reference as an art plate + live WebGL/SVG layers
-  codex-frontend/           delegate an isolated frontend task to Codex via codex-bridge
-  codex-review/             read-only second-opinion code review from Codex
-  codex-visual/             Codex visual concepts, image generation and screenshot review
-  improve/                  audit an area, implement the safe improvements, list the rest
-  spec/                     turn a one-line goal into a full engineering brief
-  verify/                   verify a change where the user sees it, with real evidence
-  unslop/                   de-slop an AI-looking UI in nine passes (vendored from heydamir/unslop, CC BY 4.0)
-  scripts/install.sh        link skills into every detected agent (idempotent)
-  scripts/validate.sh       structure, engine, tests, installed links, repo policies
-  tests/                    node:test suites (engine lifecycle, installer)
+  skills/<name>/            the catalog: SKILL.md + workflows/ loaded on demand
+  shared/                   files several skills read (codex-bridge.md, browser.md)
+  registry/                 generated skills.json and capabilities.json; compatibility.json
+  working-agreements/       shared rules every repo imports (AGENTS.md, ui-quality.md, evidence)
+  nightly-evolution/        overnight improvement engine (scripts/evolve.mjs) and skill
+  history-learning/         learn from past agent conversations (scripts/hl.mjs) and skill
+  scripts/                  install.mjs, validate.mjs, build-registry.mjs, route.mjs, hooks/
+  tests/                    node:test suites (engine, installer, router, registry, hook, catalog)
+  docs/                     ARCHITECTURE, SKILL-CATALOG, MIGRATION, SOURCES, OPEN-QUESTIONS, INVENTORY
 ```
 
 Requirements: Git and Node.js 18+. No npm dependencies.
@@ -29,23 +48,24 @@ Requirements: Git and Node.js 18+. No npm dependencies.
 
 ```sh
 git clone https://github.com/amsborse/AgentSkills ~/agent-skills   # or link an existing checkout
-~/agent-skills/scripts/install.sh            # add --dry-run to preview, --uninstall to remove
-~/agent-skills/scripts/validate.sh
+node ~/agent-skills/scripts/install.mjs      # --dry-run to preview, --uninstall to remove
+node ~/agent-skills/scripts/validate.mjs
+node --test ~/agent-skills/tests/
 ```
 
-The installer detects agents and links (junctions on Windows, symlinks elsewhere) each skill
-into their user skill directories:
+The installer links (junctions on Windows, symlinks elsewhere) every skill into:
 
-| Agent | Directory | Notes |
-| --- | --- | --- |
-| Claude Code | `~/.claude/skills`, plus every `~/.claude-<profile>/skills` that exists (`CLAUDE_CONFIG_DIR` profiles) | |
-| Codex | `$CODEX_HOME/skills` (`~/.codex/skills`) | Codex follows symlinked skill folders |
-| OpenCode | none needed when `~/.claude/skills` is installed (OpenCode reads it); otherwise `~/.config/opencode/skills` | avoids a duplicate skill name |
-| Cursor | none needed (reads `~/.claude/skills` and `~/.codex/skills`); otherwise `~/.cursor/skills` | |
+| Agent | Directory read |
+| --- | --- |
+| Claude Code | `~/.claude/skills`, plus every `~/.claude-<profile>/skills` that exists |
+| Codex, Cursor, Gemini CLI, OpenCode | `~/.agents/skills` (the shared user skills folder) |
 
-It never overwrites an existing directory or a link that points elsewhere (reported as a
-conflict, exit code 2), and it also makes `~/agent-skills` point at this checkout when that
-path is free. Because installs are links, `git pull` here updates every agent at once.
+It is idempotent, never overwrites a real directory or a link that points elsewhere, and removes
+only links it created that no longer match a skill. It changes no settings unless asked:
+`--router-hook on` adds an optional keyword-hint hook to Claude Code, `--codex-block on` adds a
+pointer block to `$CODEX_HOME/AGENTS.md`; `off` removes them. How routing works, and the token
+cost: `docs/ARCHITECTURE.md`. Upgrading from the old layout and rolling back: `docs/MIGRATION.md`.
+Third-party code and its review: `docs/SOURCES.md`.
 
 ## nightly-evolution
 
@@ -107,7 +127,7 @@ $HL report                    # private learning report
 History is only ever read. Sources and model review start disabled. Text is redacted before
 it is stored, and only a token-budgeted digest of clustered statements is shown to a
 reviewing agent. All derived data lives in `~/.agent-history-learning/`, never in this public
-repository; `scripts/validate.sh` fails if credentials, emails, home paths or the local
+repository; `scripts/validate.mjs` fails if credentials, emails, home paths or the local
 username appear in tracked files. See `history-learning/SKILL.md`.
 
 ## working-agreements
@@ -137,8 +157,8 @@ where the two conflict. If that path does not exist on this machine, say so once
 
 Only Claude Code has a real import; the other agents follow the pointer in `AGENTS.md`. A
 machine without `~/agent-skills` (a VM, CI, a cloud agent) does not see the shared rules until
-the repository is cloned there and `scripts/install.sh` is run. The skill wrapper
-(`working-agreements/SKILL.md`) covers sessions in repositories that do not import it yet.
+the repository is cloned there and `scripts/install.mjs` is run. The skill wrapper
+(`skills/working-agreements/SKILL.md`) covers sessions in repositories that do not import it yet.
 
 ## Changing a skill
 

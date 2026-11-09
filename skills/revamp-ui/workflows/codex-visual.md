@@ -1,12 +1,7 @@
----
-name: codex-visual
-description: Delegate visual design work to OpenAI Codex through the local codex-bridge — alternative UI concepts, layout/type/color exploration, image generation (illustrations, textures, hero art), and screenshot-vs-reference visual review. Use when the user runs /codex-visual, asks to "have Codex design/generate/mock up" something, wants generated image assets, or wants a second visual opinion on a screenshot. Claude stays the architect and integrates the result.
----
-
-# /codex-visual
+# Codex visual workflow (formerly /codex-visual)
 
 Codex is a specialist here, not the owner of the repo. You (Claude) frame the brief, run Codex once,
-check what came back, and integrate it yourself. Shared rules: `~/.claude/skills/codex-visual/BRIDGE.md`
+check what came back, and integrate it yourself. Shared rules: `~/agent-skills/shared/codex-bridge.md`
 (read it once per session before the first call).
 
 ## Pick a mode from the request
@@ -17,7 +12,7 @@ check what came back, and integrate it yourself. Shared rules: `~/.claude/skills
 | `image` | an illustration, texture, background, icon art | `read-only` (image tool needs no file writes) | PNGs copied to the assets dir by the bridge |
 | `review` | compare a screenshot with a reference or the bar | `read-only` | ranked findings with concrete CSS/markup fixes |
 
-Frontend implementation in real code goes to `/codex-frontend` instead.
+Frontend implementation in real code goes to the `coordinate-agents` skill (codex-implement workflow) instead.
 
 ## Steps
 
