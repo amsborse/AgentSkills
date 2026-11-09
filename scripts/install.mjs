@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { REPO_ROOT, createLink, detectAgents, linkState, ownedRepoLink, removeLink, skillDirs } from './lib/agents.mjs';
+import { REPO_ROOT, createLink, detectAgents, linkState, ownedRepoLink, removeLink, repoLinkTarget, skillDirs } from './lib/agents.mjs';
 
 const args = new Set(process.argv.slice(2));
 const plan = args.has('--dry-run');
@@ -96,6 +96,10 @@ for (const agent of agents) {
       else if (state === 'missing') {
         if (!plan) createLink(link, source);
         say(plan ? 'would-link' : 'linked', `${agent.name}: ${link} -> ${source}`);
+      } else if (state === 'foreign-link' && repoLinkTarget(link)) {
+        // A link into this checkout at the skill's old path (skills moved under skills/): ours.
+        if (!plan) { removeLink(link); createLink(link, source); }
+        say(plan ? 'would-relink' : 'relinked', `${agent.name}: ${link} -> ${source}`);
       } else say('conflict', `${agent.name}: ${link}`, `${state === 'occupied' ? 'a real directory exists' : 'links elsewhere'}; left untouched`);
     }
   }

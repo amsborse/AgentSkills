@@ -96,6 +96,25 @@ test('installer prunes stale and dangling repo links, preserving real and foreig
   fs.rmSync(home, { recursive: true, force: true });
 });
 
+test('links at an old skill location in this checkout are repointed, not reported as conflicts', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-moved-'));
+  const dir = path.join(home, '.claude', 'skills');
+  fs.mkdirSync(dir, { recursive: true });
+  // Before the restructure, skills lived at the repository root: one old path is gone (dangling),
+  // another still exists as a folder without SKILL.md (working-agreements keeps its AGENTS.md).
+  fs.symlinkSync(path.join(ROOT, 'improve'), path.join(dir, 'improve'), 'junction');
+  fs.symlinkSync(path.join(ROOT, 'working-agreements'), path.join(dir, 'working-agreements'), 'junction');
+  fs.mkdirSync(path.join(home, 'elsewhere'));
+  fs.symlinkSync(path.join(home, 'elsewhere'), path.join(dir, 'verify'), 'junction');
+  const result = install(home);
+  assert.ok(resolves(path.join(dir, 'improve'), path.join(ROOT, 'skills', 'improve')));
+  assert.ok(resolves(path.join(dir, 'working-agreements'), path.join(ROOT, 'skills', 'working-agreements')));
+  assert.ok(resolves(path.join(dir, 'verify'), path.join(home, 'elsewhere')), 'a link outside this checkout is still left alone');
+  assert.match(result.out, /conflict\s+Claude Code: .*verify/);
+  assert.doesNotMatch(result.out, /conflict\s+Claude Code: .*(improve|working-agreements)/);
+  fs.rmSync(home, { recursive: true, force: true });
+});
+
 test('router hook and Codex block are idempotent and uninstall cleanly', () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-config-'));
   const settingsPath = path.join(home, '.claude', 'settings.json');
