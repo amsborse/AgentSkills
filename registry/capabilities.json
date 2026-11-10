@@ -29,7 +29,8 @@
         "coordinate-agents",
         "nightly-evolution",
         "review-code",
-        "run-autonomous"
+        "run-autonomous",
+        "ship"
       ],
       "optionalFor": []
     },
@@ -57,6 +58,7 @@
         "production-ready",
         "run-autonomous",
         "security-audit",
+        "ship",
         "test-everything",
         "understand-code",
         "verify"

@@ -40,3 +40,18 @@ the computed level.
 | no-needless-dependencies | explicit | high | high | 16 | 7 | 4 | 2026-03 to 2026-11 | d1097be7a2, e3636cfaf9, 52cbd02bb9, 79a223335c, 837a1d7bc2 |
 | no-blind-retries | explicit | high | high | 8 | 2 | 2 | 2026-09 to 2026-11 | 23edf8c4b5, 7e8e235d86, aa7691cc41, 12a7a2a8a8 |
 | stop-own-processes | inferred | medium | medium | 3 | 2 | 2 | 2026-10 to 2026-10 | 8521374155 |
+
+## Rules added 2026-11-10 from keyword counts
+
+Raw sessions older than 7 days were archived before these were drafted, so they were counted by
+keyword over the stored evidence statements rather than through clusters, then spot-checked.
+
+| Rule | Kind | Stated | Sessions | Projects | Note |
+| --- | --- | --- | --- | --- | --- |
+| ship-routine | explicit | high | 56 | 8 | asks to merge, push, deploy and clean up together |
+| stale-server-cleanup | inferred | high | 20 | — | extends stop-your-servers; stale servers served old code |
+| no-docker-preview | explicit | medium | 3 | 1 | |
+| finish-in-session | explicit | high | 5 | 1 | one agent only |
+| confirm-target | inferred | low | — | — | from usage-report incidents; keyword matches were noise |
+| replace-in-place | inferred | low | — | — | from usage-report incidents; keyword matches were noise |
+

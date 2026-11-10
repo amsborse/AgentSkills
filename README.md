@@ -24,9 +24,10 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "What can be improved?" / "refactor this" | `improve` |
 | "Check it works" / "I still see the old one" | `verify` |
 | "Delegate this to Codex" | `coordinate-agents` |
+| "Ship it" / "merge, push and clean up" | `ship` |
 | "Which skill should I use?" / "add a skill" | `manage-skills` |
 
-All 17 skills, with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
+All 18 skills, with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
 fits? `node scripts/route.mjs "your request"`.
 
 ```text
