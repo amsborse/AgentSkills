@@ -1,9 +1,9 @@
 ---
 name: revamp-ui
-description: Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for "revamp my website UI", "make it look premium", "unslop", "redesign", "UI audit" or "match this reference".
+description: Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Attaches a style add-on (cinematic, claymorphism, glassmorphism) on top of the general method. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for "revamp my website UI", "make it look premium", "make it claymorphic/glassy/cinematic", "unslop", "redesign", "UI audit" or "match this reference".
 metadata:
-  aliases: "revamp ui, revamp my website, redesign, redesign the ui, unslop, polish the ui, make it look premium, looks ai generated, ui audit, design concepts, match this design"
-  keywords: "ui, ux, design, website, landing page, dashboard, layout, typography, color, theme, dark mode, light mode, visual, polish, css, tailwind"
+  aliases: "revamp ui, revamp my website, redesign, redesign the ui, unslop, polish the ui, make it look premium, looks ai generated, ui audit, design concepts, match this design, claymorphism, clay ui, glassmorphism, glass ui, cinematic ui"
+  keywords: "ui, ux, design, website, landing page, dashboard, layout, typography, color, theme, dark mode, light mode, visual, polish, css, tailwind, clay, glass, neumorphism, style add-on"
   composes: "verify, build-animation, coordinate-agents"
   requires: "browser, image-generation?, codex-bridge?"
   risk: "medium"
@@ -37,7 +37,8 @@ Codex reports `quotaExhausted`.
    (`~/agent-skills/shared/browser.md`). Note what the owner liked so you keep it.
 2. **Direction:** derive it from the product (the "Direction" section of unslop). For open-ended
    briefs, get 2–3 concepts with `workflows/codex-visual.md` (concepts mode) and pick one, or ask
-   once with numbered options.
+   once with numbered options. Then attach a **style add-on** if one fits (cinematic, clay or
+   glass): read `~/agent-skills/styles/README.md` and the chosen add-on, and record the choice.
 3. **Tokens first:** spacing scale, color (one accent), type scale, radii and shadows for both
    themes, in the project's existing token file.
 4. **Passes in order:** spacing, color, icons, copy, type, layout, details, visuals, motion (each

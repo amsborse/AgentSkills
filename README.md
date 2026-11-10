@@ -33,6 +33,7 @@ fits? `node scripts/route.mjs "your request"`.
 agent-skills/
   skills/<name>/            the catalog: SKILL.md + workflows/ loaded on demand
   shared/                   files several skills read (codex-bridge.md, browser.md)
+  styles/                   style add-ons attached to revamp-ui/build-animation (cinematic, clay, glass)
   registry/                 generated skills.json and capabilities.json; compatibility.json
   working-agreements/       shared rules every repo imports (AGENTS.md, ui-quality.md, evidence)
   nightly-evolution/        overnight improvement engine (scripts/evolve.mjs) and skill

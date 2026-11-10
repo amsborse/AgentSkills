@@ -1,6 +1,6 @@
 ---
 name: build-animation
-description: Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for "add an animation", "hero animation", "make it move", a motion review, or replicating a cinematic reference.
+description: Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Style add-ons (cinematic, claymorphism, glassmorphism) set the motion character on top of the shared calm feel. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for "add an animation", "hero animation", "make it move", a motion review, or replicating a cinematic reference.
 metadata:
   aliases: "add animation, animate this, hero animation, make it move, motion design, cinematic plate, signature visual, review the animations"
   keywords: "animation, motion, transition, webgl, shader, canvas, svg, three.js, hero, scroll, easing, framer motion"
@@ -14,6 +14,13 @@ metadata:
 Motion rules are in the UI taste section of `~/agent-skills/working-agreements/AGENTS.md`: one
 synchronized movement, things travel to their new place, no snaps or visible loop restarts, no
 gimmicks, and every animation communicates something.
+
+The feel is the same whatever the style: slow scroll, a single signature living visual, travel
+instead of snaps, and still-first heavy visuals. The material and motion character come from a
+style add-on in `~/agent-skills/styles/`: `cinematic.md` (weighted camera, plates),
+`claymorphism.md` (springs with squash and give) and `glassmorphism.md` (a drifting field
+under frosted depth). Read the project's chosen add-on first. If none has been chosen, use the
+one the user names, or stay neutral.
 
 ## Pick the path
 

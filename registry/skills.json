@@ -45,7 +45,7 @@
     {
       "name": "build-animation",
       "path": "skills/build-animation",
-      "description": "Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for \"add an animation\", \"hero animation\", \"make it move\", a motion review, or replicating a cinematic reference.",
+      "description": "Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Style add-ons (cinematic, claymorphism, glassmorphism) set the motion character on top of the shared calm feel. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for \"add an animation\", \"hero animation\", \"make it move\", a motion review, or replicating a cinematic reference.",
       "aliases": [
         "add animation",
         "animate this",
@@ -472,7 +472,7 @@
     {
       "name": "revamp-ui",
       "path": "skills/revamp-ui",
-      "description": "Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for \"revamp my website UI\", \"make it look premium\", \"unslop\", \"redesign\", \"UI audit\" or \"match this reference\".",
+      "description": "Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Attaches a style add-on (cinematic, claymorphism, glassmorphism) on top of the general method. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for \"revamp my website UI\", \"make it look premium\", \"make it claymorphic/glassy/cinematic\", \"unslop\", \"redesign\", \"UI audit\" or \"match this reference\".",
       "aliases": [
         "revamp ui",
         "revamp my website",
@@ -484,7 +484,12 @@
         "looks ai generated",
         "ui audit",
         "design concepts",
-        "match this design"
+        "match this design",
+        "claymorphism",
+        "clay ui",
+        "glassmorphism",
+        "glass ui",
+        "cinematic ui"
       ],
       "keywords": [
         "ui",
@@ -502,7 +507,11 @@
         "visual",
         "polish",
         "css",
-        "tailwind"
+        "tailwind",
+        "clay",
+        "glass",
+        "neumorphism",
+        "style add-on"
       ],
       "composes": [
         "verify",

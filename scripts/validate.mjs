@@ -57,8 +57,8 @@ for (const skill of skills) {
   const lines = text.split('\n').length;
   if (lines > 500) bad(`${skill}: SKILL.md has ${lines} lines; keep it under 500 and move detail to supporting files`);
   else ok(`${skill}: SKILL.md ${lines} lines`);
-  const refs = [...new Set([...text.matchAll(/(?:shared\/|workflows\/)[A-Za-z0-9_./-]+\.md/g)].map((x) => x[0]))];
-  const missing = refs.filter((r) => !fs.existsSync(path.resolve(REPO_ROOT, r.startsWith('shared/') ? r : path.join(skill, r))));
+  const refs = [...new Set([...text.matchAll(/(?:shared\/|styles\/|workflows\/)[A-Za-z0-9_./-]+\.md/g)].map((x) => x[0]))];
+  const missing = refs.filter((r) => !fs.existsSync(path.resolve(REPO_ROOT, /^(shared|styles)\//.test(r) ? r : path.join(skill, r))));
   if (missing.length) bad(`${skill}: referenced files missing: ${missing.join(', ')}`);
   else ok(`${skill}: ${refs.length} supporting files present`);
 }
@@ -70,8 +70,23 @@ const sharedDir = path.join(REPO_ROOT, 'shared');
 if (fs.existsSync(sharedDir)) for (const entry of fs.readdirSync(sharedDir, { withFileTypes: true })) {
   if (entry.isFile() && entry.name.endsWith('.md')) ok(`shared/${entry.name}: present`);
 }
+const stylesDir = path.join(REPO_ROOT, 'styles');
+if (fs.existsSync(stylesDir)) {
+  const styleFiles = fs.readdirSync(stylesDir).filter((f) => f.endsWith('.md') && f !== 'README.md');
+  const index = fs.existsSync(path.join(stylesDir, 'README.md')) ? fs.readFileSync(path.join(stylesDir, 'README.md'), 'utf8') : '';
+  if (!index) bad('styles/README.md: missing (the add-on index)');
+  for (const f of styleFiles) {
+    const body = fs.readFileSync(path.join(stylesDir, f), 'utf8');
+    const sections = ['Material and tokens', 'Signature visual', 'Motion character', 'Performance', 'Accessibility', 'Anti-patterns', 'Verify'];
+    const absent = sections.filter((s) => !body.includes(`## ${s}`));
+    if (absent.length) bad(`styles/${f}: missing sections ${absent.join(', ')}`);
+    else if (!index.includes(`\`${f}\``)) bad(`styles/${f}: not listed in styles/README.md`);
+    else ok(`styles/${f}: add-on complete`);
+  }
+}
 const portabilityFiles = [...skills.map((s) => path.join(REPO_ROOT, ...s.split('/'), 'SKILL.md'))];
 if (fs.existsSync(sharedDir)) portabilityFiles.push(...fs.readdirSync(sharedDir).filter((f) => f.endsWith('.md')).map((f) => path.join(sharedDir, f)));
+if (fs.existsSync(stylesDir)) portabilityFiles.push(...fs.readdirSync(stylesDir).filter((f) => f.endsWith('.md')).map((f) => path.join(stylesDir, f)));
 for (const file of portabilityFiles) if (/~\/\.claude\/skills\//i.test(fs.readFileSync(file, 'utf8'))) bad(`${path.relative(REPO_ROOT, file)}: non-portable ~/.claude/skills/ path`);
 process.stdout.write(`Description budget: ${descriptionChars} characters (~${Math.ceil(descriptionChars / 4)} tokens)\n`);
 if (descriptionChars > 16000) bad(`skill descriptions exceed 16000 characters (${descriptionChars})`);
