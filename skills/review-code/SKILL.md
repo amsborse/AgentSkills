@@ -35,6 +35,9 @@ metadata:
    ```
 
 4. **Verify every finding** against the code: confirmed, plausible or rejected (with the reason).
-   Don't relay unverified claims.
+   Don't relay unverified claims. A runtime claim (browser API behavior, layout, timing, an
+   observer missing an element) is checked in the real runtime, with a browser probe or a test
+   that fails, not by reading code. A reviewer once said a ChapterRail IntersectionObserver
+   `rootMargin` would miss short chapters, and a Chromium probe showed it did not.
 5. **Report:** run id, confirmed findings by severity, rejected ones in one line each. Change code
    only if asked; then fix each confirmed bug with a regression test (`fix-bug`).

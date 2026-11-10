@@ -91,7 +91,9 @@
       ],
       "risk": "low",
       "workflows": [
-        "skills/build-animation/workflows/cinematic-plate"
+        "skills/build-animation/workflows/chapter-rail.md",
+        "skills/build-animation/workflows/cinematic-plate",
+        "skills/build-animation/workflows/heavy-hero-performance.md"
       ]
     },
     {

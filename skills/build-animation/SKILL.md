@@ -24,6 +24,11 @@ gimmicks, and every animation communicates something.
   IntersectionObserver and `visibilitychange`.
 - **Reference image of a cinematic scene:** follow `workflows/cinematic-plate/cinematic-plate.md`
   (a generated text-free plate plus live layers; templates and scripts are in that folder).
+- **Long chaptered page:** use the chapter rail and slow scroll in `workflows/chapter-rail.md`
+  (a dot rail of in-page links with a spring-filled line, plus Lenis). The owner likes this pattern.
+- **WebGL or canvas hero that must stay fast:** follow `workflows/heavy-hero-performance.md`. It
+  covers the frame governor, rendering a still plate first and upgrading after input or idle, and
+  preloading the largest image.
 - **Isolated heavy effect:** delegate the implementation to Codex (UI work, per
   `~/agent-skills/shared/agent-routing.md`) with the `coordinate-agents` skill, then review it yourself.
 - **Motion audit:** record or screenshot the states, then list snaps, jank, competing motions and
@@ -34,3 +39,7 @@ gimmicks, and every animation communicates something.
 Check in the running app: frames at the start, middle and end, both themes, and reduced motion on.
 Measure frame time with a Performance trace or `requestAnimationFrame` deltas. For heavy effects,
 watch CPU with the page idle and scrolled offscreen.
+
+Reduced motion must react to changes mid-visit. framer-motion's `useReducedMotion` doesn't, so
+use a `useSyncExternalStore` matchMedia subscription (snippet in `workflows/chapter-rail.md`). Test
+it by toggling `page.emulateMedia({ reducedMotion })` after the page has loaded.

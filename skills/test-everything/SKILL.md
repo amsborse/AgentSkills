@@ -33,5 +33,11 @@ paid API calls in tests: use fakes or recorded fixtures.
    viewports the user cares about, in both themes for UI.
 5. **Flaky tests:** reproduce with repeated runs, fix the race or shared state; never just add
    retries or sleeps.
+   - Playwright's `page.clock.pauseAt(t)` can throw "Cannot fast-forward to the past" when page
+     time has already passed `t`. Read `Date.now()` from the page right before the call. If that
+     exact error occurs, retry a few times with a fresh reading, and rethrow anything else.
+   - Tests that fail only under load (frame timing, animation progress) get diagnostics in the
+     assertion message, such as the measured values, frame gaps and elapsed time. Fix the cause
+     from what the diagnostics show. Never loosen the threshold to make it pass.
 6. **Report** the before and after counts from real runs, what is covered now, and the remaining
    gaps ranked by risk. Failing tests are reported as failing.
