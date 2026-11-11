@@ -17,6 +17,7 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "Make this project production ready" | `production-ready` |
 | "Automate this browser workflow" | `automate-browser` |
 | "Run this task autonomously overnight" | `run-autonomous` |
+| "/night tests", "run verified loops while I sleep" | `night` (+ 15 `night-*` loops) |
 | "Review my changes" / "second opinion from Codex" | `review-code` |
 | "Add a hero animation" | `build-animation` |
 | "Test everything" | `test-everything` |
@@ -26,7 +27,7 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "Delegate this to Codex" | `coordinate-agents` |
 | "Which skill should I use?" / "add a skill" | `manage-skills` |
 
-All 17 skills, with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
+All 33 skills (17 day skills, the `night` orchestrator and its 15 loops), with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
 fits? `node scripts/route.mjs "your request"`.
 
 ```text
@@ -36,6 +37,7 @@ agent-skills/
   styles/                   style add-ons attached to revamp-ui/build-animation (cinematic, clay, glass)
   registry/                 generated skills.json and capabilities.json; compatibility.json
   working-agreements/       shared rules every repo imports (AGENTS.md, ui-quality.md, evidence)
+  skills/night*/             night orchestrator (scripts/night.mjs, watchdog) and loop skills
   nightly-evolution/        overnight improvement engine (scripts/evolve.mjs) and skill
   history-learning/         learn from past agent conversations (scripts/hl.mjs) and skill
   scripts/                  install.mjs, validate.mjs, build-registry.mjs, route.mjs, hooks/

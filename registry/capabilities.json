@@ -13,11 +13,18 @@
         "verify"
       ]
     },
+    "claude": {
+      "requiredBy": [],
+      "optionalFor": [
+        "night"
+      ]
+    },
     "codex-bridge": {
       "requiredBy": [],
       "optionalFor": [
         "build-animation",
         "coordinate-agents",
+        "night",
         "revamp-ui",
         "review-code",
         "run-autonomous"
@@ -27,6 +34,22 @@
       "requiredBy": [
         "build-feature",
         "coordinate-agents",
+        "night",
+        "night-accessibility",
+        "night-bug-hunter",
+        "night-consistency",
+        "night-dependencies",
+        "night-docs",
+        "night-evolve-skills",
+        "night-ideas",
+        "night-improve",
+        "night-performance",
+        "night-qa",
+        "night-redteam",
+        "night-refactor",
+        "night-research",
+        "night-tests",
+        "night-visual",
         "nightly-evolution",
         "review-code",
         "run-autonomous"
@@ -39,6 +62,12 @@
         "build-animation",
         "revamp-ui"
       ]
+    },
+    "node": {
+      "requiredBy": [
+        "night"
+      ],
+      "optionalFor": []
     },
     "scheduler": {
       "requiredBy": [],
@@ -53,6 +82,21 @@
         "history-learning",
         "improve",
         "manage-skills",
+        "night-accessibility",
+        "night-bug-hunter",
+        "night-consistency",
+        "night-dependencies",
+        "night-docs",
+        "night-evolve-skills",
+        "night-ideas",
+        "night-improve",
+        "night-performance",
+        "night-qa",
+        "night-redteam",
+        "night-refactor",
+        "night-research",
+        "night-tests",
+        "night-visual",
         "nightly-evolution",
         "production-ready",
         "run-autonomous",

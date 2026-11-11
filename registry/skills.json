@@ -344,6 +344,531 @@
       "workflows": []
     },
     {
+      "name": "night",
+      "path": "skills/night",
+      "description": "Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to Claude, Codex or a configured agent, independently verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for \"/night\", \"/night auto\", \"/night tests\", \"run loops overnight\", \"night status\", \"night report\" or \"stop the night run\".",
+      "aliases": [
+        "night",
+        "/night",
+        "night loop",
+        "night run",
+        "overnight loops",
+        "night status",
+        "night report",
+        "night stop",
+        "night resume"
+      ],
+      "keywords": [
+        "night",
+        "overnight",
+        "loop",
+        "autonomous",
+        "unattended",
+        "watchdog",
+        "orchestrator",
+        "morning report",
+        "keep or revert",
+        "experiments"
+      ],
+      "composes": [
+        "run-autonomous",
+        "coordinate-agents",
+        "review-code",
+        "night-tests",
+        "night-bug-hunter",
+        "night-improve"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "node",
+          "optional": false
+        },
+        {
+          "capability": "claude",
+          "optional": true
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "night-accessibility",
+      "path": "skills/night-accessibility",
+      "description": "Accessibility loop. Repair one evidenced interface barrier and retain it only when violation counts fall, keyboard paths work and no new barriers appear. Use for \"night-accessibility\", \"night accessibility\" or as /night accessibility.",
+      "aliases": [
+        "night-accessibility",
+        "night accessibility"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "accessibility"
+      ],
+      "composes": [
+        "revamp-ui",
+        "verify",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "night-bug-hunter",
+      "path": "skills/night-bug-hunter",
+      "description": "Bug-hunting loop. Start from a red baseline, reproduce one failure, add a failing regression test and repair its root cause, keeping the fix only when the original failure and relevant checks pass. Use for \"night-bug-hunter\", \"night bug hunter\" or as /night bugs.",
+      "aliases": [
+        "night-bug-hunter",
+        "night bug hunter"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "bug",
+        "hunter"
+      ],
+      "composes": [
+        "fix-bug",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "night-consistency",
+      "path": "skills/night-consistency",
+      "description": "Consistency loop. Select one naming, error-handling, component or theme-token inconsistency, align a bounded set with an established repository pattern, and retain it only when checks show no regression. Use for \"night-consistency\", \"night consistency\" or as /night consistency.",
+      "aliases": [
+        "night-consistency",
+        "night consistency"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "consistency"
+      ],
+      "composes": [
+        "improve",
+        "review-code",
+        "revamp-ui"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "night-dependencies",
+      "path": "skills/night-dependencies",
+      "description": "Dependency loop. Review advisories and update one package or lockstep group with the project package manager, favour patch and minor releases, and keep only a tested change with a consistent lockfile. Use for \"night-dependencies\", \"night dependencies\" or as /night dependencies.",
+      "aliases": [
+        "night-dependencies",
+        "night dependencies"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "dependencies"
+      ],
+      "composes": [
+        "security-audit",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "night-docs",
+      "path": "skills/night-docs",
+      "description": "Documentation loop. Find one mismatch between repository instructions and actual code, correct it with precise examples, and retain the edit only when the documented commands and claims are verified locally. Use for \"night-docs\", \"night docs\" or as /night docs.",
+      "aliases": [
+        "night-docs",
+        "night docs"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "docs"
+      ],
+      "composes": [
+        "understand-code",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "night-evolve-skills",
+      "path": "skills/night-evolve-skills",
+      "description": "Skill-evolution loop. Improve one catalog skill from recorded failures and repeated corrections, validate the edit, and reserve changes to the active loop or engine for human application. Use for \"night-evolve-skills\", \"night evolve skills\" or as /night evolve-skills.",
+      "aliases": [
+        "night-evolve-skills",
+        "night evolve skills"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "evolve",
+        "skills"
+      ],
+      "composes": [
+        "manage-skills",
+        "history-learning",
+        "review-code"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "night-ideas",
+      "path": "skills/night-ideas",
+      "description": "Idea loop. Rank product and engineering opportunities from repository evidence with explicit priority scores, returning actionable proposals and follow-ups without writing files. Use for \"night-ideas\", \"night ideas\" or as /night ideas.",
+      "aliases": [
+        "night-ideas",
+        "night ideas"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "ideas"
+      ],
+      "composes": [
+        "research",
+        "understand-code",
+        "improve"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "night-improve",
+      "path": "skills/night-improve",
+      "description": "Improvement loop. Rank small repository improvements by evidence, make the best bounded change, and keep it only when checks prove the intended benefit without regressions. Use for \"night-improve\", \"night improve\" or as /night improve.",
+      "aliases": [
+        "night-improve",
+        "night improve"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "improve"
+      ],
+      "composes": [
+        "improve",
+        "review-code",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "night-performance",
+      "path": "skills/night-performance",
+      "description": "Performance loop. Measure one real bottleneck with repeated baseline and candidate runs, make one bounded optimisation, and retain it only when the measured gain exceeds noise and behaviour stays stable. Use for \"night-performance\", \"night performance\" or as /night performance.",
+      "aliases": [
+        "night-performance",
+        "night performance"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "performance"
+      ],
+      "composes": [
+        "improve",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "night-qa",
+      "path": "skills/night-qa",
+      "description": "User-flow QA loop. Exercise one main journey end to end, capture reproducible breaks, and add one regression-backed repair or a precise bug-hunter follow-up, with runtime evidence for every claim. Use for \"night-qa\", \"night qa\" or as /night qa.",
+      "aliases": [
+        "night-qa",
+        "night qa"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "qa"
+      ],
+      "composes": [
+        "test-everything",
+        "verify",
+        "fix-bug"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "night-redteam",
+      "path": "skills/night-redteam",
+      "description": "Red-team loop. Prove one exploitable trust-boundary failure only with a local failing test, then repair its root cause or record an owner decision when no safe fix fits. Use for \"night-redteam\", \"night redteam\" or as /night redteam.",
+      "aliases": [
+        "night-redteam",
+        "night redteam"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "redteam"
+      ],
+      "composes": [
+        "security-audit",
+        "fix-bug",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
+      "name": "night-refactor",
+      "path": "skills/night-refactor",
+      "description": "Refactoring loop. Characterise existing behaviour before simplifying one bounded area, preserve the public API, and keep the change only when tests and review show equivalent behaviour with less complexity. Use for \"night-refactor\", \"night refactor\" or as /night refactor.",
+      "aliases": [
+        "night-refactor",
+        "night refactor"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "refactor"
+      ],
+      "composes": [
+        "improve",
+        "test-everything",
+        "review-code"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
+      "name": "night-research",
+      "path": "skills/night-research",
+      "description": "Research loop. Investigate one repository question with primary sources and code evidence, then return a cited markdown report with confidence levels and unknowns, without changing any files in the worktree. Use for \"night-research\", \"night research\" or as /night research.",
+      "aliases": [
+        "night-research",
+        "night research"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "research"
+      ],
+      "composes": [
+        "research",
+        "understand-code"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "night-tests",
+      "path": "skills/night-tests",
+      "description": "Test-coverage loop. Each iteration finds the riskiest untested behavior, adds one focused test in the project's own style, proves it would catch a break, and keeps it only if the suite stays green. Use for \"night-tests\", \"add tests overnight\", \"grow coverage in a loop\" or as /night tests.",
+      "aliases": [
+        "night-tests",
+        "night tests",
+        "test loop",
+        "add tests overnight",
+        "coverage loop"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "tests",
+        "coverage",
+        "regression",
+        "unit",
+        "integration",
+        "characterization"
+      ],
+      "composes": [
+        "test-everything",
+        "fix-bug"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "night-visual",
+      "path": "skills/night-visual",
+      "description": "Visual loop. Improve one evidenced interface issue, compare real screenshots in both themes and configured viewports, and retain the change only when visual review and runtime checks support it. Use for \"night-visual\", \"night visual\" or as /night visual.",
+      "aliases": [
+        "night-visual",
+        "night visual"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "visual"
+      ],
+      "composes": [
+        "revamp-ui",
+        "verify",
+        "build-animation"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "nightly-evolution",
       "path": "skills/nightly-evolution",
       "description": "Autonomous overnight improvement of a repository on an isolated nightly/evolution-YYYY-MM-DD branch, producing one evidence-backed draft PR per night. Covers performance, code quality, architecture, UI/UX, modernization, security, reliability, AI efficiency, cost, developer experience and product opportunities. Use on a night-loop tick, or when asked to \"run nightly evolution\", \"evolve this repo overnight\" or \"do an improvement pass\". Not for fixing a specific reported bug.",

@@ -29,7 +29,34 @@ repository or unattended.
 | `nightly-evolution` | "Run nightly evolution" (night-loop ticks) | run-autonomous | high | `nightly-evolution/scripts/` |
 | `history-learning` | "Learn from my past conversations" | manage-skills | medium | `history-learning/scripts/` |
 
-The last two stay at the repository root because night loops and scripts outside this repository
+## Night loops
+
+`night` is the orchestrator: a deterministic program (`skills/night/scripts/night.mjs`) that
+plans, isolates each iteration in a worktree, delegates to Claude, Codex or a command agent,
+verifies independently, keeps or reverts, survives crashes through a watchdog and writes a morning
+report. Each `night-*` loop is an ordinary skill holding only the loop contract, so it also runs
+interactively by day ("run night-tests on the parser"). Architecture:
+`skills/night/references/architecture.md`.
+
+| Skill | `/night` command | Builds on | Writes |
+| --- | --- | --- | --- |
+| `night-accessibility` | `/night accessibility` | revamp-ui, verify, test-everything | code |
+| `night-bug-hunter` | `/night bugs`, `/night qa` | fix-bug, test-everything | code |
+| `night-consistency` | `/night consistency` | improve, review-code, revamp-ui | code |
+| `night-dependencies` | `/night dependencies`, `/night security` | security-audit, test-everything | code |
+| `night-docs` | `/night docs` | understand-code, verify | code |
+| `night-evolve-skills` | `/night evolve-skills` | manage-skills, history-learning, review-code | code |
+| `night-ideas` | `/night ideas` | research, understand-code, improve | report |
+| `night-improve` | `/night improve`, `/night auto` | improve, review-code, verify | code |
+| `night-performance` | `/night performance` | improve, verify | code |
+| `night-qa` | `/night qa` | test-everything, verify, fix-bug | code |
+| `night-redteam` | `/night redteam`, `/night security` | security-audit, fix-bug, test-everything | code |
+| `night-refactor` | `/night refactor` | improve, test-everything, review-code | code |
+| `night-research` | `/night research` | research, understand-code | report |
+| `night-tests` | `/night tests` | test-everything, fix-bug | code |
+| `night-visual` | `/night visual` | revamp-ui, verify, build-animation | code |
+
+`nightly-evolution` and `history-learning` stay at the repository root because night loops and scripts outside this repository
 call them by path; they are installed under the same names as before.
 
 Old names (`codex-review`, `codex-frontend`, `codex-visual`, `cinematic-plate`, `spec`,

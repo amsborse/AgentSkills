@@ -66,6 +66,19 @@ for (const skill of skills) {
 for (const { skill, metadata } of skillData) for (const composed of listValue(metadata.composes)) {
   if (!skills.some((s) => path.posix.basename(s) === composed)) bad(`${skill}: composes unknown skill "${composed}"`);
 }
+// Night loops are discovered by `night-loop` metadata; the orchestrator relies on these sections.
+const LOOP_SECTIONS = ['Activation', 'Workflow', 'Evaluation', 'Stop conditions', 'Examples'];
+const LOOP_KEEP = ['tests-up', 'failures-down', 'metric-up', 'no-regression'];
+for (const { skill, metadata, text } of skillData) {
+  if (!metadata['night-loop']) continue;
+  const absent = LOOP_SECTIONS.filter((s) => !new RegExp(`^## +${s}\\s*$`, 'm').test(text));
+  const problems = [];
+  if (absent.length) problems.push(`missing sections ${absent.join(', ')}`);
+  if (!['code', 'report'].includes(metadata['night-writes'])) problems.push('night-writes must be code or report');
+  if (metadata['night-keep'] && !LOOP_KEEP.includes(metadata['night-keep'])) problems.push(`night-keep must be one of ${LOOP_KEEP.join(', ')}`);
+  if (problems.length) bad(`${skill}: night loop ${problems.join('; ')}`);
+  else ok(`${skill}: night loop interface complete`);
+}
 const sharedDir = path.join(REPO_ROOT, 'shared');
 if (fs.existsSync(sharedDir)) for (const entry of fs.readdirSync(sharedDir, { withFileTypes: true })) {
   if (entry.isFile() && entry.name.endsWith('.md')) ok(`shared/${entry.name}: present`);
