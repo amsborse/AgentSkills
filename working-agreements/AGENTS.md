@@ -25,6 +25,10 @@ from corrections rather than stated. Per-rule counts: `evidence.md` in this fold
   uncommitted changes. Stage your own files by path. (high)
 - When state is ambiguous (dirty tree, unknown owner, conflicting signals), stop and hand it to a
   human with what you observed. Never resolve it with a destructive guess. (high)
+- Before changing a physical device or a user's file, confirm which one is the target (which TV,
+  which workbook) instead of assuming. (low, inferred)
+- Never touch production without explicit approval: no deploys, production data or
+  configuration changes, credentials, billing, or destructive and stress tests against it. (high)
 
 ## Verification and honesty
 
@@ -53,6 +57,11 @@ from corrections rather than stated. Per-rule counts: `evidence.md` in this fold
 - No unrelated refactors, features or edits. Unrelated findings become a follow-up issue. (high)
 - Extend what exists: no parallel systems, no redesign from scratch, no rewrite of working code
   without evidence, no overengineering. (high)
+- No new dependencies or infrastructure without a clear need. (high)
+- Never silently drop a requirement or remove existing functionality to simplify; flag it
+  instead. (high)
+- A revised file replaces the original under the same name (move the old one aside if it must
+  be kept), not a second copy next to it. (low, inferred)
 - Working is the floor, not the finish: meet the quality bar that was asked for before stopping.
   (medium)
 
@@ -63,6 +72,16 @@ from corrections rather than stated. Per-rule counts: `evidence.md` in this fold
 - Collect decisions that need the owner in one place (the repository's decisions file, or the
   final report) instead of interrupting. Non-destructive changes inside the repository need no
   confirmation; destructive, irreversible and paid actions do. (high)
+- Never blindly retry an action with side effects whose outcome is uncertain (a submission, a
+  sent message, a revision): check its state first, and keep every retry loop bounded. (high)
+- Stop the servers and background processes you started once they are no longer needed, and
+  kill a stale server on the port before testing so old code is not served. (high, inferred)
+- Preview and test locally without Docker (dev server, fixture data) unless the repo only runs
+  in containers or the user asks for it. (medium)
+- Finish the task in the current session. Write a handoff only when the user asks for one or a
+  context or usage limit is near. (high)
+- When the user asks to ship, run the whole routine (checks, merge, push, deploy if asked,
+  cleanup) without stopping to reconfirm each step: the `ship` skill. (high)
 
 ## UI taste
 

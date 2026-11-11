@@ -13,7 +13,10 @@ metadata:
 
 Rules: tests reach state through production code paths, and critical runtime behavior has at
 least one test against the real runtime. Never weaken an assertion or timeout to go green. No
-paid API calls in tests: use fakes or recorded fixtures.
+paid API calls in tests: use fakes or recorded fixtures. Tests never act on real user data or
+external systems: parameterize paths, never submit real applications, never hit production.
+(high) Skipped tests are not passes, and a unit test is not proof that an end-to-end flow works.
+(low)
 
 ## Size it
 

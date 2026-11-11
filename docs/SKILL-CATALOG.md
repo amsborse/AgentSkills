@@ -21,6 +21,7 @@ repository or unattended.
 | `improve` | "What can be improved", "refactor", "make it faster" | verify, test-everything, review-code | medium | |
 | `security-audit` | "Security review", "is this skill safe" | fix-bug, test-everything | low | |
 | `production-ready` | "Make this project production ready" | security-audit, test-everything, improve, verify, review-code | medium | |
+| `ship` | "Ship it", "merge, push and clean up" | verify, test-everything, fix-bug | high | |
 | `automate-browser` | "Automate this browser workflow", "fill this form" | verify, test-everything | high | uses `shared/browser.md` |
 | `run-autonomous` | "Run this task autonomously overnight" | build-feature, fix-bug, improve, verify, coordinate-agents, review-code | high | nightly-evolution engine |
 | `coordinate-agents` | "Delegate this to Codex", "split this work" | review-code, verify | medium | `workflows/codex-implement.md` |

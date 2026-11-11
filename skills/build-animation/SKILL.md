@@ -26,6 +26,9 @@ one the user names, or stay neutral.
 
 - **Micro-interaction or transition:** use the project's motion library or CSS. Animate transform
   and opacity only, 150–400 ms, with an ease-out curve and a `prefers-reduced-motion` fallback.
+  Motion and hover never shift layout or change an element's size or position. (high) Motion
+  never delays critical actions or content, does not replay on small scrolls and never hijacks
+  scrolling. (high)
 - **Signature visual or hero effect:** one living element blended into the page with masks, not
   boxed. Canvas or WebGL in a single pass, with a devicePixelRatio cap, paused by
   IntersectionObserver and `visibilitychange`.

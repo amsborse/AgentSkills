@@ -14,6 +14,7 @@ metadata:
 The bar is the UI taste section of `~/agent-skills/working-agreements/AGENTS.md`, with details and
 anti-patterns in `~/agent-skills/working-agreements/ui-quality.md`. A repository's design system
 wins on specifics. Never replace a design the owner liked: add the new one as an option or toggle.
+New pages reuse the existing components and CSS; no new design language or UI library. (high)
 
 UI implementation is Codex's work by default (`~/agent-skills/shared/agent-routing.md`): hand
 isolated components, pages and assets to Codex through the `coordinate-agents` skill, keep the
@@ -43,7 +44,10 @@ Codex reports `quotaExhausted`.
    themes, in the project's existing token file.
 4. **Passes in order:** spacing, color, icons, copy, type, layout, details, visuals, motion (each
    described in `workflows/unslop/unslop.md`). One signature living visual per product, blended
-   into the page; use `build-animation` for its motion.
+   into the page; use `build-animation` for its motion. Charts and visuals show only real data:
+   no invented values, trends or targets, no distorted scales, no implied results that are not
+   proven. (high) Essential information and actions never depend on hover. (high) Loading and
+   no-data views show a clear processing or empty state, never a blank dashboard. (high)
 5. **Hero and illustration assets:** an image tool when one is available (Codex image mode). Never
    present a placeholder as final; without an image tool, say so and leave a clearly marked slot.
 6. **Verify:** after-screenshots at the same widths and themes, compared side by side with the

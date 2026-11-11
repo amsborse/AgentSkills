@@ -1201,6 +1201,48 @@
       "workflows": []
     },
     {
+      "name": "ship",
+      "path": "skills/ship",
+      "description": "Ship finished work end to end once the user asks for it — run the checks, compare failures with a baseline on main, merge, push, deploy and health-check when the repo has a deploy step, then clean up this session's branches, worktrees and servers and report the commit. Use for \"ship it\", \"merge and push\", \"merge, push and deploy\", \"merge to main and clean up\" or \"push everything and delete the branches\". Not for deciding whether something is ready (production-ready) or for unasked releases.",
+      "aliases": [
+        "ship it",
+        "merge and push",
+        "merge push deploy",
+        "merge to main and clean up",
+        "push and delete the branch",
+        "release this"
+      ],
+      "keywords": [
+        "ship",
+        "merge",
+        "push",
+        "deploy",
+        "release",
+        "cleanup",
+        "branch",
+        "worktree",
+        "health check",
+        "baseline"
+      ],
+      "composes": [
+        "verify",
+        "test-everything",
+        "fix-bug"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        },
+        {
+          "capability": "git",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
       "name": "test-everything",
       "path": "skills/test-everything",
       "description": "Plan, write and run tests across the stack — unit, integration, end-to-end and visual — find the gaps that matter, fix flaky tests at the cause, and report real results. Use for \"test everything\", \"add tests\", \"improve test coverage\", \"set up e2e tests\", a test strategy, or when a change needs proof beyond reading the code.",

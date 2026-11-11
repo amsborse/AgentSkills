@@ -26,6 +26,7 @@ HL="node ~/agent-skills/history-learning/scripts/hl.mjs"
 
 1. **Read-only history.** Never write to, move, or "clean up" any transcript or database. SQLite
    stores are opened read-only; OpenCode's `credential`/`account` tables are never queried.
+   The only exception is archiving, when the user asks for it after learning (`archive.md`).
 2. **Consent first.** Sources start disabled. Ask the user before `$HL consent --enable`, and
    before `$HL consent --model allow`. Reading a digest *is* sending excerpts to a model.
 3. **Private state.** Inventory, evidence, clusters, digests and reports live in the state
@@ -57,6 +58,10 @@ HL="node ~/agent-skills/history-learning/scripts/hl.mjs"
    main checkout is shared with other agents), write each skill's evidence file with
    `$HL support --write`, run `scripts/validate.sh`, commit locally, and produce `$HL report`. Review, approval, sync and
    undo: `review.md`.
+7. **Archive** (only when the user asks): zip sessions older than N days with
+   `scripts/Archive-ChatHistory.ps1`, which verifies every file by hash before deleting the
+   original and never touches memory folders or the Codex thread databases. Learned evidence
+   survives. Order, `/insights` and Claude's `cleanupPeriodDays`: `archive.md`.
 
 Taste (UI look, motion, writing voice) is mostly described, not commanded, so cue-based
 extraction under-reads it. For such a subject run a topic pass, `$HL topic <name> --categories
