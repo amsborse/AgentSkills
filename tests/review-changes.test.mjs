@@ -297,3 +297,19 @@ test('report: slider keeps pages without a before/after pair visible and does no
   // The slider starts hidden, so the before image is re-fitted whenever the slider gets a size.
   assert.match(html, /new ResizeObserver\(fit\)\.observe\(s\)/);
 });
+
+test('capture: only real not-found titles count as a missing page', async () => {
+  const { notFoundTitle } = await import('../skills/review-changes/scripts/lib/review.mjs');
+  for (const t of ['404', '404: This page could not be found.', '404 | Shop', 'Page Not Found - Shop', 'Not Found']) assert.equal(notFoundTitle(t), true, t);
+  for (const t of ['404 monitoring', 'Search: not found', 'Fixing "not found" errors', 'Dashboard', '']) assert.equal(notFoundTitle(t), false, t);
+});
+
+test('report: rebuilding from ui.json keeps the capture warnings', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rc-notes-'));
+  const note = '/ desktop: the dark and light pictures are identical, so the theme switch probably did not apply';
+  fs.writeFileSync(path.join(dir, 'ui.json'), JSON.stringify({ generated: new Date().toISOString(), shots: [], notes: [note] }));
+  const r = spawnSync(process.execPath, [path.join(SCRIPTS, 'report.mjs'), '--out', dir, '--ui', path.join(dir, 'ui.json')], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(fs.readFileSync(path.join(dir, 'report.html'), 'utf8').includes('theme switch probably did not apply'));
+  fs.rmSync(dir, { recursive: true, force: true });
+});

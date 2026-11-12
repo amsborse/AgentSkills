@@ -32,5 +32,5 @@ if (backend) {
 fs.mkdirSync(o.out, { recursive: true });
 const file = path.join(path.resolve(o.out), 'report.html');
 const generated = new Date().toISOString().slice(0, 16).replace('T', ' ');
-fs.writeFileSync(file, renderReport({ title: o.title, base: o['before-label'], head: o['after-label'], generated, ui, backend }));
+fs.writeFileSync(file, renderReport({ title: o.title, base: o['before-label'], head: o['after-label'], generated, ui, backend, notes: ui?.notes ?? [] }));
 console.log(`report: ${file}`);

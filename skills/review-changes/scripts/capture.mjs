@@ -13,7 +13,7 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
-import { badRoute, classifyShot, shotId, diffRgba, renderReport, validateBackend } from './lib/review.mjs';
+import { badRoute, classifyShot, notFoundTitle, shotId, diffRgba, renderReport, validateBackend } from './lib/review.mjs';
 
 const { values: o } = parseArgs({
   options: {
@@ -100,7 +100,7 @@ async function shoot(baseUrl, route, theme, vp, file) {
     if (status === 404) return { missing: true, status, consoleErrors };
     if (status >= 400) return { error: `HTTP ${status}`, status, consoleErrors };
     // Streamed not-found pages (Next.js and others) can arrive with HTTP 200.
-    if (/\b(404|not found|page not found)\b/i.test(await page.title())) return { missing: true, status, consoleErrors };
+    if (notFoundTitle(await page.title())) return { missing: true, status, consoleErrors };
     // Dev-server overlays (Next.js issue badge) are tooling, not the app's interface.
     await page.addStyleTag({ content: 'nextjs-portal, #__next-build-watcher, vite-error-overlay { display: none !important; }' });
     const attr = o['theme-attr'];
@@ -201,9 +201,10 @@ if (themes.length > 1) {
 }
 await browser.close();
 
-const ui ={ before: o.before, after: o.after, generated: new Date().toISOString(), shots };
-fs.writeFileSync(path.join(out, 'ui.json'), JSON.stringify(ui, null, 2));
 if (shots.some((s) => s.noiseError)) notes.push('Some views could not be captured twice, so their noise floor is unknown and any difference is reported as a change.');
+// Notes live in ui.json too, so a report rebuilt later (report.mjs) keeps the warnings.
+const ui = { before: o.before, after: o.after, generated: new Date().toISOString(), shots, notes };
+fs.writeFileSync(path.join(out, 'ui.json'), JSON.stringify(ui, null, 2));
 fs.writeFileSync(path.join(out, 'report.html'), renderReport({ title: o.title, base: o['before-label'], head: o['after-label'], generated: ui.generated.slice(0, 16).replace('T', ' '), ui, backend, notes }));
 const unchecked = shots.filter((s) => s.status === 'not-checked').length;
 console.log(`\nreport: ${path.join(out, 'report.html')}${unchecked ? `\n${unchecked} view(s) NOT checked; see the report` : ''}`);

@@ -180,6 +180,9 @@ export function classifyShot({ before, after, ratio, noise }) {
 const slug = (s) => String(s).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root';
 // File-name stem for one capture. The route index keeps /a/b and /a-b apart even though they slug the same.
 export const shotId = (i, route, theme, vp) => `${String(i).padStart(2, '0')}-${slug(route)}--${slug(theme)}--${slug(vp)}`;
+// A not-found page served with HTTP 200 (Next.js streams them): the title must read as one,
+// not just mention the words ("404 monitoring", "Search: not found" are real pages).
+export const notFoundTitle = (t) => /^\s*(?:404|(?:page )?not found)\s*(?:$|[:|\-–—])|this page could not be found/i.test(String(t));
 
 export function badRoute(r) {
   if (/^\/?[A-Za-z]:[\/]/.test(r) || /Program Files/i.test(r)) return `route "${r}" looks like a rewritten Windows path; in Git Bash run with MSYS_NO_PATHCONV=1`;
