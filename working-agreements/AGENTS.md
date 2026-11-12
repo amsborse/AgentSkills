@@ -76,6 +76,9 @@ from corrections rather than stated. Per-rule counts: `evidence.md` in this fold
   sent message, a revision): check its state first, and keep every retry loop bounded. (high)
 - Stop the servers and background processes you started once they are no longer needed, and
   kill a stale server on the port before testing so old code is not served. (high, inferred)
+- When the harness or OS kills a task for low memory, do not drop it: check free memory every
+  15 minutes (bounded, about 8 checks), restart the task once enough is free, and report it. If
+  its output is already in hand, say so instead of rerunning. (low, stated once)
 - Preview and test locally without Docker (dev server, fixture data) unless the repo only runs
   in containers or the user asks for it. (medium)
 - Finish the task in the current session. Write a handoff only when the user asks for one or a
