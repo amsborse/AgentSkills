@@ -278,3 +278,22 @@ test('report: numbered close-ups and overview markers, legacy bbox fallback, and
   assert.doesNotMatch(render({ ...shot, before: { file: '../outside.png' } }), /src="\.\.\//);
   assert.doesNotMatch(render({ ...shot, status: 'unchanged' }), /class="closeups"/);
 });
+
+test('capture: routes that slug the same still get their own screenshot files', async () => {
+  const { shotId } = await import('../skills/review-changes/scripts/lib/review.mjs');
+  const a = shotId(0, '/a/b', 'dark', 'desktop'), b = shotId(1, '/a-b', 'dark', 'desktop');
+  assert.notEqual(a, b);
+  assert.match(shotId(2, '/', 'light', 'mobile'), /^[\w.-]+$/);
+});
+
+test('report: slider keeps pages without a before/after pair visible and does not stretch the before image', () => {
+  const html = renderReport({ ui: { shots: [
+    { route: '/n', theme: 'dark', viewport: 'd', status: 'new', reason: 'r', before: { missing: true }, after: { file: 'shots/n.png' } },
+    { route: '/c', theme: 'dark', viewport: 'd', status: 'changed', reason: 'r', before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' } }] } });
+  // Slide mode only applies to views that actually have a slider.
+  assert.match(html, /querySelectorAll\('\.views'\)\.forEach\(v=>\{if\(v\.querySelector\('\.cmp'\)\)v\.dataset\.mode=b\.dataset\.m\}\)/);
+  // Both slider images scale by width and keep their own aspect ratio.
+  assert.doesNotMatch(html, /\.slider \.clip img\{[^}]*height:100%/);
+  // The slider starts hidden, so the before image is re-fitted whenever the slider gets a size.
+  assert.match(html, /new ResizeObserver\(fit\)\.observe\(s\)/);
+});

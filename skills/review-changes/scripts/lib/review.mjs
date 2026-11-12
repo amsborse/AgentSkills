@@ -177,6 +177,10 @@ export function classifyShot({ before, after, ratio, noise }) {
 }
 
 // Git Bash (MSYS) rewrites a leading "/route" argument into "C:/Program Files/Git/route".
+const slug = (s) => String(s).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root';
+// File-name stem for one capture. The route index keeps /a/b and /a-b apart even though they slug the same.
+export const shotId = (i, route, theme, vp) => `${String(i).padStart(2, '0')}-${slug(route)}--${slug(theme)}--${slug(vp)}`;
+
 export function badRoute(r) {
   if (/^\/?[A-Za-z]:[\/]/.test(r) || /Program Files/i.test(r)) return `route "${r}" looks like a rewritten Windows path; in Git Bash run with MSYS_NO_PATHCONV=1`;
   return null;
@@ -375,7 +379,7 @@ body.real .shot[data-status=unchanged],body.real .shot[data-status=noise]{displa
 [hidden]{display:none!important}.gap{display:grid;place-items:center;min-height:160px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:13px;background:var(--bg2)}
 .cmp{display:none}.views[data-mode=slide]{grid-template-columns:1fr}.views[data-mode=slide] figure{display:none}.views[data-mode=slide] .cmp{display:block}
 .slider{position:relative;max-width:1100px}.slider>img{display:block;width:100%;border-radius:10px;border:1px solid var(--line)}
-.slider .clip{position:absolute;inset:0;width:var(--x);overflow:hidden;border-right:2px solid var(--accent)}.slider .clip img{width:auto;max-width:none;height:100%;border:0;border-radius:10px 0 0 10px}
+.slider .clip{position:absolute;inset:0;width:var(--x);overflow:hidden;border-right:2px solid var(--accent)}.slider .clip img{width:auto;max-width:none;height:auto;border:0;border-radius:10px 0 0 10px}
 .slider input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
 .errs{margin-top:12px;font-size:13px}.errs summary{cursor:pointer;color:var(--hi)}.errs li{font-family:ui-monospace,monospace;font-size:12px;overflow-wrap:anywhere}
 .card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px;margin:0}.card dt{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);margin-bottom:4px}.card dd{margin:0}.card small{color:var(--sub)}
@@ -410,8 +414,8 @@ document.querySelectorAll('.crop[data-at]').forEach(c=>{const img=c.querySelecto
 // The crops of one change scroll together, and fade at the edge while more is hidden.
 document.querySelectorAll('.change-region').forEach(g=>{const cs=[...g.querySelectorAll('.crop')],cue=()=>cs.forEach(c=>c.classList.toggle('more',c.scrollWidth-c.clientWidth-c.scrollLeft>2));cs.forEach(c=>c.addEventListener('scroll',()=>{cs.forEach(o=>{if(o!==c){o.scrollLeft=c.scrollLeft;o.scrollTop=c.scrollTop}});cue()},{passive:true}));addEventListener('resize',cue);cue()});
 document.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{document.body.classList.toggle('real',b.dataset.f==='real');document.querySelectorAll('[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
-document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.views').forEach(v=>v.dataset.mode=b.dataset.m);document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
-document.querySelectorAll('.slider').forEach(s=>{const i=s.querySelector('input'),c=s.querySelector('.clip img'),fit=()=>{c.style.width=s.clientWidth+'px'};i.addEventListener('input',()=>s.style.setProperty('--x',i.value+'%'));addEventListener('resize',fit);fit()});
+document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.views').forEach(v=>{if(v.querySelector('.cmp'))v.dataset.mode=b.dataset.m});document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+document.querySelectorAll('.slider').forEach(s=>{const i=s.querySelector('input'),c=s.querySelector('.clip img'),fit=()=>{c.style.width=s.clientWidth+'px'};i.addEventListener('input',()=>s.style.setProperty('--x',i.value+'%'));new ResizeObserver(fit).observe(s);fit()});
 </script>
 </body></html>
 `;

@@ -13,7 +13,7 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
-import { badRoute, classifyShot, diffRgba, renderReport, validateBackend } from './lib/review.mjs';
+import { badRoute, classifyShot, shotId, diffRgba, renderReport, validateBackend } from './lib/review.mjs';
 
 const { values: o } = parseArgs({
   options: {
@@ -84,7 +84,6 @@ if (!chromium) {
   process.exit(1);
 }
 
-const slug = (s) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root';
 const browser = await chromium.launch();
 
 async function shoot(baseUrl, route, theme, vp, file) {
@@ -153,10 +152,10 @@ async function diff(fileA, fileB, overlayFile) {
 }
 
 const shots = [];
-for (const route of routes) {
+for (const [ri, route] of routes.entries()) {
   for (const theme of themes) {
     for (const vp of viewports) {
-      const id = `${slug(route)}--${slug(theme)}--${vp.name}`;
+      const id = shotId(ri, route, theme, vp.name);
       const before = await shoot(o.before, route, theme, vp, `shots/${id}--before.png`);
       const after = await shoot(o.after, route, theme, vp, `shots/${id}--after.png`);
       const shot = { route, theme, viewport: `${vp.name} ${vp.width}×${vp.height}`, before, after, baseLabel: o['before-label'], headLabel: o['after-label'] };
