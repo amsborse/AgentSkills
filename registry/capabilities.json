@@ -1,6 +1,12 @@
 {
   "version": 1,
   "capabilities": {
+    "audio-synthesis": {
+      "requiredBy": [],
+      "optionalFor": [
+        "cinematic-creation"
+      ]
+    },
     "browser": {
       "requiredBy": [
         "automate-browser",
@@ -61,6 +67,7 @@
       "requiredBy": [],
       "optionalFor": [
         "build-animation",
+        "cinematic-creation",
         "revamp-ui"
       ]
     },
@@ -114,6 +121,18 @@
       "optionalFor": [
         "coordinate-agents",
         "research"
+      ]
+    },
+    "video-generation": {
+      "requiredBy": [],
+      "optionalFor": [
+        "cinematic-creation"
+      ]
+    },
+    "video-render": {
+      "requiredBy": [],
+      "optionalFor": [
+        "cinematic-creation"
       ]
     },
     "web-search": {

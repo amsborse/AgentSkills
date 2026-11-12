@@ -11,6 +11,7 @@ repository or unattended.
 | --- | --- | --- | --- | --- |
 | `revamp-ui` | "Revamp my website UI", "unslop this page" | verify, build-animation, coordinate-agents | medium | `workflows/unslop/`, `workflows/codex-visual.md`, style add-ons in `styles/` |
 | `build-animation` | "Animate this hero", "match this reference image" | verify, revamp-ui, coordinate-agents | low | `workflows/cinematic-plate/`, `workflows/chapter-rail.md`, `workflows/heavy-hero-performance.md`, style add-ons in `styles/` |
+| `cinematic-creation` | "Make a cinematic short film from this brief", "storyboard and score this" | build-animation, coordinate-agents, verify | medium | `references/` per role (story, camera, generation, editing, music, review), `templates/cut.json` |
 | `build-feature` | "Build this feature end to end", "write a spec" | understand-code, test-everything, verify, review-code, coordinate-agents | medium | `workflows/spec.md` |
 | `fix-bug` | "Find and fix this bug", "it's still broken" | verify, test-everything | medium | |
 | `understand-code` | "Understand the architecture of this repository" | research | low | |

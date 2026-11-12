@@ -145,6 +145,70 @@
       ]
     },
     {
+      "name": "cinematic-creation",
+      "path": "skills/cinematic-creation",
+      "description": "Turn a simple creative brief into a coherent, emotionally strong cinematic film — creative direction, script, storyboard, shot design and camera, structured text- or image-to-video prompts, original music and sound, timeline editing, transitions and grade, automated quality review with iteration, and final render — on whatever free or local backend is authorised, with every paid generator gated. Roles (director, cinematographer, storyboard artist, music director, generation specialist, editor, reviewer) load only their own references. Use for \"make a cinematic film\", \"short film from this brief\", \"storyboard this\", \"write shot prompts\", \"score this film\", \"edit the rough cut\" or \"review this cut\".",
+      "aliases": [
+        "make a cinematic film",
+        "make a short film",
+        "cinematic video",
+        "film from this brief",
+        "storyboard this",
+        "shot list",
+        "write shot prompts",
+        "score this film",
+        "edit the rough cut",
+        "review this cut",
+        "animatic"
+      ],
+      "keywords": [
+        "cinematic",
+        "film",
+        "cinematography",
+        "storyboard",
+        "shot list",
+        "camera",
+        "score",
+        "music",
+        "sound design",
+        "editing",
+        "transitions",
+        "color grade",
+        "text-to-video",
+        "image-to-video",
+        "animatic",
+        "render",
+        "continuity",
+        "pacing"
+      ],
+      "composes": [
+        "research",
+        "verify",
+        "coordinate-agents",
+        "build-animation"
+      ],
+      "requires": [
+        {
+          "capability": "video-render",
+          "optional": true
+        },
+        {
+          "capability": "image-generation",
+          "optional": true
+        },
+        {
+          "capability": "video-generation",
+          "optional": true
+        },
+        {
+          "capability": "audio-synthesis",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "coordinate-agents",
       "path": "skills/coordinate-agents",
       "description": "Split work across agents — delegate an isolated implementation to OpenAI Codex through codex-bridge in its own git worktree, run independent parts in parallel subagents, then review and integrate the results yourself. Includes the former /codex-frontend workflow. Use for \"use Codex for this\", \"delegate to Codex\", \"split this work\", \"run agents in parallel\" or \"orchestrate agents\".",

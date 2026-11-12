@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "title": "Working title",
+  "logline": "Who or what, the pressure, the turn, and the final image, in one sentence.",
+  "format": "16:9",
+  "fps": 30,
+  "target": { "minSeconds": 10, "maxSeconds": 20 },
+  "worlds": [
+    { "id": "pressure", "description": "Restless and compressed: long lens, short holds, cool light." },
+    { "id": "release", "description": "Fluid and open: wide lens, long holds, warm low sun." }
+  ],
+  "shots": [
+    {
+      "id": "s01",
+      "world": "pressure",
+      "start": 0,
+      "duration": 6,
+      "intent": "What the viewer should feel in this shot, in one line.",
+      "look": "look-id",
+      "camera": "dolly-in",
+      "cameraNote": "restless, compressed, slight handheld drift",
+      "transitionIn": { "kind": "fade-from-black", "seconds": 1, "carries": null },
+      "prompt": "Subject, setting, light, camera size and lens and move, style, texture. Under 200 tokens.",
+      "avoid": "oversaturated colour, artificial glow, floating particles, impossible geography",
+      "caption": null,
+      "sound": "city hum, a clock tick that accelerates"
+    },
+    {
+      "id": "s02",
+      "world": "release",
+      "start": 6,
+      "duration": 8,
+      "intent": "The release the first shot was building toward.",
+      "look": "look-id",
+      "camera": "static",
+      "cameraNote": "locked off, still",
+      "transitionIn": { "kind": "match", "seconds": 1.5, "carries": "the shape or motion that rhymes across the cut" },
+      "prompt": "Motion only, for image-to-video: what moves in the frame and how the camera moves.",
+      "avoid": "constant camera motion, lens flares, fantasy colour",
+      "caption": { "text": "A short human line.", "at": 9, "duration": 3 },
+      "sound": "silence, then water and a single flute note"
+    }
+  ],
+  "score": {
+    "file": null,
+    "licence": "original",
+    "cues": [
+      { "at": 6, "label": "turn: hard drop to near-silence" },
+      { "at": 13, "label": "resolve on the tonic, hold, then ambience" }
+    ]
+  }
+}
