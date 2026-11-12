@@ -32,6 +32,13 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
   const ADDED = [34, 197, 94], REMOVED = [239, 68, 68], MODIFIED = [245, 158, 11];
   // Coarse spatial buckets keep grouping bounded by image area, not changed pixels.
   const tile = 24, cols = Math.ceil(w / tile), cells = new Map();
+  // Fine cells of changed ink per side, later joined into text-line highlights.
+  const fine = 8, fcols = Math.ceil(w / fine), inkA = new Map(), inkB = new Map();
+  const note = (m, x, y) => {
+    const k = Math.floor(y / fine) * fcols + Math.floor(x / fine), c = m.get(k);
+    if (c) { c.x = Math.min(c.x, x); c.y = Math.min(c.y, y); c.r = Math.max(c.r, x); c.b = Math.max(c.b, y); }
+    else m.set(k, { x, y, r: x, b: y });
+  };
   let changed = 0, added = 0, removed = 0, modified = 0;
   let minX = w, minY = h, maxX = -1, maxY = -1;
   for (let y = 0; y < h; y++) {
@@ -62,6 +69,8 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
         if (y > maxY) maxY = y;
         const before = inA && ink(a, i, bgA);
         const after = inB && ink(b, j, bgB);
+        if (before) note(inkA, x, y);
+        if (after) note(inkB, x, y);
         if (!inA || (after && !before)) { added++; paint(o, ADDED); }
         else if (!inB || (before && !after)) { removed++; paint(o, REMOVED); }
         else { modified++; paint(o, MODIFIED); }
@@ -108,6 +117,30 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
     boxes[ai] = union(boxes[ai], boxes[bi]); boxes.splice(bi, 1);
   }
   const regions = boxes.sort((a, b) => a.y - b.y || a.x - b.x).map(({ x, y, r, b }) => ({ x, y, w: r - x + 1, h: b - y + 1 }));
+  // Join ink cells into line boxes: across word gaps on a row, then down while rows touch.
+  const lines = (m) => {
+    const runs = [];
+    let row = -1, cur = null;
+    for (const k of [...m.keys()].sort((p, q) => p - q)) {
+      const c = m.get(k), r = Math.floor(k / fcols);
+      if (cur && r === row && c.x - cur.r <= 12) cur = union(cur, c);
+      else { if (cur) runs.push(cur); cur = { ...c }; row = r; }
+    }
+    if (cur) runs.push(cur);
+    const out = [];
+    for (const run of runs) {
+      // Absorb every box this run touches, so letter tops in the row above join their line.
+      let box = run;
+      for (let i = out.length - 1; i >= 0; i--) {
+        const o = out[i];
+        if (box.y - o.b <= 2 && box.x <= o.r + 12 && box.r >= o.x - 12) { box = union(box, o); out.splice(i, 1); }
+      }
+      out.push(box);
+      if (out.length > 600) break;
+    }
+    return out.slice(0, 600).sort((p, q) => p.y - q.y || p.x - q.x).map(({ x, y, r, b }) => ({ x, y, w: r - x + 1, h: b - y + 1 }));
+  };
+  const marks = { before: lines(inkA), after: lines(inkB) };
   const total = w * h;
   return {
     width: w,
@@ -120,6 +153,7 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
     ratio: total ? changed / total : 0,
     bbox: changed ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : null,
     regions,
+    marks,
     overlay,
   };
 }
@@ -224,12 +258,24 @@ function changeRegions(s) {
   return regions.length ? regions : clean(s.bbox ? [s.bbox] : []);
 }
 
+function changeMarks(s) {
+  const clean = (list) => (Array.isArray(list) ? list.slice(0, 600) : []).flatMap((r) => {
+    const v = ['x', 'y', 'w', 'h'].map((k) => Number(r?.[k]));
+    return v.every((n) => Number.isFinite(n) && Math.abs(n) <= 10000000) && v[0] >= 0 && v[1] >= 0 && v[2] > 0 && v[3] > 0 ? [{ x: v[0], y: v[1], w: v[2], h: v[3] }] : [];
+  });
+  return { before: clean(s.marks?.before), after: clean(s.marks?.after) };
+}
+
 function closeups(s, regions) {
   if (!regions.length) return '';
-  return `<div class="closeups"><h4>Changes up close</h4><p class="meta">Shown at full size. Scroll inside a crop to see wider changes.</p>${regions.map((r, i) => {
+  const marks = changeMarks(s);
+  return `<div class="closeups"><h4>Changes up close</h4><p class="meta">Shown at full size: red marks lines that changed or went, green marks what replaced them. Scroll inside a crop to see wider changes.</p>${regions.map((r, i) => {
     const x = Math.max(0, r.x - 24), y = Math.max(0, r.y - 24);
     const w = r.w + r.x - x + 24, h = r.h + r.y - y + 24;
-    return `<div class="change-region"><h4>Change ${i + 1}</h4><div class="crop-grid">${[[s.before?.file, 'Before'], [s.after?.file, 'After'], [s.diffFile, 'What changed']].map(([file, label]) => `<figure><figcaption>${label}</figcaption>${src(file) ? `<div class="crop" tabindex="0" role="region" aria-label="${label}, change ${i + 1}" data-at="${r.x},${r.y}" style="height:${h}px"><div style="width:${w}px;height:${h}px"><img loading="lazy" src="${src(file)}" alt="${label}, change ${i + 1}" style="left:-${x}px;top:-${y}px"></div></div><div class="gap" hidden>Not in this capture: the page ends before this point.</div>` : '<div class="gap">No image</div>'}</figure>`).join('')}</div></div>`;
+    // Highlights sit behind each changed line with a little room around it, so text stays readable.
+    const hl = (list, cls) => list.filter((m) => m.x < x + w && m.y < y + h && m.x + m.w > x && m.y + m.h > y)
+      .map((m) => `<i class="hl ${cls}" style="left:${m.x - 4 - x}px;top:${m.y - 4 - y}px;width:${m.w + 8}px;height:${m.h + 8}px"></i>`).join('');
+    return `<div class="change-region"><h4>Change ${i + 1}</h4><div class="crop-grid">${[[s.before?.file, 'Before', hl(marks.before, 'del')], [s.after?.file, 'After', hl(marks.after, 'add')]].map(([file, label, lit]) => `<figure><figcaption>${label}</figcaption>${src(file) ? `<div class="crop" tabindex="0" role="region" aria-label="${label}, change ${i + 1}" data-at="${r.x},${r.y}" style="height:${h}px"><div style="width:${w}px;height:${h}px"><img loading="lazy" src="${src(file)}" alt="${label}, change ${i + 1}" style="left:-${x}px;top:-${y}px">${lit}</div></div><div class="gap" hidden>Not in this capture: the page ends before this point.</div>` : '<div class="gap">No image</div>'}</figure>`).join('')}</div></div>`;
   }).join('')}</div>`;
 }
 
@@ -314,8 +360,8 @@ body.real .shot[data-status=unchanged],body.real .shot[data-status=noise]{displa
 .views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
 .views figure{margin:0;min-width:0}.views figcaption{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}.views figcaption small{text-transform:none;letter-spacing:0;font-weight:400}
 .views img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:var(--bg2)}
-.diff-map{position:relative}.region-mark{position:absolute;border:2px solid var(--mod);box-shadow:0 0 0 1px var(--card);min-width:8px;min-height:8px;pointer-events:none}.region-mark b{position:absolute;bottom:100%;left:-2px;background:var(--mod);color:var(--bg);font:700 11px/1.5 ui-sans-serif,system-ui;padding:0 5px;border-radius:3px 3px 0 0}
-.closeups{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}.closeups>h4{color:var(--ink)}.closeups>p{margin:0 0 18px}.change-region{margin-top:18px}.crop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.crop-grid figure{margin:0;min-width:0}.crop-grid figcaption{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}.crop{width:fit-content;max-width:100%;max-height:480px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg2)}.crop.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.crop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.crop>div{position:relative;overflow:hidden}.crop img{position:absolute;max-width:none;width:auto;height:auto;display:block}.shot h3,.meta,.lede{overflow-wrap:anywhere}
+.diff-map{position:relative}.region-mark{position:absolute;outline:2px solid var(--mod);outline-offset:4px;box-shadow:0 0 0 4px rgba(0,0,0,0);min-width:8px;min-height:8px;pointer-events:none}.region-mark b{position:absolute;bottom:calc(100% + 6px);left:-6px;background:var(--mod);color:var(--bg);font:700 11px/1.5 ui-sans-serif,system-ui;padding:0 5px;border-radius:3px 3px 0 0}
+.closeups{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}.closeups>h4{color:var(--ink)}.closeups>p{margin:0 0 18px}.change-region{margin-top:18px}.crop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.crop-grid figure{margin:0;min-width:0}.crop-grid figcaption{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}.crop{width:fit-content;max-width:100%;max-height:480px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg2)}.crop.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.crop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.crop>div{position:relative;overflow:hidden}.crop img{position:absolute;max-width:none;width:auto;height:auto;display:block}.hl{position:absolute;border-radius:4px;pointer-events:none}.hl.add{background:color-mix(in srgb,var(--add) 22%,transparent);box-shadow:inset 0 -2px 0 var(--add)}.hl.del{background:color-mix(in srgb,var(--del) 22%,transparent);box-shadow:inset 0 -2px 0 var(--del)}.shot h3,.meta,.lede{overflow-wrap:anywhere}
 [hidden]{display:none!important}.gap{display:grid;place-items:center;min-height:160px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:13px;background:var(--bg2)}
 .cmp{display:none}.views[data-mode=slide]{grid-template-columns:1fr}.views[data-mode=slide] figure{display:none}.views[data-mode=slide] .cmp{display:block}
 .slider{position:relative;max-width:1100px}.slider>img{display:block;width:100%;border-radius:10px;border:1px solid var(--line)}
@@ -351,7 +397,7 @@ ${notes.length ? `<div class="notes"><h4>Notes</h4><ul>${notes.map((n) => `<li>$
 document.querySelectorAll('.diff-map').forEach(map=>{const img=map.querySelector('img'),fit=()=>{if(!img.naturalWidth||!img.naturalHeight)return;map.querySelectorAll('[data-box]').forEach(mark=>{const [x,y,w,h]=mark.dataset.box.split(',').map(Number);mark.style.left=(100*x/img.naturalWidth)+'%';mark.style.top=(100*y/img.naturalHeight)+'%';mark.style.width=(100*Math.min(w,img.naturalWidth-x)/img.naturalWidth)+'%';mark.style.height=(100*Math.min(h,img.naturalHeight-y)/img.naturalHeight)+'%'})};img.addEventListener('load',fit);fit()});
 // A crop whose change lies past the end of a shorter capture says so instead of showing an empty box.
 document.querySelectorAll('.crop[data-at]').forEach(c=>{const img=c.querySelector('img'),[x,y]=c.dataset.at.split(',').map(Number),check=()=>{if(img.naturalWidth&&(x>=img.naturalWidth||y>=img.naturalHeight)){c.hidden=true;c.nextElementSibling.hidden=false}};if(img.complete)check();else img.addEventListener('load',check)});
-// The three crops of one change scroll together, and fade at the edge while more is hidden.
+// The crops of one change scroll together, and fade at the edge while more is hidden.
 document.querySelectorAll('.change-region').forEach(g=>{const cs=[...g.querySelectorAll('.crop')],cue=()=>cs.forEach(c=>c.classList.toggle('more',c.scrollWidth-c.clientWidth-c.scrollLeft>2));cs.forEach(c=>c.addEventListener('scroll',()=>{cs.forEach(o=>{if(o!==c){o.scrollLeft=c.scrollLeft;o.scrollTop=c.scrollTop}});cue()},{passive:true}));addEventListener('resize',cue);cue()});
 document.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{document.body.classList.toggle('real',b.dataset.f==='real');document.querySelectorAll('[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
 document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.views').forEach(v=>v.dataset.mode=b.dataset.m);document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));

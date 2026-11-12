@@ -206,6 +206,37 @@ test('diff: thousands of scattered changes are capped quickly and none is lost',
   for (const [x, y] of dots) assert.ok(regions.some(r => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h), `dot ${x},${y} not covered`);
 });
 
+test('diff: changed text gets line highlights per side, separate lines stay separate', () => {
+  const W = 300, H = 120, a = solid(W, H, [0, 0, 0, 255]), b = a.slice();
+  const bar = (img, x0, x1, y0, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) img.set([255, 255, 255, 255], (y * W + x) * 4); };
+  bar(a, 10, 100, 20, 30); bar(b, 10, 140, 20, 30); // line 1 grows
+  bar(b, 10, 80, 40, 50); // a new line just below it
+  bar(a, 10, 60, 80, 90); // a removed line
+  const { marks } = new Function(`return (${diffRgba.toString()})`)()(a, W, H, b, W, H);
+  assert.deepEqual(marks.after, [{ x: 101, y: 20, w: 40, h: 11 }, { x: 10, y: 40, w: 71, h: 11 }]);
+  assert.deepEqual(marks.before, [{ x: 10, y: 80, w: 51, h: 11 }]);
+  assert.deepEqual(diffRgba(a, W, H, a, W, H).marks, { before: [], after: [] });
+  // Tall letters poking into the row above join their line instead of getting their own boxes.
+  const c = solid(W, H, [0, 0, 0, 255]), d = c.slice();
+  const bar2 = (x0, x1, y0, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) d.set([255, 255, 255, 255], (y * W + x) * 4); };
+  bar2(10, 200, 66, 76); for (const x of [20, 60, 100, 150]) bar2(x, x + 2, 60, 65);
+  assert.deepEqual(diffRgba(c, W, H, d, W, H).marks.after, [{ x: 10, y: 60, w: 191, h: 17 }]);
+});
+
+test('report: close-ups highlight changed lines behind readable text instead of overlaying old and new', () => {
+  const shot = { status: 'changed', route: '/x', before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' }, diffFile: 'shots/d.png',
+    regions: [{ x: 100, y: 200, w: 120, h: 30 }],
+    marks: { before: [{ x: 100, y: 200, w: 50, h: 12 }, { x: 'bad', y: 0, w: 1, h: 1 }], after: [{ x: 110, y: 210, w: 60, h: 12 }, { x: 900, y: 900, w: 5, h: 5 }] } };
+  const html = renderReport({ ui: { shots: [shot] } });
+  const region = html.slice(html.indexOf('class="change-region"'));
+  // Padded 4px around the line, positioned inside the crop (crop starts at 76,176).
+  assert.match(region, /class="hl del" style="left:20px;top:20px;width:58px;height:20px"/);
+  assert.match(region, /class="hl add" style="left:30px;top:30px;width:68px;height:20px"/);
+  assert.equal((region.match(/class="hl /g) || []).length, 2, 'invalid and out-of-crop marks are dropped');
+  assert.doesNotMatch(region, /What changed/, 'no crop paints old and new text on top of each other');
+  assert.match(html, /\.region-mark\{[^}]*outline-offset:4px/);
+});
+
 test('report: numbered close-ups and overview markers, legacy bbox fallback, and safe geometry', () => {
   const shot = { status: 'changed', route: '/x', before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' }, diffFile: 'shots/d.png',
     regions: [{ x: 100, y: 200, w: 120, h: 30 }, { x: 500, y: 900, w: 80, h: 60 }] };
