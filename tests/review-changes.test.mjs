@@ -71,7 +71,7 @@ test('report: a new page is shown as a new feature in purple with a legend', () 
   assert.match(html, /New feature/);
   assert.match(html, /class="newfeat"><img[^>]+src="shots\/n.png"/);
   assert.match(html, /class="legend"/);
-  assert.match(html, /Added[\s\S]*Removed[\s\S]*Changed in place[\s\S]*New feature/);
+  assert.match(html, /Purple[\s\S]*whole new page/);
 });
 
 test('diff: a taller after-page counts the extra rows as changed', () => {
@@ -237,20 +237,42 @@ test('report: close-ups highlight changed lines behind readable text instead of 
   assert.match(html, /\.region-mark\{[^}]*outline-offset:4px/);
 });
 
+test('report: a child can read it - numbered boxes on before and after, plain titles, pixel jargon tucked away', () => {
+  const shot = { status: 'changed', route: '/x', reason: '0.21% of pixels changed', added: 5, removed: 3, modified: 2,
+    before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' }, diffFile: 'shots/d.png',
+    regions: [{ x: 100, y: 200, w: 120, h: 30 }, { x: 500, y: 900, w: 80, h: 60 }, { x: 10, y: 2000, w: 50, h: 20 }],
+    marks: { before: [{ x: 100, y: 200, w: 50, h: 12 }, { x: 10, y: 2000, w: 50, h: 20 }], after: [{ x: 110, y: 210, w: 60, h: 12 }, { x: 500, y: 900, w: 80, h: 60 }] } };
+  const html = renderReport({ ui: { shots: [shot] } });
+  const card = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+  const views = card.slice(card.indexOf('class="views'), card.indexOf('class="closeups"'));
+  assert.match(card, /3 changes on this page/);
+  // Same numbered boxes on Before and After, and the grey pixel map is not in the main view.
+  assert.equal((views.match(/class="region-mark"/g) || []).length, 6);
+  assert.doesNotMatch(views, /shots\/d\.png|of pixels changed|in place/);
+  // Each change says in plain words what kind of change it is.
+  assert.match(card, /<span class="num">1<\/span>Changed/);
+  assert.match(card, /<span class="num">2<\/span>New here/);
+  assert.match(card, /<span class="num">3<\/span>Gone/);
+  // The pixel map and percentages are still there, folded away.
+  const px = card.slice(card.indexOf('<details class="pixels">'));
+  assert.match(px, /<summary>Pixel details<\/summary>[^]*shots\/d\.png[^]*0\.21% of pixels changed[^]*in place/);
+  assert.match(html, /class="legend"[^]*numbered boxes[^]*Red[^]*Green[^]*Purple/);
+});
+
 test('report: numbered close-ups and overview markers, legacy bbox fallback, and safe geometry', () => {
   const shot = { status: 'changed', route: '/x', before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' }, diffFile: 'shots/d.png',
     regions: [{ x: 100, y: 200, w: 120, h: 30 }, { x: 500, y: 900, w: 80, h: 60 }] };
   const render = s => renderReport({ ui: { shots: [s] } });
   const html = render(shot);
-  assert.match(html, /Changes up close/);
+  assert.match(html, /Each change up close/);
   assert.equal((html.match(/class="change-region"/g) || []).length, 2);
-  assert.equal((html.match(/class="region-mark"/g) || []).length, 2);
+  assert.equal((html.match(/class="region-mark"/g) || []).length, 4, "2 changes, numbered on both before and after");
   assert.match(html, /data-box="100,200,120,30"/);
   assert.match(html, /left:-76px;top:-176px/);
   // Each crop carries its change point so a shorter capture can say "not in this capture".
   assert.match(html, /data-at="500,900"[^]*?Not in this capture/);
   assert.match(html, /\.views,\.crop-grid\{grid-template-columns:1fr\}/);
-  assert.match(render({ ...shot, regions: undefined, bbox: shot.regions[0] }), /Changes up close/);
+  assert.match(render({ ...shot, regions: undefined, bbox: shot.regions[0] }), /Each change up close/);
   assert.doesNotMatch(render({ ...shot, regions: undefined }), /class="closeups"/);
   assert.doesNotMatch(render({ ...shot, regions: [{ x: '0;bad', y: 0, w: Infinity, h: 10 }] }), /class="closeups"/);
   assert.doesNotMatch(render({ ...shot, before: { file: '../outside.png' } }), /src="\.\.\//);

@@ -269,34 +269,42 @@ function changeMarks(s) {
 function closeups(s, regions) {
   if (!regions.length) return '';
   const marks = changeMarks(s);
-  return `<div class="closeups"><h4>Changes up close</h4><p class="meta">Shown at full size: red marks lines that changed or went, green marks what replaced them. Scroll inside a crop to see wider changes.</p>${regions.map((r, i) => {
+  const hits = (list, r) => list.some((m) => m.x < r.x + r.w && m.y < r.y + r.h && m.x + m.w > r.x && m.y + m.h > r.y);
+  const KIND = { both: ['Changed', 'Red shows how it was, green shows how it is now.'], add: ['New here', 'Green shows what was added.'], del: ['Gone', 'Red shows what was taken away.'] };
+  return `<div class="closeups"><h4>Each change up close</h4><p class="meta">Shown at full size. Scroll inside a picture to see wider changes.</p>${regions.map((r, i) => {
+    const b = hits(marks.before, r), a = hits(marks.after, r);
+    const [kind, say] = KIND[a && !b ? 'add' : b && !a ? 'del' : 'both'];
     const x = Math.max(0, r.x - 24), y = Math.max(0, r.y - 24);
     const w = r.w + r.x - x + 24, h = r.h + r.y - y + 24;
     // Highlights sit behind each changed line with a little room around it, so text stays readable.
     const hl = (list, cls) => list.filter((m) => m.x < x + w && m.y < y + h && m.x + m.w > x && m.y + m.h > y)
       .map((m) => `<i class="hl ${cls}" style="left:${m.x - 4 - x}px;top:${m.y - 4 - y}px;width:${m.w + 8}px;height:${m.h + 8}px"></i>`).join('');
-    return `<div class="change-region"><h4>Change ${i + 1}</h4><div class="crop-grid">${[[s.before?.file, 'Before', hl(marks.before, 'del')], [s.after?.file, 'After', hl(marks.after, 'add')]].map(([file, label, lit]) => `<figure><figcaption>${label}</figcaption>${src(file) ? `<div class="crop" tabindex="0" role="region" aria-label="${label}, change ${i + 1}" data-at="${r.x},${r.y}" style="height:${h}px"><div style="width:${w}px;height:${h}px"><img loading="lazy" src="${src(file)}" alt="${label}, change ${i + 1}" style="left:-${x}px;top:-${y}px">${lit}</div></div><div class="gap" hidden>Not in this capture: the page ends before this point.</div>` : '<div class="gap">No image</div>'}</figure>`).join('')}</div></div>`;
+    return `<div class="change-region"><h4><span class="num">${i + 1}</span>${kind}<small>${say}</small></h4><div class="crop-grid">${[[s.before?.file, 'Before', hl(marks.before, 'del')], [s.after?.file, 'After', hl(marks.after, 'add')]].map(([file, label, lit]) => `<figure><figcaption>${label}</figcaption>${src(file) ? `<div class="crop" tabindex="0" role="region" aria-label="${label}, change ${i + 1}" data-at="${r.x},${r.y}" style="height:${h}px"><div style="width:${w}px;height:${h}px"><img loading="lazy" src="${src(file)}" alt="${label}, change ${i + 1}" style="left:-${x}px;top:-${y}px">${lit}</div></div><div class="gap" hidden>Not in this capture: the page ends before this point.</div>` : '<div class="gap">No image</div>'}</figure>`).join('')}</div></div>`;
   }).join('')}</div>`;
 }
 
 function shotCard(s) {
   const regions = changeRegions(s);
-  const markers = regions.map((r, i) => `<span class="region-mark" data-box="${r.x},${r.y},${r.w},${r.h}"><b>${i + 1}</b></span>`).join('');
-  const [label, hint] = STATUS[s.status] || [s.status, ''];
   const img = (p, alt) => (src(p) ? `<img loading="lazy" src="${src(p)}" alt="${esc(alt)}">` : `<div class="gap">${esc(alt)}: no image</div>`);
+  const markers = regions.map((r, i) => `<span class="region-mark" data-box="${r.x},${r.y},${r.w},${r.h}"><b>${i + 1}</b></span>`).join('');
+  const marked = (p, alt) => (regions.length && src(p) ? `<div class="diff-map">${img(p, alt)}${markers}</div>` : img(p, alt));
+  const summary = regions.length ? `${regions.length} change${regions.length > 1 ? 's' : ''} on this page. Look for the numbered boxes.` : s.reason;
+  const pixels = src(s.diffFile) && s.status !== 'new'
+    ? `<details class="pixels"><summary>Pixel details</summary><figure class="diff">${img(s.diffFile, 'changed pixels')}<figcaption class="meta">${esc(s.reason || '')}${parts(s)}. Grey is unchanged; amber changed in place.</figcaption></figure></details>` : '';
+  const [label, hint] = STATUS[s.status] || [s.status, ''];
   const errs = [...(s.before?.consoleErrors || []).map((e) => ['before', e]), ...(s.after?.consoleErrors || []).map((e) => ['after', e])];
   const compare = src(s.before?.file) && src(s.after?.file)
     ? `<div class="slider" style="--x:50%"><img src="${src(s.after.file)}" alt="after"><div class="clip">${img(s.before.file, 'before')}</div><input type="range" min="0" max="100" value="50" aria-label="Reveal before and after"></div>`
     : '';
   return `<article class="shot" data-status="${esc(s.status)}" data-theme-name="${esc(s.theme)}" data-viewport="${esc(s.viewport)}">
-  <header><h3>${esc(s.route)}</h3><span class="meta">${esc(s.theme)} · ${esc(s.viewport)}</span><span class="badge b-${esc(s.status)}" title="${esc(hint)}">${esc(label)}</span><span class="why">${esc(s.reason)}</span></header>
+  <header><h3>${esc(s.route)}</h3><span class="meta">${esc(s.theme)} · ${esc(s.viewport)}</span><span class="badge b-${esc(s.status)}" title="${esc(hint)}">${esc(label)}</span><span class="why">${esc(summary)}</span></header>
   <div class="views" data-mode="side">
-    <figure><figcaption>Before <small>${esc(s.baseLabel || '')}</small></figcaption>${s.before?.missing ? '<div class="gap">Did not exist</div>' : img(s.before?.file, 'before')}</figure>
-    <figure><figcaption>After <small>${esc(s.headLabel || '')}</small></figcaption>${s.after?.missing ? '<div class="gap">Removed</div>' : img(s.after?.file, 'after')}</figure>
-    <figure class="diff"><figcaption>What changed${parts(s)}</figcaption>${s.status === 'new' && src(s.after?.file) ? `<div class="newfeat">${img(s.after.file, 'new feature')}</div>` : src(s.diffFile) ? `<div class="diff-map">${img(s.diffFile, 'changed pixels')}${markers}</div>` : '<div class="gap">No diff</div>'}</figure>
+    <figure><figcaption><i class="k-del"></i>Before: how it was <small>${esc(s.baseLabel || '')}</small></figcaption>${s.before?.missing ? '<div class="gap">Did not exist</div>' : marked(s.before?.file, 'before')}</figure>
+    <figure><figcaption>${s.status === 'new' ? '<i class="k-new"></i>After: a whole new page' : '<i class="k-add"></i>After: how it is now'} <small>${esc(s.headLabel || '')}</small></figcaption>${s.after?.missing ? '<div class="gap">Removed</div>' : s.status === 'new' && src(s.after?.file) ? `<div class="newfeat">${img(s.after.file, 'new feature')}</div>` : marked(s.after?.file, 'after')}</figure>
     ${compare ? `<figure class="cmp">${compare}</figure>` : ''}
   </div>
   ${closeups(s, regions)}
+  ${pixels}
   ${errs.length ? `<details class="errs"><summary>${errs.length} console error${errs.length > 1 ? 's' : ''}</summary><ul>${errs.map(([w, e]) => `<li><b>${w}</b> ${esc(e)}</li>`).join('')}</ul></details>` : ''}
 </article>`;
 }
@@ -327,7 +335,7 @@ export function renderReport({ title = 'Change review', base = '', head = '', ge
   const tally = (k) => levels(k).filter(([, n]) => n).map(([l, n]) => `<span class="lvl ${k === 'risk' ? 'l' : 'cf'}-${l}">${n} ${l}</span>`).join(' ') || '<span class="muted">none</span>';
   const uiBlock = ui
     ? `<section id="ui"><div class="sechead"><h2>Interface</h2><div class="filters" role="group" aria-label="Filter views"><button data-f="real" aria-pressed="true">Changes only</button><button data-f="all" aria-pressed="false">All views</button><span class="sep"></span><button data-m="side" aria-pressed="true">Side by side</button><button data-m="slide" aria-pressed="false">Slider</button></div></div>
-<div class="legend" aria-label="Colour key"><span><i class="k-add"></i>Added</span><span><i class="k-del"></i>Removed</span><span><i class="k-mod"></i>Changed in place</span><span><i class="k-new"></i>New feature</span><span class="muted">Grey is unchanged.</span></div>
+<div class="legend" aria-label="How to read this"><span><b class="num">1</b>The numbered boxes show where to look</span><span><i class="k-del"></i>Red: how it was before</span><span><i class="k-add"></i>Green: how it is now</span><span><i class="k-new"></i>Purple: a whole new page</span></div>
 ${sorted.map(shotCard).join('\n') || '<p class="muted">No views were captured.</p>'}</section>`
     : `<section id="ui"><h2>Interface</h2><p class="muted">No interface capture was run for this change.</p></section>`;
   const beBlock = backend
@@ -357,10 +365,12 @@ section{margin-top:40px}.sechead{display:flex;flex-wrap:wrap;gap:12px;align-item
 i.k-add{background:#22c55e}i.k-del{background:#ef4444}i.k-mod{background:#f59e0b}i.k-new{background:var(--new)}span.k-add{color:var(--add)}span.k-del{color:var(--del)}span.k-mod{color:var(--mod)}
 .newfeat{position:relative;border-radius:10px;overflow:hidden;outline:2px solid var(--new);outline-offset:-2px}.newfeat img{border:0;filter:grayscale(.6) brightness(.8)}.newfeat::after{content:'';position:absolute;inset:0;background:color-mix(in srgb,var(--new) 38%,transparent);mix-blend-mode:screen;pointer-events:none}.b-removed,.b-not-checked{color:var(--hi)}.b-unchanged,.b-noise{color:var(--lo)}
 body.real .shot[data-status=unchanged],body.real .shot[data-status=noise]{display:none}
-.views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+.views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
 .views figure{margin:0;min-width:0}.views figcaption{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}.views figcaption small{text-transform:none;letter-spacing:0;font-weight:400}
 .views img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:var(--bg2)}
-.diff-map{position:relative}.region-mark{position:absolute;outline:2px solid var(--mod);outline-offset:4px;box-shadow:0 0 0 4px rgba(0,0,0,0);min-width:8px;min-height:8px;pointer-events:none}.region-mark b{position:absolute;bottom:calc(100% + 6px);left:-6px;background:var(--mod);color:var(--bg);font:700 11px/1.5 ui-sans-serif,system-ui;padding:0 5px;border-radius:3px 3px 0 0}
+.diff-map{position:relative}.region-mark{position:absolute;outline:2px solid var(--mod);outline-offset:4px;box-shadow:0 0 0 4px rgba(0,0,0,0);min-width:8px;min-height:8px;pointer-events:none}.region-mark b{position:absolute;top:-14px;left:-14px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--mod);color:#111;font:800 13px/1 ui-sans-serif,system-ui;box-shadow:0 0 0 2px var(--card),0 2px 6px rgba(0,0,0,.3)}
+.num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--mod);color:#111;font:800 13px/1 ui-sans-serif,system-ui;margin-right:8px;flex:none}.change-region>h4{text-transform:none;letter-spacing:0;color:var(--ink);display:flex;align-items:center;flex-wrap:wrap;gap:4px 0;font-size:16px;margin:0 0 10px}.change-region>h4 small{flex-basis:100%;margin-left:32px;font-weight:400;font-size:13px;color:var(--sub)}
+.views figcaption i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.pixels{margin-top:18px}.pixels summary{cursor:pointer;color:var(--sub);font-size:13px}.pixels figure{margin:10px 0 0;max-width:480px}.pixels img{display:block;width:100%;border-radius:8px;border:1px solid var(--line)}.pixels figcaption{margin-top:6px}
 .closeups{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}.closeups>h4{color:var(--ink)}.closeups>p{margin:0 0 18px}.change-region{margin-top:18px}.crop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.crop-grid figure{margin:0;min-width:0}.crop-grid figcaption{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}.crop{width:fit-content;max-width:100%;max-height:480px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg2)}.crop.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.crop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.crop>div{position:relative;overflow:hidden}.crop img{position:absolute;max-width:none;width:auto;height:auto;display:block}.hl{position:absolute;border-radius:4px;pointer-events:none}.hl.add{background:color-mix(in srgb,var(--add) 22%,transparent);box-shadow:inset 0 -2px 0 var(--add)}.hl.del{background:color-mix(in srgb,var(--del) 22%,transparent);box-shadow:inset 0 -2px 0 var(--del)}.shot h3,.meta,.lede{overflow-wrap:anywhere}
 [hidden]{display:none!important}.gap{display:grid;place-items:center;min-height:160px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:13px;background:var(--bg2)}
 .cmp{display:none}.views[data-mode=slide]{grid-template-columns:1fr}.views[data-mode=slide] figure{display:none}.views[data-mode=slide] .cmp{display:block}
