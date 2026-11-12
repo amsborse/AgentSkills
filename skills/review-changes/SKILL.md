@@ -47,6 +47,8 @@ fixes to `fix-bug`, bug hunting to `review-code`).
    viewport on both servers, reshoots the after-page once to measure the page's own noise
    (animation, clocks), and writes `shots/`, `ui.json` and `report.html`. Views are `changed`,
    `new`, `removed`, `unchanged`, `noise` (within the page's own variation) or `not-checked`.
+   The diff paints added content green, removed content red, content changed in place amber,
+   and leaves the rest grey; pages that did not exist before are shown as a purple "New feature".
    Exit 2 means some views were not checked; they stay visible in the report as not checked,
    never as passing. Pass the app's real theme names with `--theme-value` (read how the app
    stores its theme); identical dark and light pictures are flagged as a theme switch that did

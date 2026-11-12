@@ -33,7 +33,45 @@ test('diff: finds the changed pixel, its box, and ignores differences under the 
   const d = diffRgba(a, 4, 4, b, 4, 4);
   assert.equal(d.changed, 1);
   assert.deepEqual(d.bbox, { x: 3, y: 2, w: 1, h: 1 });
-  assert.deepEqual([...d.overlay.slice((2 * 4 + 3) * 4, (2 * 4 + 3) * 4 + 4)], [255, 45, 140, 255]);
+  // A red dot on a plain grey page is an addition.
+  assert.deepEqual([...d.overlay.slice((2 * 4 + 3) * 4, (2 * 4 + 3) * 4 + 4)], [34, 197, 94, 255]);
+  assert.equal(d.added, 1);
+});
+
+test('diff: content that changes colour in place is amber, not added or removed', () => {
+  const a = solid(3, 3, [10, 10, 10, 255]);
+  const b = a.slice();
+  a.set([40, 120, 255, 255], 4 * 4); // centre: blue button before
+  b.set([255, 60, 150, 255], 4 * 4); // centre: pink button after
+  const d = diffRgba(a, 3, 3, b, 3, 3);
+  assert.equal(d.modified, 1);
+  assert.equal(d.added + d.removed, 0);
+  assert.deepEqual([...d.overlay.slice(16, 20)], [245, 158, 11, 255]);
+});
+
+test('diff: content on the background is added (green), content gone is removed (red)', () => {
+  const bg = [10, 10, 10, 255];
+  const a = solid(4, 4, bg);
+  const b = a.slice();
+  a.set([240, 240, 240, 255], 0); // x=0 text before, background after: removed
+  b.set([240, 240, 240, 255], 3 * 4); // x=3 background before, text after: added
+  const d = diffRgba(a, 4, 4, b, 4, 4);
+  assert.equal(d.removed, 1);
+  assert.equal(d.added, 1);
+  assert.equal(d.modified, 0);
+  assert.deepEqual([...d.overlay.slice(0, 4)], [239, 68, 68, 255]);
+  assert.deepEqual([...d.overlay.slice(12, 16)], [34, 197, 94, 255]);
+});
+
+test('report: a new page is shown as a new feature in purple with a legend', () => {
+  const html = renderReport({ ui: { shots: [
+    { route: '/n', theme: 'dark', viewport: 'd', status: 'new', reason: 'r', before: { missing: true }, after: { file: 'shots/n.png' } },
+    { route: '/c', theme: 'dark', viewport: 'd', status: 'changed', reason: 'r', before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' }, diffFile: 'shots/d.png', added: 5, removed: 2, modified: 1 },
+  ] } });
+  assert.match(html, /New feature/);
+  assert.match(html, /class="newfeat"><img[^>]+src="shots\/n.png"/);
+  assert.match(html, /class="legend"/);
+  assert.match(html, /Added[\s\S]*Removed[\s\S]*Changed in place[\s\S]*New feature/);
 });
 
 test('diff: a taller after-page counts the extra rows as changed', () => {
@@ -42,6 +80,7 @@ test('diff: a taller after-page counts the extra rows as changed', () => {
   const d = diffRgba(a, 2, 2, b, 2, 3);
   assert.equal(d.height, 3);
   assert.equal(d.changed, 2);
+  assert.equal(d.added, 2);
   assert.deepEqual(d.bbox, { x: 0, y: 2, w: 2, h: 1 });
 });
 

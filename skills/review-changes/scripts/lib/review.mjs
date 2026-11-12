@@ -5,27 +5,45 @@
 /**
  * Compare two RGBA images. Sizes may differ (full-page shots of different heights): the canvas is
  * the larger of each side, and pixels that exist in only one image count as changed.
- * Returns the changed count, the share, the bounding box of the change and an overlay where the
- * after-image is dimmed to grey and changed pixels are painted in the accent.
+ * Each changed pixel is classified against each image's own background (its most common colour):
+ * background before and content after is added (green), content before and background after is
+ * removed (red), content in both that differs is changed in place (amber). The overlay dims the
+ * after-image to grey and paints the changed pixels in those colours.
+ * Self-contained (no outside helpers) so it survives toString() into the page.
  */
 export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
   const w = Math.max(aw, bw);
   const h = Math.max(ah, bh);
   const overlay = new Uint8ClampedArray(w * h * 4);
-  let changed = 0;
+  // Background = the most common colour, bucketed to 5 bits per channel.
+  const background = (img, iw, ih) => {
+    const bins = new Uint32Array(32768);
+    let best = 0;
+    for (let k = 0, n = iw * ih * 4; k < n; k += 4) {
+      const bin = ((img[k] >> 3) << 10) | ((img[k + 1] >> 3) << 5) | (img[k + 2] >> 3);
+      if (++bins[bin] > bins[best]) best = bin;
+    }
+    return [((best >> 10) << 3) + 4, (((best >> 5) & 31) << 3) + 4, ((best & 31) << 3) + 4];
+  };
+  const bgA = background(a, aw, ah);
+  const bgB = background(b, bw, bh);
+  const ink = (img, k, bg) => Math.max(Math.abs(img[k] - bg[0]), Math.abs(img[k + 1] - bg[1]), Math.abs(img[k + 2] - bg[2])) > threshold;
+  const paint = (o, rgb) => { overlay[o] = rgb[0]; overlay[o + 1] = rgb[1]; overlay[o + 2] = rgb[2]; overlay[o + 3] = 255; };
+  const ADDED = [34, 197, 94], REMOVED = [239, 68, 68], MODIFIED = [245, 158, 11];
+  let changed = 0, added = 0, removed = 0, modified = 0;
   let minX = w, minY = h, maxX = -1, maxY = -1;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const o = (y * w + x) * 4;
       const inA = x < aw && y < ah;
       const inB = x < bw && y < bh;
+      const i = (y * aw + x) * 4;
+      const j = (y * bw + x) * 4;
       let differs = inA !== inB;
       let grey = 0;
       if (inB) {
-        const j = (y * bw + x) * 4;
         grey = 0.299 * b[j] + 0.587 * b[j + 1] + 0.114 * b[j + 2];
         if (inA) {
-          const i = (y * aw + x) * 4;
           const d = Math.max(Math.abs(a[i] - b[j]), Math.abs(a[i + 1] - b[j + 1]), Math.abs(a[i + 2] - b[j + 2]), Math.abs(a[i + 3] - b[j + 3]));
           differs = d > threshold;
         }
@@ -36,10 +54,14 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
         if (y < minY) minY = y;
         if (x > maxX) maxX = x;
         if (y > maxY) maxY = y;
-        overlay[o] = 255; overlay[o + 1] = 45; overlay[o + 2] = 140; overlay[o + 3] = 255;
+        const before = inA && ink(a, i, bgA);
+        const after = inB && ink(b, j, bgB);
+        if (!inA || (after && !before)) { added++; paint(o, ADDED); }
+        else if (!inB || (before && !after)) { removed++; paint(o, REMOVED); }
+        else { modified++; paint(o, MODIFIED); }
       } else {
         const g = 40 + grey * 0.35;
-        overlay[o] = g; overlay[o + 1] = g; overlay[o + 2] = g; overlay[o + 3] = 255;
+        paint(o, [g, g, g]);
       }
     }
   }
@@ -48,6 +70,9 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
     width: w,
     height: h,
     changed,
+    added,
+    removed,
+    modified,
     total,
     ratio: total ? changed / total : 0,
     bbox: changed ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : null,
@@ -126,12 +151,21 @@ const src = (p) => (typeof p === 'string' && /^[\w./-]+$/.test(p) && !p.includes
 
 const STATUS = {
   changed: ['Changed', 'Pixels differ beyond the page’s own noise.'],
-  new: ['New page', 'Did not exist before the change.'],
+  new: ['New feature', 'This page did not exist before the change.'],
   removed: ['Removed', 'Existed before, gone after.'],
   unchanged: ['Unchanged', 'Pixel identical.'],
   noise: ['No real change', 'Differences are within what the page varies between two captures of itself.'],
   'not-checked': ['Not checked', 'A capture failed, so this view was not compared. Not a pass.'],
 };
+
+// Share of the change that is added, removed or changed in place, for the diff caption.
+function parts(s) {
+  const n = (s.added || 0) + (s.removed || 0) + (s.modified || 0);
+  if (!n) return '';
+  const pc = (k) => Math.round((100 * (s[k] || 0)) / n);
+  return ` <small>${[['added', 'k-add', 'added'], ['removed', 'k-del', 'removed'], ['modified', 'k-mod', 'in place']]
+    .filter(([k]) => s[k]).map(([k, c, t]) => `<span class="${c}">${pc(k)}% ${t}</span>`).join(' · ')}</small>`;
+}
 
 function shotCard(s) {
   const [label, hint] = STATUS[s.status] || [s.status, ''];
@@ -145,7 +179,7 @@ function shotCard(s) {
   <div class="views" data-mode="side">
     <figure><figcaption>Before <small>${esc(s.baseLabel || '')}</small></figcaption>${s.before?.missing ? '<div class="gap">Did not exist</div>' : img(s.before?.file, 'before')}</figure>
     <figure><figcaption>After <small>${esc(s.headLabel || '')}</small></figcaption>${s.after?.missing ? '<div class="gap">Removed</div>' : img(s.after?.file, 'after')}</figure>
-    <figure class="diff"><figcaption>What changed</figcaption>${src(s.diffFile) ? img(s.diffFile, 'changed pixels') : '<div class="gap">No diff</div>'}</figure>
+    <figure class="diff"><figcaption>What changed${parts(s)}</figcaption>${s.status === 'new' && src(s.after?.file) ? `<div class="newfeat">${img(s.after.file, 'new feature')}</div>` : src(s.diffFile) ? img(s.diffFile, 'changed pixels') : '<div class="gap">No diff</div>'}</figure>
     ${compare ? `<figure class="cmp">${compare}</figure>` : ''}
   </div>
   ${errs.length ? `<details class="errs"><summary>${errs.length} console error${errs.length > 1 ? 's' : ''}</summary><ul>${errs.map(([w, e]) => `<li><b>${w}</b> ${esc(e)}</li>`).join('')}</ul></details>` : ''}
@@ -178,6 +212,7 @@ export function renderReport({ title = 'Change review', base = '', head = '', ge
   const tally = (k) => levels(k).filter(([, n]) => n).map(([l, n]) => `<span class="lvl ${k === 'risk' ? 'l' : 'cf'}-${l}">${n} ${l}</span>`).join(' ') || '<span class="muted">none</span>';
   const uiBlock = ui
     ? `<section id="ui"><div class="sechead"><h2>Interface</h2><div class="filters" role="group" aria-label="Filter views"><button data-f="real" aria-pressed="true">Changes only</button><button data-f="all" aria-pressed="false">All views</button><span class="sep"></span><button data-m="side" aria-pressed="true">Side by side</button><button data-m="slide" aria-pressed="false">Slider</button></div></div>
+<div class="legend" aria-label="Colour key"><span><i class="k-add"></i>Added</span><span><i class="k-del"></i>Removed</span><span><i class="k-mod"></i>Changed in place</span><span><i class="k-new"></i>New feature</span><span class="muted">Grey is unchanged.</span></div>
 ${sorted.map(shotCard).join('\n') || '<p class="muted">No views were captured.</p>'}</section>`
     : `<section id="ui"><h2>Interface</h2><p class="muted">No interface capture was run for this change.</p></section>`;
   const beBlock = backend
@@ -187,9 +222,9 @@ ${sorted.map(shotCard).join('\n') || '<p class="muted">No views were captured.</
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <style>
-:root{--bg:#f4f1ea;--bg2:#ebe6db;--card:#fffdf8;--line:#ddd5c6;--ink:#1d1b17;--sub:#5a5449;--accent:#c2185b;--hi:#b3261e;--md:#a35c00;--lo:#2e7d32;--shadow:0 1px 2px rgba(60,40,10,.06),0 8px 24px rgba(60,40,10,.07);color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d0f14;--bg2:#141822;--card:#171b25;--line:#2a3040;--ink:#eef0f5;--sub:#a6adbd;--accent:#ff4f9a;--hi:#ff6b5e;--md:#f0a640;--lo:#5fd38a;--shadow:0 0 0 1px rgba(255,255,255,.03),0 12px 40px rgba(0,0,0,.45);color-scheme:dark}}
-:root[data-theme=dark]{--bg:#0d0f14;--bg2:#141822;--card:#171b25;--line:#2a3040;--ink:#eef0f5;--sub:#a6adbd;--accent:#ff4f9a;--hi:#ff6b5e;--md:#f0a640;--lo:#5fd38a;--shadow:0 0 0 1px rgba(255,255,255,.03),0 12px 40px rgba(0,0,0,.45);color-scheme:dark}
+:root{--bg:#f4f1ea;--bg2:#ebe6db;--card:#fffdf8;--line:#ddd5c6;--ink:#1d1b17;--sub:#5a5449;--accent:#c2185b;--hi:#b3261e;--md:#a35c00;--lo:#2e7d32;--add:#15803d;--del:#c62828;--mod:#b45309;--new:#7c3aed;--shadow:0 1px 2px rgba(60,40,10,.06),0 8px 24px rgba(60,40,10,.07);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d0f14;--bg2:#141822;--card:#171b25;--line:#2a3040;--ink:#eef0f5;--sub:#a6adbd;--accent:#ff4f9a;--hi:#ff6b5e;--md:#f0a640;--lo:#5fd38a;--add:#4ade80;--del:#f87171;--mod:#fbbf24;--new:#b388ff;--shadow:0 0 0 1px rgba(255,255,255,.03),0 12px 40px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0d0f14;--bg2:#141822;--card:#171b25;--line:#2a3040;--ink:#eef0f5;--sub:#a6adbd;--accent:#ff4f9a;--hi:#ff6b5e;--md:#f0a640;--lo:#5fd38a;--add:#4ade80;--del:#f87171;--mod:#fbbf24;--new:#b388ff;--shadow:0 0 0 1px rgba(255,255,255,.03),0 12px 40px rgba(0,0,0,.45);color-scheme:dark}
 *{box-sizing:border-box}html{background:var(--bg)}
 body{margin:0;font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(1200px 500px at 10% -10%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 70%),var(--bg);min-height:100vh}
 main{max-width:1440px;margin:0 auto;padding:48px 24px 96px}
@@ -202,7 +237,10 @@ section{margin-top:40px}.sechead{display:flex;flex-wrap:wrap;gap:12px;align-item
 .shot,.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:0 0 18px;box-shadow:var(--shadow)}
 .shot>header,.card>header{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;margin-bottom:14px}.meta{color:var(--sub);font-size:13px}.why{color:var(--sub);font-size:13px;flex-basis:100%}
 .badge{font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid currentColor}
-.b-changed,.b-new{color:var(--accent)}.b-removed,.b-not-checked{color:var(--hi)}.b-unchanged,.b-noise{color:var(--lo)}
+.b-changed{color:var(--accent)}.b-new{color:var(--new)}.shot[data-status=new]{border-color:color-mix(in srgb,var(--new) 45%,var(--line));box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--new) 20%,transparent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;margin:-4px 0 16px}.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+i.k-add{background:#22c55e}i.k-del{background:#ef4444}i.k-mod{background:#f59e0b}i.k-new{background:var(--new)}span.k-add{color:var(--add)}span.k-del{color:var(--del)}span.k-mod{color:var(--mod)}
+.newfeat{position:relative;border-radius:10px;overflow:hidden;outline:2px solid var(--new);outline-offset:-2px}.newfeat img{border:0;filter:grayscale(.6) brightness(.8)}.newfeat::after{content:'';position:absolute;inset:0;background:color-mix(in srgb,var(--new) 38%,transparent);mix-blend-mode:screen;pointer-events:none}.b-removed,.b-not-checked{color:var(--hi)}.b-unchanged,.b-noise{color:var(--lo)}
 body.real .shot[data-status=unchanged],body.real .shot[data-status=noise]{display:none}
 .views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
 .views figure{margin:0;min-width:0}.views figcaption{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}.views figcaption small{text-transform:none;letter-spacing:0;font-weight:400}
@@ -229,6 +267,7 @@ dt .lvl{margin-left:6px}
 <p class="lede">Before <code>${esc(base)}</code> → after <code>${esc(head)}</code>${generated ? ` · ${esc(generated)}` : ''}. Screenshots are from the running app.</p>
 <div class="stats">
   <div class="stat"><b>${count('changed') + count('new') + count('removed')}</b><span>views that changed</span></div>
+  ${count('new') ? `<div class="stat"><b style="color:var(--new)">${count('new')}</b><span>new feature views</span></div>` : ''}
   <div class="stat"><b>${count('unchanged') + count('noise')}</b><span>views unchanged</span></div>
   <div class="stat"><b${count('not-checked') ? ' style="color:var(--hi)"' : ''}>${count('not-checked')}</b><span>views not checked</span></div>
   ${backend ? `<div class="stat"><b>${cards.length}</b><span>backend changes</span></div><div class="stat"><span>Risk</span><div>${tally('risk')}</div></div><div class="stat"><span>Confidence</span><div>${tally('confidence')}</div></div>` : ''}
