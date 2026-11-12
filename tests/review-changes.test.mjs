@@ -178,3 +178,50 @@ test('report.mjs: builds the page from cards and rejects an overclaiming card', 
   assert.match(no.stderr, /high confidence needs/);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('diff: distant changes stay separate, nearby changes merge, and regions are capped without loss', () => {
+  const a = solid(400, 1200, [0, 0, 0, 255]);
+  const b = a.slice();
+  const dot = (x, y) => b.set([255, 255, 255, 255], (y * 400 + x) * 4);
+  dot(20, 20); dot(45, 30); dot(300, 1000);
+  const fn = new Function(`return (${diffRgba.toString()})`)();
+  assert.deepEqual(fn(a, 400, 1200, b, 400, 1200).regions, [
+    { x: 20, y: 20, w: 26, h: 11 }, { x: 300, y: 1000, w: 1, h: 1 },
+  ]);
+  for (let y = 150; y < 1000; y += 120) dot(150, y);
+  const regions = diffRgba(a, 400, 1200, b, 400, 1200).regions;
+  assert.equal(regions.length, 6);
+  for (let y = 150; y < 1000; y += 120) assert.ok(regions.some(r => 150 >= r.x && 150 < r.x + r.w && y >= r.y && y < r.y + r.h));
+  assert.deepEqual(diffRgba(a, 400, 1200, a, 400, 1200).regions, []);
+});
+
+test('diff: thousands of scattered changes are capped quickly and none is lost', () => {
+  // About 1,700 isolated changes; an all-pairs merge per step took many seconds here.
+  const W = 1440, H = 6000, a = solid(W, H, [0, 0, 0, 255]), b = a.slice(), dots = [];
+  for (let y = 10; y < H; y += 72) for (let x = 10; x < W; x += 72) { dots.push([x, y]); b.set([255, 255, 255, 255], (y * W + x) * 4); }
+  const t = performance.now();
+  const { regions } = diffRgba(a, W, H, b, W, H);
+  assert.ok(performance.now() - t < 3000, `took ${Math.round(performance.now() - t)}ms`);
+  assert.ok(regions.length >= 1 && regions.length <= 6);
+  for (const [x, y] of dots) assert.ok(regions.some(r => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h), `dot ${x},${y} not covered`);
+});
+
+test('report: numbered close-ups and overview markers, legacy bbox fallback, and safe geometry', () => {
+  const shot = { status: 'changed', route: '/x', before: { file: 'shots/a.png' }, after: { file: 'shots/b.png' }, diffFile: 'shots/d.png',
+    regions: [{ x: 100, y: 200, w: 120, h: 30 }, { x: 500, y: 900, w: 80, h: 60 }] };
+  const render = s => renderReport({ ui: { shots: [s] } });
+  const html = render(shot);
+  assert.match(html, /Changes up close/);
+  assert.equal((html.match(/class="change-region"/g) || []).length, 2);
+  assert.equal((html.match(/class="region-mark"/g) || []).length, 2);
+  assert.match(html, /data-box="100,200,120,30"/);
+  assert.match(html, /left:-76px;top:-176px/);
+  // Each crop carries its change point so a shorter capture can say "not in this capture".
+  assert.match(html, /data-at="500,900"[^]*?Not in this capture/);
+  assert.match(html, /\.views,\.crop-grid\{grid-template-columns:1fr\}/);
+  assert.match(render({ ...shot, regions: undefined, bbox: shot.regions[0] }), /Changes up close/);
+  assert.doesNotMatch(render({ ...shot, regions: undefined }), /class="closeups"/);
+  assert.doesNotMatch(render({ ...shot, regions: [{ x: '0;bad', y: 0, w: Infinity, h: 10 }] }), /class="closeups"/);
+  assert.doesNotMatch(render({ ...shot, before: { file: '../outside.png' } }), /src="\.\.\//);
+  assert.doesNotMatch(render({ ...shot, status: 'unchanged' }), /class="closeups"/);
+});

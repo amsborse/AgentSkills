@@ -146,7 +146,7 @@ async function diff(fileA, fileB, overlayFile) {
       c.getContext('2d').putImageData(new ImageData(d.overlay, d.width, d.height), 0, 0);
       png = c.toDataURL('image/png').split(',')[1];
     }
-    return { ratio: d.ratio, changed: d.changed, added: d.added, removed: d.removed, modified: d.modified, bbox: d.bbox, png };
+    return { ratio: d.ratio, changed: d.changed, added: d.added, removed: d.removed, modified: d.modified, bbox: d.bbox, regions: d.regions, png };
   }, [a, b, diffRgba.toString(), Boolean(overlayFile)]);
   if (overlayFile && r.png) fs.writeFileSync(path.join(out, overlayFile), Buffer.from(r.png, 'base64'));
   return r;
@@ -168,6 +168,7 @@ for (const route of routes) {
           shot.changedPixels = d.changed;
           Object.assign(shot, { added: d.added, removed: d.removed, modified: d.modified });
           shot.bbox = d.bbox;
+          shot.regions = d.regions;
           shot.diffFile = `shots/${id}--diff.png`;
           if (again.file) shot.noise = (await diff(after.file, again.file, null)).ratio;
           else shot.noiseError = again.error || 'second capture failed';

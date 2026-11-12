@@ -30,6 +30,8 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
   const ink = (img, k, bg) => Math.max(Math.abs(img[k] - bg[0]), Math.abs(img[k + 1] - bg[1]), Math.abs(img[k + 2] - bg[2])) > threshold;
   const paint = (o, rgb) => { overlay[o] = rgb[0]; overlay[o + 1] = rgb[1]; overlay[o + 2] = rgb[2]; overlay[o + 3] = 255; };
   const ADDED = [34, 197, 94], REMOVED = [239, 68, 68], MODIFIED = [245, 158, 11];
+  // Coarse spatial buckets keep grouping bounded by image area, not changed pixels.
+  const tile = 24, cols = Math.ceil(w / tile), cells = new Map();
   let changed = 0, added = 0, removed = 0, modified = 0;
   let minX = w, minY = h, maxX = -1, maxY = -1;
   for (let y = 0; y < h; y++) {
@@ -50,6 +52,10 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
       }
       if (differs) {
         changed++;
+        const key = Math.floor(y / tile) * cols + Math.floor(x / tile);
+        const cell = cells.get(key);
+        if (cell) { cell.x = Math.min(cell.x, x); cell.y = Math.min(cell.y, y); cell.r = Math.max(cell.r, x); cell.b = Math.max(cell.b, y); }
+        else cells.set(key, { x, y, r: x, b: y });
         if (x < minX) minX = x;
         if (y < minY) minY = y;
         if (x > maxX) maxX = x;
@@ -65,6 +71,43 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
       }
     }
   }
+  const boxes = [];
+  const union = (a, b) => ({ x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), r: Math.max(a.r, b.r), b: Math.max(a.b, b.b) });
+  while (cells.size) {
+    const key = cells.keys().next().value;
+    let box = cells.get(key);
+    cells.delete(key);
+    const queue = [key];
+    for (let i = 0; i < queue.length; i++) {
+      const cx = queue[i] % cols, cy = Math.floor(queue[i] / cols);
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        if (cx + dx < 0 || cx + dx >= cols || cy + dy < 0) continue;
+        const next = (cy + dy) * cols + cx + dx;
+        if (!cells.has(next)) continue;
+        box = union(box, cells.get(next)); cells.delete(next); queue.push(next);
+      }
+    }
+    boxes.push(box);
+  }
+  // Many scattered changes: first pair up neighbours in reading order (n log n per halving) so
+  // the closest-pair merge below only ever sees a few dozen boxes.
+  while (boxes.length > 48) {
+    boxes.sort((a, b) => a.y - b.y || a.x - b.x);
+    const paired = [];
+    for (let i = 0; i < boxes.length; i += 2) paired.push(i + 1 < boxes.length ? union(boxes[i], boxes[i + 1]) : boxes[i]);
+    boxes.splice(0, boxes.length, ...paired);
+  }
+  // Retain all changes when capping: combine the closest pair rather than discard regions.
+  while (boxes.length > 6) {
+    let best = Infinity, ai = 0, bi = 1;
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i], b = boxes[j];
+      const distance = Math.hypot(Math.max(0, a.x - b.r, b.x - a.r), Math.max(0, a.y - b.b, b.y - a.b));
+      if (distance < best) { best = distance; ai = i; bi = j; }
+    }
+    boxes[ai] = union(boxes[ai], boxes[bi]); boxes.splice(bi, 1);
+  }
+  const regions = boxes.sort((a, b) => a.y - b.y || a.x - b.x).map(({ x, y, r, b }) => ({ x, y, w: r - x + 1, h: b - y + 1 }));
   const total = w * h;
   return {
     width: w,
@@ -76,6 +119,7 @@ export function diffRgba(a, aw, ah, b, bw, bh, threshold = 24) {
     total,
     ratio: total ? changed / total : 0,
     bbox: changed ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : null,
+    regions,
     overlay,
   };
 }
@@ -167,7 +211,31 @@ function parts(s) {
     .filter(([k]) => s[k]).map(([k, c, t]) => `<span class="${c}">${pc(k)}% ${t}</span>`).join(' · ')}</small>`;
 }
 
+// Only validated, finite geometry reaches inline CSS or numeric data attributes.
+function changeRegions(s) {
+  if (s.status !== 'changed') return [];
+  const clean = (list) => list.flatMap((r) => {
+    const values = ['x', 'y', 'w', 'h'].map((k) => Number(r?.[k]));
+    if (!values.every((v) => Number.isFinite(v) && Math.abs(v) <= 10000000)) return [];
+    const [x, y, w, h] = values;
+    return x >= 0 && y >= 0 && w > 0 && h > 0 ? [{ x, y, w, h }] : [];
+  });
+  const regions = clean(Array.isArray(s.regions) ? s.regions.slice(0, 6) : []);
+  return regions.length ? regions : clean(s.bbox ? [s.bbox] : []);
+}
+
+function closeups(s, regions) {
+  if (!regions.length) return '';
+  return `<div class="closeups"><h4>Changes up close</h4><p class="meta">Shown at full size. Scroll inside a crop to see wider changes.</p>${regions.map((r, i) => {
+    const x = Math.max(0, r.x - 24), y = Math.max(0, r.y - 24);
+    const w = r.w + r.x - x + 24, h = r.h + r.y - y + 24;
+    return `<div class="change-region"><h4>Change ${i + 1}</h4><div class="crop-grid">${[[s.before?.file, 'Before'], [s.after?.file, 'After'], [s.diffFile, 'What changed']].map(([file, label]) => `<figure><figcaption>${label}</figcaption>${src(file) ? `<div class="crop" tabindex="0" role="region" aria-label="${label}, change ${i + 1}" data-at="${r.x},${r.y}" style="height:${h}px"><div style="width:${w}px;height:${h}px"><img loading="lazy" src="${src(file)}" alt="${label}, change ${i + 1}" style="left:-${x}px;top:-${y}px"></div></div><div class="gap" hidden>Not in this capture: the page ends before this point.</div>` : '<div class="gap">No image</div>'}</figure>`).join('')}</div></div>`;
+  }).join('')}</div>`;
+}
+
 function shotCard(s) {
+  const regions = changeRegions(s);
+  const markers = regions.map((r, i) => `<span class="region-mark" data-box="${r.x},${r.y},${r.w},${r.h}"><b>${i + 1}</b></span>`).join('');
   const [label, hint] = STATUS[s.status] || [s.status, ''];
   const img = (p, alt) => (src(p) ? `<img loading="lazy" src="${src(p)}" alt="${esc(alt)}">` : `<div class="gap">${esc(alt)}: no image</div>`);
   const errs = [...(s.before?.consoleErrors || []).map((e) => ['before', e]), ...(s.after?.consoleErrors || []).map((e) => ['after', e])];
@@ -179,9 +247,10 @@ function shotCard(s) {
   <div class="views" data-mode="side">
     <figure><figcaption>Before <small>${esc(s.baseLabel || '')}</small></figcaption>${s.before?.missing ? '<div class="gap">Did not exist</div>' : img(s.before?.file, 'before')}</figure>
     <figure><figcaption>After <small>${esc(s.headLabel || '')}</small></figcaption>${s.after?.missing ? '<div class="gap">Removed</div>' : img(s.after?.file, 'after')}</figure>
-    <figure class="diff"><figcaption>What changed${parts(s)}</figcaption>${s.status === 'new' && src(s.after?.file) ? `<div class="newfeat">${img(s.after.file, 'new feature')}</div>` : src(s.diffFile) ? img(s.diffFile, 'changed pixels') : '<div class="gap">No diff</div>'}</figure>
+    <figure class="diff"><figcaption>What changed${parts(s)}</figcaption>${s.status === 'new' && src(s.after?.file) ? `<div class="newfeat">${img(s.after.file, 'new feature')}</div>` : src(s.diffFile) ? `<div class="diff-map">${img(s.diffFile, 'changed pixels')}${markers}</div>` : '<div class="gap">No diff</div>'}</figure>
     ${compare ? `<figure class="cmp">${compare}</figure>` : ''}
   </div>
+  ${closeups(s, regions)}
   ${errs.length ? `<details class="errs"><summary>${errs.length} console error${errs.length > 1 ? 's' : ''}</summary><ul>${errs.map(([w, e]) => `<li><b>${w}</b> ${esc(e)}</li>`).join('')}</ul></details>` : ''}
 </article>`;
 }
@@ -245,7 +314,9 @@ body.real .shot[data-status=unchanged],body.real .shot[data-status=noise]{displa
 .views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
 .views figure{margin:0;min-width:0}.views figcaption{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}.views figcaption small{text-transform:none;letter-spacing:0;font-weight:400}
 .views img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:var(--bg2)}
-.gap{display:grid;place-items:center;min-height:160px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:13px;background:var(--bg2)}
+.diff-map{position:relative}.region-mark{position:absolute;border:2px solid var(--mod);box-shadow:0 0 0 1px var(--card);min-width:8px;min-height:8px;pointer-events:none}.region-mark b{position:absolute;bottom:100%;left:-2px;background:var(--mod);color:var(--bg);font:700 11px/1.5 ui-sans-serif,system-ui;padding:0 5px;border-radius:3px 3px 0 0}
+.closeups{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}.closeups>h4{color:var(--ink)}.closeups>p{margin:0 0 18px}.change-region{margin-top:18px}.crop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.crop-grid figure{margin:0;min-width:0}.crop-grid figcaption{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}.crop{width:fit-content;max-width:100%;max-height:480px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg2)}.crop.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.crop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.crop>div{position:relative;overflow:hidden}.crop img{position:absolute;max-width:none;width:auto;height:auto;display:block}.shot h3,.meta,.lede{overflow-wrap:anywhere}
+[hidden]{display:none!important}.gap{display:grid;place-items:center;min-height:160px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:13px;background:var(--bg2)}
 .cmp{display:none}.views[data-mode=slide]{grid-template-columns:1fr}.views[data-mode=slide] figure{display:none}.views[data-mode=slide] .cmp{display:block}
 .slider{position:relative;max-width:1100px}.slider>img{display:block;width:100%;border-radius:10px;border:1px solid var(--line)}
 .slider .clip{position:absolute;inset:0;width:var(--x);overflow:hidden;border-right:2px solid var(--accent)}.slider .clip img{width:auto;max-width:none;height:100%;border:0;border-radius:10px 0 0 10px}
@@ -260,7 +331,7 @@ dt .lvl{margin-left:6px}
 .c-confirmed{color:var(--lo)}.c-plausible{color:var(--md)}.c-unverified{color:var(--sub)}
 .sug{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}.sug ul{margin:0;padding-left:0;list-style:none}.sug li{margin:6px 0}
 .muted{color:var(--sub)}.notes{color:var(--sub);font-size:13px;margin-top:40px}
-@media (max-width:900px){.views{grid-template-columns:1fr}.card dl{grid-template-columns:1fr}main{padding:28px 16px 64px}}
+@media (max-width:900px){.views,.crop-grid{grid-template-columns:1fr}.card dl{grid-template-columns:1fr}main{padding:28px 16px 64px}}
 </style></head>
 <body class="real"><main>
 <h1>${esc(title)}</h1>
@@ -277,6 +348,11 @@ ${beBlock}
 ${notes.length ? `<div class="notes"><h4>Notes</h4><ul>${notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''}
 </main>
 <script>
+document.querySelectorAll('.diff-map').forEach(map=>{const img=map.querySelector('img'),fit=()=>{if(!img.naturalWidth||!img.naturalHeight)return;map.querySelectorAll('[data-box]').forEach(mark=>{const [x,y,w,h]=mark.dataset.box.split(',').map(Number);mark.style.left=(100*x/img.naturalWidth)+'%';mark.style.top=(100*y/img.naturalHeight)+'%';mark.style.width=(100*Math.min(w,img.naturalWidth-x)/img.naturalWidth)+'%';mark.style.height=(100*Math.min(h,img.naturalHeight-y)/img.naturalHeight)+'%'})};img.addEventListener('load',fit);fit()});
+// A crop whose change lies past the end of a shorter capture says so instead of showing an empty box.
+document.querySelectorAll('.crop[data-at]').forEach(c=>{const img=c.querySelector('img'),[x,y]=c.dataset.at.split(',').map(Number),check=()=>{if(img.naturalWidth&&(x>=img.naturalWidth||y>=img.naturalHeight)){c.hidden=true;c.nextElementSibling.hidden=false}};if(img.complete)check();else img.addEventListener('load',check)});
+// The three crops of one change scroll together, and fade at the edge while more is hidden.
+document.querySelectorAll('.change-region').forEach(g=>{const cs=[...g.querySelectorAll('.crop')],cue=()=>cs.forEach(c=>c.classList.toggle('more',c.scrollWidth-c.clientWidth-c.scrollLeft>2));cs.forEach(c=>c.addEventListener('scroll',()=>{cs.forEach(o=>{if(o!==c){o.scrollLeft=c.scrollLeft;o.scrollTop=c.scrollTop}});cue()},{passive:true}));addEventListener('resize',cue);cue()});
 document.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{document.body.classList.toggle('real',b.dataset.f==='real');document.querySelectorAll('[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
 document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.views').forEach(v=>v.dataset.mode=b.dataset.m);document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
 document.querySelectorAll('.slider').forEach(s=>{const i=s.querySelector('input'),c=s.querySelector('.clip img'),fit=()=>{c.style.width=s.clientWidth+'px'};i.addEventListener('input',()=>s.style.setProperty('--x',i.value+'%'));addEventListener('resize',fit);fit()});
