@@ -16,6 +16,7 @@ repository or unattended.
 | `understand-code` | "Understand the architecture of this repository" | research | low | |
 | `research` | "Research this topic deeply", "compare these libraries" | understand-code | low | |
 | `review-code` | "Review my changes", "second opinion from Codex" | fix-bug | low | uses `shared/codex-bridge.md` |
+| `review-changes` | "Show me the changes", "UI before and after" | verify, review-code, test-everything | low | `scripts/capture.mjs`, `scripts/report.mjs` |
 | `test-everything` | "Write tests", "improve coverage" | verify, fix-bug | medium | |
 | `verify` | "Check it works", "I still see the old one" | fix-bug | low | |
 | `improve` | "What can be improved", "refactor", "make it faster" | verify, test-everything, review-code | medium | |

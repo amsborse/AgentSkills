@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Retries stop hammering a provider that is down",
+    "files": ["src/ai/resilience.ts"],
+    "what": "Calls to the AI provider now go through a circuit breaker: after five failures in a row, calls fail fast for 30 seconds instead of retrying.",
+    "improves": "A provider outage no longer stacks up slow retries, so pages that call the AI stay responsive and the quota is not burned on doomed calls.",
+    "risk": {
+      "level": "medium",
+      "scenario": "A short blip of five quick failures opens the breaker and real requests fail for 30 seconds although the provider has recovered.",
+      "blastRadius": "Every feature that calls the AI provider."
+    },
+    "confidence": "high",
+    "evidence": [
+      { "kind": "test-fails-without", "detail": "resilience.test.ts 'opens after five failures' fails with the breaker removed and passes with it." },
+      { "kind": "test-passes", "detail": "Full suite, 876 passed." }
+    ],
+    "suggestions": [
+      { "text": "Half-open state lets a single probe through; add a test that two concurrent probes do not both pass.", "confidence": "medium", "check": "plausible" }
+    ]
+  },
+  {
+    "title": "Logs are scrubbed of secrets",
+    "what": "The logger runs every message through the shared redactor before writing it.",
+    "improves": "API keys and tokens pasted into errors no longer end up in log files.",
+    "risk": {
+      "level": "low",
+      "scenario": "A long, random-looking id is mistaken for a secret and shown as [REDACTED] in logs.",
+      "blastRadius": "Log readability only."
+    },
+    "confidence": "medium",
+    "evidence": [{ "kind": "code-read", "detail": "Every Logger method calls redact() first; logger tests pass." }],
+    "raise": "A test that logs a real-looking ghp_ token and asserts it is not in the output."
+  }
+]

@@ -9,6 +9,7 @@
       ],
       "optionalFor": [
         "production-ready",
+        "review-changes",
         "test-everything",
         "verify"
       ]
@@ -51,6 +52,7 @@
         "night-tests",
         "night-visual",
         "nightly-evolution",
+        "review-changes",
         "review-code",
         "run-autonomous",
         "ship"
@@ -100,6 +102,7 @@
         "night-visual",
         "nightly-evolution",
         "production-ready",
+        "review-changes",
         "run-autonomous",
         "security-audit",
         "ship",
