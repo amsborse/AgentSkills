@@ -24,6 +24,7 @@
   @media (prefers-reduced-motion: reduce) { .glow { animation: none; } .card, button { transition: none; } }
   canvas { display: block; width: 100%; max-width: 480px; height: 160px; border-radius: 14px; }
   .spacer { height: 1800px; }
+  .node { outline: none; } .node rect { fill: var(--accent); stroke: transparent; stroke-width: 4; } .node:focus-visible rect, .node:hover rect { stroke: currentColor; }
 </style>
 </head>
 <body>
@@ -32,6 +33,7 @@
   <p>Readable body copy with enough contrast in both themes. <a href="#more">Read more</a> inline.</p>
   <div class="glow" aria-hidden="true"></div>
   <div class="card"><h2>A card</h2><p>Lifts on hover with transform only.</p><button>Primary action</button></div>
+  <svg viewBox="0 0 120 40" width="120" height="40"><g class="node" tabindex="0" role="button" aria-label="Diagram node"><rect x="4" y="4" width="112" height="32" rx="6"/></g></svg>
   <canvas id="c" aria-hidden="true"></canvas>
   <div class="spacer"></div>
   <p id="more">End of page.</p>

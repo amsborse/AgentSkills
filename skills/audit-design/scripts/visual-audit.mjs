@@ -253,7 +253,7 @@ async function interactions(page, vp, theme) {
         const st = getComputedStyle(el);
         const sib = el.nextElementSibling;
         const props = ['color', 'backgroundColor', 'boxShadow', 'transform', 'opacity', 'borderColor', 'outlineStyle', 'textDecorationLine', 'filter', 'backgroundImage', 'scale', 'translate'];
-        const kids = [...el.querySelectorAll('*')].slice(0, 30).map((k) => { const ks = getComputedStyle(k); return `${ks.transform}|${ks.opacity}|${ks.color}|${ks.backgroundColor}`; }).join(';');
+        const kids = [...el.querySelectorAll('*')].slice(0, 30).map((k) => { const ks = getComputedStyle(k); return `${ks.transform}|${ks.opacity}|${ks.color}|${ks.backgroundColor}|${ks.stroke}|${ks.strokeWidth}|${ks.fill}|${ks.outlineStyle}`; }).join(';');
         const pseudo = ['::before', '::after'].map((p) => { const ps = getComputedStyle(el, p); return `${ps.opacity}|${ps.transform}|${ps.backgroundColor}`; }).join(';');
         let d = el.tagName.toLowerCase(); if (el.id) d += `#${el.id}`; else if (typeof el.className === 'string' && el.className.trim()) d += `.${el.className.trim().split(/\s+/).slice(0, 2).join('.')}`;
         return { desc: d, box: `${el.offsetWidth}x${el.offsetHeight}`, sib: sib ? `${sib.offsetLeft},${sib.offsetTop}` : '', style: props.map((p) => st[p]).join('|') + kids + pseudo };
@@ -280,7 +280,7 @@ async function interactions(page, vp, theme) {
   if (TAB_MAX) {
     await page.evaluate(() => {
       window.__vaFocus = new Map();
-      const look = (el) => { const s = getComputedStyle(el); const a = getComputedStyle(el, '::after'); const b = getComputedStyle(el, '::before'); const p = el.parentElement ? getComputedStyle(el.parentElement) : null; return [s.outlineStyle, s.outlineWidth, s.outlineColor, s.boxShadow, s.borderColor, s.backgroundColor, s.color, s.textDecorationLine, s.transform, a.opacity, a.boxShadow, a.borderColor, b.opacity, b.boxShadow, p ? p.boxShadow : '', p ? p.outlineStyle : '', p ? p.borderColor : ''].join('|'); };
+      const look = (el) => { const s = getComputedStyle(el); const a = getComputedStyle(el, '::after'); const b = getComputedStyle(el, '::before'); const p = el.parentElement ? getComputedStyle(el.parentElement) : null; return [s.outlineStyle, s.outlineWidth, s.outlineColor, s.boxShadow, s.borderColor, s.backgroundColor, s.color, s.textDecorationLine, s.transform, a.opacity, a.boxShadow, a.borderColor, b.opacity, b.boxShadow, p ? p.boxShadow : '', p ? p.outlineStyle : '', p ? p.borderColor : '', [...el.querySelectorAll('*')].slice(0, 30).map((k) => { const ks = getComputedStyle(k); return `${ks.stroke}|${ks.strokeWidth}|${ks.fill}|${ks.outlineStyle}|${ks.opacity}`; }).join(';')].join('|'); };
       window.__vaLook = look;
       for (const el of document.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex],[contenteditable=true]')) window.__vaFocus.set(el, look(el));
       document.activeElement && document.activeElement.blur && document.activeElement.blur();
