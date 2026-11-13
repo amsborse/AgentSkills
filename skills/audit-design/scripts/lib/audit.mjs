@@ -125,13 +125,14 @@ export function findingsForView(view, probe) {
     out.push(f(view.viewport.mobile ? 'major' : 'minor', 'overflow', `page scrolls sideways by ${o.px}px; widest: ${o.offenders.map((x) => `${x.sel} (right ${x.right}px)`).join(', ') || 'unknown element'}`, where));
   }
 
-  const failing = (probe.contrast?.samples || []).map((s) => ({ ...s, ...textContrast(s) }))
-    .filter((s) => s.ratio !== null && s.ratio < contrastThreshold(s.fontSize, s.fontWeight));
+  const measured = (probe.contrast?.samples || []).map((s) => ({ ...s, ...textContrast(s) }));
+  const failing = measured.filter((s) => s.ratio !== null && s.ratio < contrastThreshold(s.fontSize, s.fontWeight));
   failing.sort((a, b) => a.ratio - b.ratio);
   if (failing.length) {
     out.push(f(failing[0].ratio < 3 ? 'major' : 'minor', 'contrast', `${failing.length} text element(s) below WCAG AA; worst: ${failing.slice(0, 3).map((s) => `${s.sel} "${s.text}" ${s.ratio}:1`).join('; ')}`, where));
   }
-  if (probe.contrast?.unknown) out.push(f('info', 'contrast', `${probe.contrast.unknown} text element(s) not measurable (over images, gradients or unparsed colors); check them in the screenshots`, where));
+  const unmeasured = (probe.contrast?.unknown || 0) + measured.filter((s) => s.ratio === null).length;
+  if (unmeasured) out.push(f('info', 'contrast', `${unmeasured} text element(s) not measurable (over images, gradients or unparsed colors); check them in the screenshots`, where));
 
   if (view.viewport.mobile && probe.targets?.length) {
     out.push(f('minor', 'tap-target', `${probe.targets.length} interactive element(s) smaller than 24x24px; e.g. ${probe.targets.slice(0, 3).map((t) => `${t.sel} ${t.w}x${t.h}`).join(', ')}`, where));
@@ -212,7 +213,7 @@ export function mergeFindings(findings) {
 
 export function renderMarkdown(report) {
   const { summary, findings, url, shots, notes } = report;
-  const lines = [`# Visual audit: ${url}`, '', `Result: **${summary.pass ? 'pass' : 'fail'}** (blocker ${summary.counts.blocker}, major ${summary.counts.major}, minor ${summary.counts.minor}, info ${summary.counts.info})`, ''];
+  const lines = [`# Visual audit: ${url}`, '', `Result: **${report.incomplete ? 'incomplete' : summary.pass ? 'pass' : 'fail'}** (blocker ${summary.counts.blocker}, major ${summary.counts.major}, minor ${summary.counts.minor}, info ${summary.counts.info})`, ''];
   lines.push('Automated checks only cover what a script can measure. Hierarchy, typography, art direction and motion quality still need a person or model to look at the screenshots below.', '');
   if (findings.length) {
     lines.push('## Findings', '');

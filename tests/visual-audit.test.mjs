@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   parseColor, contrastRatio, contrastThreshold, textContrast, parseViewports, isLocalUrl,
-  findingsForView, findingsForMotion, findingsForInteraction, themeFindings, mergeFindings, summarize, rafRate,
+  findingsForView, findingsForMotion, findingsForInteraction, themeFindings, mergeFindings, summarize, rafRate, renderMarkdown,
 } from '../skills/audit-design/scripts/lib/audit.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -149,4 +149,21 @@ test('remote URLs are refused without --allow-remote', async () => {
   const r = await new Promise((resolve) => execFile(process.execPath, [script, '--url', 'https://example.com'], (err, _o, stderr) => resolve({ code: err ? err.code : 0, stderr })));
   assert.equal(r.code, 1);
   assert.match(r.stderr, /allow-remote/);
+});
+
+test('markdown verdict says incomplete when the audit stopped early, never pass', () => {
+  const report = { url: 'http://localhost', summary: summarize([]), incomplete: true, findings: [], notes: ['tablet/dark: page did not load'], shots: [] };
+  const md = renderMarkdown(report);
+  assert.match(md, /Result: \*\*incomplete\*\*/);
+  assert.doesNotMatch(md, /\*\*pass\*\*/);
+  assert.match(renderMarkdown({ ...report, incomplete: false }), /Result: \*\*pass\*\*/);
+});
+
+test('text with an unparseable color counts as unmeasured contrast, not silently skipped', () => {
+  const desktop = { name: 'desktop', width: 1440, height: 900, mobile: false };
+  const probe = { contrast: { unknown: 0, samples: [{ sel: 'p', text: 'modern color', color: 'oklch(0.7 0.1 200)', backgrounds: [{ color: 'rgb(255, 255, 255)' }], fontSize: 16, fontWeight: 400 }] } };
+  const info = findingsForView({ viewport: desktop, theme: 'light' }, probe).find((x) => x.check === 'contrast');
+  assert.ok(info, 'unparseable sample must surface');
+  assert.equal(info.severity, 'info');
+  assert.match(info.detail, /^1 text element/);
 });
