@@ -19,6 +19,7 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "Run this task autonomously overnight" | `run-autonomous` |
 | "/night tests", "run verified loops while I sleep" | `night` (+ 15 `night-*` loops) |
 | "Review my changes" / "second opinion from Codex" | `review-code` |
+| "Show me the changes" / "UI before and after" | `review-changes` |
 | "Add a hero animation" | `build-animation` |
 | "Test everything" | `test-everything` |
 | "Security audit this repo" | `security-audit` |
@@ -28,7 +29,7 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "Ship it" / "merge, push and clean up" | `ship` |
 | "Which skill should I use?" / "add a skill" | `manage-skills` |
 
-All 34 skills (18 day skills, the `night` orchestrator and its 15 loops), with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
+All 35 skills (19 day skills, the `night` orchestrator and its 15 loops), with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
 fits? `node scripts/route.mjs "your request"`.
 
 ```text
