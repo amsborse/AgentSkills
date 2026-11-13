@@ -10,7 +10,7 @@ repository or unattended.
 | Skill | Ask for example | Builds on | Risk | Extra procedures |
 | --- | --- | --- | --- | --- |
 | `revamp-ui` | "Revamp my website UI", "unslop this page" | verify, build-animation, coordinate-agents | medium | `workflows/unslop/`, `workflows/codex-visual.md`, style add-ons in `styles/` |
-| `build-animation` | "Animate this hero", "match this reference image" | verify, revamp-ui, coordinate-agents | low | `workflows/cinematic-plate/`, `workflows/chapter-rail.md`, `workflows/heavy-hero-performance.md`, style add-ons in `styles/` |
+| `build-animation` | "Animate this hero", "match this reference image" | verify, revamp-ui, coordinate-agents | low | `workflows/cinematic-plate/`, `workflows/chapter-rail.md`, `workflows/heavy-hero-performance.md`, `workflows/hover-affordance.md`, style add-ons in `styles/` |
 | `build-feature` | "Build this feature end to end", "write a spec" | understand-code, test-everything, verify, review-code, coordinate-agents | medium | `workflows/spec.md` |
 | `fix-bug` | "Find and fix this bug", "it's still broken" | verify, test-everything | medium | |
 | `understand-code` | "Understand the architecture of this repository" | research | low | |

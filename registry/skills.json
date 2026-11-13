@@ -54,7 +54,13 @@
         "motion design",
         "cinematic plate",
         "signature visual",
-        "review the animations"
+        "review the animations",
+        "hover effect",
+        "card hover",
+        "tile hover",
+        "underline animation",
+        "arrow nudge",
+        "hover glow"
       ],
       "keywords": [
         "animation",
@@ -93,7 +99,8 @@
       "workflows": [
         "skills/build-animation/workflows/chapter-rail.md",
         "skills/build-animation/workflows/cinematic-plate",
-        "skills/build-animation/workflows/heavy-hero-performance.md"
+        "skills/build-animation/workflows/heavy-hero-performance.md",
+        "skills/build-animation/workflows/hover-affordance.md"
       ]
     },
     {

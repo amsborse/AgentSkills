@@ -2,7 +2,7 @@
 name: build-animation
 description: Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Style add-ons (cinematic, claymorphism, glassmorphism) set the motion character on top of the shared calm feel. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for "add an animation", "hero animation", "make it move", a motion review, or replicating a cinematic reference.
 metadata:
-  aliases: "add animation, animate this, hero animation, make it move, motion design, cinematic plate, signature visual, review the animations"
+  aliases: "add animation, animate this, hero animation, make it move, motion design, cinematic plate, signature visual, review the animations, hover effect, card hover, tile hover, underline animation, arrow nudge, hover glow"
   keywords: "animation, motion, transition, webgl, shader, canvas, svg, three.js, hero, scroll, easing, framer motion"
   composes: "verify, revamp-ui, coordinate-agents"
   requires: "browser, image-generation?, codex-bridge?"
@@ -29,6 +29,8 @@ one the user names, or stay neutral.
   Motion and hover never shift layout or change an element's size or position. (high) Motion
   never delays critical actions or content, does not replay on small scrolls and never hijacks
   scrolling. (high)
+- **Hover affordance on tiles or cards:** follow `workflows/hover-affordance.md` (hover glow and
+  elevation, lift, underline grow, arrow nudge, stretched link, focus parity, reduced motion).
 - **Signature visual or hero effect:** one living element blended into the page with masks, not
   boxed. Canvas or WebGL in a single pass, with a devicePixelRatio cap, paused by
   IntersectionObserver and `visibilitychange`.
