@@ -19,6 +19,13 @@ const ACCEPTANCE = [
   ["Make this project production ready", "production-ready"],
   ["Automate this browser workflow", "automate-browser"],
   ["Run this task autonomously overnight", "run-autonomous"],
+  ["Revamp this application.", "revamp-ui"],
+  ["Make this interface feel premium.", "revamp-ui"],
+  ["Add stunning hover interactions.", "add-interactions"],
+  ["Build a cinematic landing page.", "build-animation"],
+  ["Create an interactive 3D scene.", "build-3d"],
+  ["Reproduce the interactions from this reference.", "replicate-design"],
+  ["Audit this website's visual quality.", "audit-design"],
 ];
 
 for (const [prompt, expected] of ACCEPTANCE) {

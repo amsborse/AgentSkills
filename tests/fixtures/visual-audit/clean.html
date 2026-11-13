@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clean fixture</title>
+<style>
+  /* A page that should pass every automated check in both themes and all viewports. */
+  :root { color-scheme: light dark; --bg: #f6f3ee; --ink: #1d1b18; --muted: #55504a; --accent: #3a5bd9; --card: #ffffff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #14161c; --ink: #eceae6; --muted: #b4b0aa; --accent: #8ea6ff; --card: #1e212a; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 17px/1.6 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 20px; }
+  p { color: var(--muted); }
+  .card { background: var(--card); border-radius: 14px; padding: 24px; margin: 16px 0; transition: transform .25s ease, box-shadow .25s ease; box-shadow: 0 1px 3px rgb(0 0 0 / .08); }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgb(0 0 0 / .12); }
+  button { font: inherit; min-height: 44px; padding: 10px 20px; border-radius: 10px; border: 0; background: var(--accent); color: #fff; transition: transform .2s ease, filter .2s ease; }
+  @media (prefers-color-scheme: dark) { button { color: #0d1020; } }
+  button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  a { color: var(--accent); }
+  .glow { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); animation: breathe 3s ease-in-out infinite; }
+  @keyframes breathe { 50% { transform: scale(1.08); } }
+  @media (prefers-reduced-motion: reduce) { .glow { animation: none; } .card, button { transition: none; } }
+  canvas { display: block; width: 100%; max-width: 480px; height: 160px; border-radius: 14px; }
+  .spacer { height: 1800px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Clean page</h1>
+  <p>Readable body copy with enough contrast in both themes. <a href="#more">Read more</a> inline.</p>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="card"><h2>A card</h2><p>Lifts on hover with transform only.</p><button>Primary action</button></div>
+  <canvas id="c" aria-hidden="true"></canvas>
+  <div class="spacer"></div>
+  <p id="more">End of page.</p>
+</main>
+<script>
+  // Render loop that stops offscreen and under reduced motion.
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let visible = false, raf = 0;
+  const draw = (t) => { ctx.fillStyle = `hsl(${(t / 40) % 360} 50% 55%)`; ctx.fillRect(0, 0, cv.width, cv.height); };
+  const loop = (t) => { draw(t); raf = requestAnimationFrame(loop); };
+  const sync = () => { cancelAnimationFrame(raf); raf = 0; if (visible && !reduce.matches) raf = requestAnimationFrame(loop); else draw(0); };
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }).observe(cv);
+  reduce.addEventListener('change', sync);
+</script>
+</body>
+</html>

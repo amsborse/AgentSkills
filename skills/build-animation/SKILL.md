@@ -1,10 +1,10 @@
 ---
 name: build-animation
-description: Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Style add-ons (cinematic, claymorphism, glassmorphism) set the motion character on top of the shared calm feel. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for "add an animation", "hero animation", "make it move", a motion review, or replicating a cinematic reference.
+description: Build calm, continuous 60fps motion that respects reduced motion and pauses offscreen: hero visuals, transitions, scroll choreography, kinetic type, cinematic pages, WebGL/Canvas/SVG effects, cinematic-plate (reference image to live hero). Use for "add an animation", "build motion", "cinematic landing page" or a motion review.
 metadata:
-  aliases: "add animation, animate this, hero animation, make it move, motion design, cinematic plate, signature visual, review the animations, hover effect, card hover, tile hover, underline animation, arrow nudge, hover glow"
-  keywords: "animation, motion, transition, webgl, shader, canvas, svg, three.js, hero, scroll, easing, framer motion"
-  composes: "verify, revamp-ui, coordinate-agents"
+  aliases: "add animation, build motion, build-motion, cinematic landing page, cinematic page, scroll animation, scroll choreography, page transitions, kinetic typography, animate this, hero animation, make it move, motion design, cinematic plate, signature visual, review the animations, hover effect, card hover, tile hover, underline animation, arrow nudge, hover glow"
+  keywords: "animation, motion, cinematic, choreography, kinetic, transition, webgl, shader, canvas, svg, three.js, hero, scroll, easing, framer motion"
+  composes: "verify, revamp-ui, coordinate-agents, build-ui, build-3d, audit-design"
   requires: "browser, image-generation?, codex-bridge?"
   risk: "low"
 ---
@@ -22,6 +22,12 @@ style add-on in `~/agent-skills/styles/`: `cinematic.md` (weighted camera, plate
 under frosted depth). Read the project's chosen add-on first. If none has been chosen, use the
 one the user names, or stay neutral.
 
+Choose technology with `~/agent-skills/shared/creative/selector.md` (CSS and native APIs
+first, one engine per project) and techniques from `~/agent-skills/shared/creative/README.md`,
+loading only the files you use (scroll choreography, kinetic typography, media reveals,
+shared-element and scene transitions, parallax). Motion intensity follows the product
+(`~/agent-skills/shared/creative/adaptation.md`).
+
 ## Pick the path
 
 - **Micro-interaction or transition:** use the project's motion library or CSS. Animate transform
@@ -34,6 +40,9 @@ one the user names, or stay neutral.
 - **Signature visual or hero effect:** one living element blended into the page with masks, not
   boxed. Canvas or WebGL in a single pass, with a devicePixelRatio cap, paused by
   IntersectionObserver and `visibilitychange`.
+- **Cinematic landing page:** build the page with `build-ui`, then choreograph it here with the
+  `cinematic.md` add-on, `shared/creative/techniques/scroll-choreography.md` and
+  `shared/creative/techniques/kinetic-typography.md`.
 - **Reference image of a cinematic scene:** follow `workflows/cinematic-plate/cinematic-plate.md`
   (a generated text-free plate plus live layers; templates and scripts are in that folder).
 - **Long chaptered page:** use the chapter rail and slow scroll in `workflows/chapter-rail.md`
@@ -48,7 +57,8 @@ one the user names, or stay neutral.
 
 ## Verify
 
-Check in the running app: frames at the start, middle and end, both themes, and reduced motion on.
+Follow `~/agent-skills/shared/creative/visual-loop.md` and run the `audit-design` runner (it
+measures offscreen and idle rendering, long frames and reduced motion). Check in the running app: frames at the start, middle and end, both themes, and reduced motion on.
 Measure frame time with a Performance trace or `requestAnimationFrame` deltas. For heavy effects,
 watch CPU with the page idle and scrolled offscreen.
 

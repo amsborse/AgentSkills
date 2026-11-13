@@ -1,10 +1,10 @@
 ---
 name: revamp-ui
-description: Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Attaches a style add-on (cinematic, claymorphism, glassmorphism) on top of the general method. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for "revamp my website UI", "make it look premium", "make it claymorphic/glassy/cinematic", "unslop", "redesign", "UI audit" or "match this reference".
+description: Revamp, redesign or polish an existing UI (site, app, dashboard) to a premium bar that fits the product: pick a direction, fix spacing, color, type, layout, visuals and motion, verify with real screenshots. Optional style add-ons (cinematic, clay, glass). Includes unslop. Use for "revamp this app", "make it feel premium", "unslop" or "redesign".
 metadata:
-  aliases: "revamp ui, revamp my website, redesign, redesign the ui, unslop, polish the ui, make it look premium, looks ai generated, ui audit, design concepts, match this design, claymorphism, clay ui, glassmorphism, glass ui, cinematic ui"
-  keywords: "ui, ux, design, website, landing page, dashboard, layout, typography, color, theme, dark mode, light mode, visual, polish, css, tailwind, clay, glass, neumorphism, style add-on"
-  composes: "verify, build-animation, coordinate-agents"
+  aliases: "revamp ui, revamp my website, revamp this, revamp the app, redesign, redesign the ui, unslop, polish the ui, make it look premium, feel premium, looks ai generated, design concepts, match this design, claymorphism, clay ui, glassmorphism, glass ui, cinematic ui"
+  keywords: "ui, ux, design, premium, interface, application, app, website, landing page, dashboard, layout, typography, color, theme, dark mode, light mode, visual, polish, css, tailwind, clay, glass, neumorphism, style add-on"
+  composes: "verify, build-animation, coordinate-agents, audit-design, replicate-design, add-interactions, create-visuals"
   requires: "browser, image-generation?, codex-bridge?"
   risk: "medium"
 ---
@@ -15,6 +15,10 @@ The bar is the UI taste section of `~/agent-skills/working-agreements/AGENTS.md`
 anti-patterns in `~/agent-skills/working-agreements/ui-quality.md`. A repository's design system
 wins on specifics. Never replace a design the owner liked: add the new one as an option or toggle.
 New pages reuse the existing components and CSS; no new design language or UI library. (high)
+Adapt to the product, never to a house style: `~/agent-skills/shared/creative/adaptation.md`
+says how to read purpose, users, brand and mode, and never to default to 3D, gradients, glass,
+clay or cinematic. Load technique files from `~/agent-skills/shared/creative/README.md` only
+when a pass needs one.
 
 UI implementation is Codex's work by default (`~/agent-skills/shared/agent-routing.md`): hand
 isolated components, pages and assets to Codex through the `coordinate-agents` skill, keep the
@@ -25,17 +29,19 @@ Codex reports `quotaExhausted`.
 
 - **Polish** (one screen, "clean this up"): screenshot it, then run the audit and passes from
   `workflows/unslop/unslop.md` for that screen only, then verify.
-- **Audit only** ("what's wrong with this UI"): screenshot both themes, list findings ranked by
-  visual impact with the exact selector and property fix, and stop. For a second opinion, use
-  the review mode in `workflows/codex-visual.md`.
+- **Audit only** ("what's wrong with this UI"): use the `audit-design` skill (measured runner
+  plus P0–P3 critique) and stop. For a second opinion, use the review mode in
+  `workflows/codex-visual.md`.
 - **Full revamp** (site or app): the steps below.
+- **Reference site or video to reproduce:** the `replicate-design` skill.
 - **Reference image of a cinematic scene:** match it closely with the `build-animation` skill
   (cinematic-plate workflow).
 
 ## Full revamp
 
-1. **Capture the current state:** real screenshots at 1440 and 390 wide, light and dark
-   (`~/agent-skills/shared/browser.md`). Note what the owner liked so you keep it.
+1. **Capture the current state:** run the `audit-design` runner into `.visual/before`
+   (screenshots at desktop, tablet and mobile, light and dark, plus measured defects;
+   `~/agent-skills/shared/creative/visual-loop.md`). Note what the owner liked so you keep it.
 2. **Direction:** derive it from the product (the "Direction" section of unslop). For open-ended
    briefs, get 2–3 concepts with `workflows/codex-visual.md` (concepts mode) and pick one, or ask
    once with numbered options. Then attach a **style add-on** if one fits (cinematic, clay or
@@ -50,7 +56,8 @@ Codex reports `quotaExhausted`.
    no-data views show a clear processing or empty state, never a blank dashboard. (high)
 5. **Hero and illustration assets:** an image tool when one is available (Codex image mode). Never
    present a placeholder as final; without an image tool, say so and leave a clearly marked slot.
-6. **Verify:** after-screenshots at the same widths and themes, compared side by side with the
-   before set. Check contrast, reduced motion and layout shift. Iterate until it meets the bar.
+6. **Verify:** the browser loop in `~/agent-skills/shared/creative/visual-loop.md`: runner into
+   `.visual/after`, compared side by side with the before set, hover, keyboard and reduced
+   motion checked. Iterate until every blocker and major is gone and it meets the bar.
 7. **Report** before and after screenshot paths and what changed; open decisions as numbered
    options.

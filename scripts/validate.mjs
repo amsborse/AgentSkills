@@ -97,8 +97,26 @@ if (fs.existsSync(stylesDir)) {
     else ok(`styles/${f}: add-on complete`);
   }
 }
+const creativeDir = path.join(sharedDir, 'creative');
+const techniquesDir = path.join(creativeDir, 'techniques');
+if (fs.existsSync(techniquesDir)) {
+  const index = fs.existsSync(path.join(creativeDir, 'README.md')) ? fs.readFileSync(path.join(creativeDir, 'README.md'), 'utf8') : '';
+  if (!index) bad('shared/creative/README.md: missing (the technique index)');
+  const sections = ['Use when', 'Options', 'Dependencies', 'Accessibility', 'Performance', 'Compatibility', 'Reduced motion', 'Verify'];
+  for (const f of fs.readdirSync(techniquesDir).filter((x) => x.endsWith('.md'))) {
+    const body = fs.readFileSync(path.join(techniquesDir, f), 'utf8');
+    const absent = sections.filter((s) => !body.includes(`## ${s}`));
+    const links = [...body.matchAll(/`((?:\.\.\/)?[a-z0-9-]+\.md)`/g)].map((m) => m[1]);
+    const broken = links.filter((l) => !fs.existsSync(path.join(techniquesDir, l)));
+    if (absent.length) bad(`shared/creative/techniques/${f}: missing sections ${absent.join(', ')}`);
+    else if (broken.length) bad(`shared/creative/techniques/${f}: broken links ${broken.join(', ')}`);
+    else if (!index.includes(`\`techniques/${f}\``)) bad(`shared/creative/techniques/${f}: not listed in shared/creative/README.md`);
+    else ok(`shared/creative/techniques/${f}: technique complete`);
+  }
+}
+const mdFilesUnder = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? mdFilesUnder(path.join(dir, e.name)) : e.name.endsWith('.md') ? [path.join(dir, e.name)] : []));
 const portabilityFiles = [...skills.map((s) => path.join(REPO_ROOT, ...s.split('/'), 'SKILL.md'))];
-if (fs.existsSync(sharedDir)) portabilityFiles.push(...fs.readdirSync(sharedDir).filter((f) => f.endsWith('.md')).map((f) => path.join(sharedDir, f)));
+if (fs.existsSync(sharedDir)) portabilityFiles.push(...mdFilesUnder(sharedDir));
 if (fs.existsSync(stylesDir)) portabilityFiles.push(...fs.readdirSync(stylesDir).filter((f) => f.endsWith('.md')).map((f) => path.join(stylesDir, f)));
 for (const file of portabilityFiles) if (/~\/\.claude\/skills\//i.test(fs.readFileSync(file, 'utf8'))) bad(`${path.relative(REPO_ROOT, file)}: non-portable ~/.claude/skills/ path`);
 process.stdout.write(`Description budget: ${descriptionChars} characters (~${Math.ceil(descriptionChars / 4)} tokens)\n`);

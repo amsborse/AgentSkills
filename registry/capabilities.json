@@ -3,8 +3,14 @@
   "capabilities": {
     "browser": {
       "requiredBy": [
+        "add-interactions",
+        "audit-design",
         "automate-browser",
+        "build-3d",
         "build-animation",
+        "build-ui",
+        "create-visuals",
+        "replicate-design",
         "revamp-ui"
       ],
       "optionalFor": [
@@ -23,7 +29,9 @@
     "codex-bridge": {
       "requiredBy": [],
       "optionalFor": [
+        "build-3d",
         "build-animation",
+        "build-ui",
         "coordinate-agents",
         "night",
         "revamp-ui",
@@ -63,12 +71,19 @@
       "requiredBy": [],
       "optionalFor": [
         "build-animation",
+        "create-visuals",
         "revamp-ui"
       ]
     },
     "node": {
       "requiredBy": [
         "night"
+      ],
+      "optionalFor": []
+    },
+    "playwright": {
+      "requiredBy": [
+        "audit-design"
       ],
       "optionalFor": []
     },
