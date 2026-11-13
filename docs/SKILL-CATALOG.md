@@ -9,8 +9,14 @@ repository or unattended.
 
 | Skill | Ask for example | Builds on | Risk | Extra procedures |
 | --- | --- | --- | --- | --- |
-| `revamp-ui` | "Revamp my website UI", "unslop this page" | verify, build-animation, coordinate-agents | medium | `workflows/unslop/`, `workflows/codex-visual.md`, style add-ons in `styles/` |
-| `build-animation` | "Animate this hero", "match this reference image" | verify, revamp-ui, coordinate-agents | low | `workflows/cinematic-plate/`, `workflows/chapter-rail.md`, `workflows/heavy-hero-performance.md`, `workflows/hover-affordance.md`, style add-ons in `styles/` |
+| `revamp-ui` | "Revamp my website UI", "make this interface feel premium" | verify, build-animation, audit-design, replicate-design, add-interactions, create-visuals, coordinate-agents | medium | `workflows/unslop/`, `workflows/codex-visual.md`, style add-ons in `styles/` |
+| `build-animation` | "Animate this hero", "build a cinematic landing page", "match this reference image" | verify, revamp-ui, build-ui, build-3d, audit-design, coordinate-agents | low | `workflows/cinematic-plate/`, `workflows/chapter-rail.md`, `workflows/heavy-hero-performance.md`, `workflows/hover-affordance.md`, style add-ons in `styles/` |
+| `build-ui` | "Build a new page", "create a dashboard" | revamp-ui, add-interactions, build-animation, create-visuals, audit-design, coordinate-agents | medium | uses `shared/creative/` |
+| `add-interactions` | "Add stunning hover interactions", "micro-interactions" | build-animation, audit-design, verify | medium | techniques in `shared/creative/techniques/` |
+| `build-3d` | "Create an interactive 3D scene", "add a WebGL effect" | build-animation, create-visuals, audit-design, coordinate-agents | medium | techniques in `shared/creative/techniques/` |
+| `create-visuals` | "Create a hero visual", "make a diagram" | build-animation, build-3d, audit-design | low | techniques in `shared/creative/techniques/` |
+| `replicate-design` | "Reproduce the interactions from this reference" | build-ui, add-interactions, build-animation, build-3d, audit-design | medium | `shared/creative/reference-workflow.md` |
+| `audit-design` | "Audit this website's visual quality", "visual audit" | verify, revamp-ui, build-animation | low | `scripts/visual-audit.mjs`, `scripts/record-findings.mjs` |
 | `build-feature` | "Build this feature end to end", "write a spec" | understand-code, test-everything, verify, review-code, coordinate-agents | medium | `workflows/spec.md` |
 | `fix-bug` | "Find and fix this bug", "it's still broken" | verify, test-everything | medium | |
 | `understand-code` | "Understand the architecture of this repository" | research | low | |

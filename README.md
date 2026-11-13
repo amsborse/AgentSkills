@@ -20,7 +20,14 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "/night tests", "run verified loops while I sleep" | `night` (+ 15 `night-*` loops) |
 | "Review my changes" / "second opinion from Codex" | `review-code` |
 | "Show me the changes" / "UI before and after" | `review-changes` |
-| "Add a hero animation" | `build-animation` |
+| "Add a hero animation" / "Build a cinematic landing page" | `build-animation` |
+| "Make this interface feel premium" | `revamp-ui` |
+| "Build a new dashboard page" | `build-ui` |
+| "Add stunning hover interactions" | `add-interactions` |
+| "Create an interactive 3D scene" | `build-3d` |
+| "Create a hero visual" / "make a diagram" | `create-visuals` |
+| "Reproduce the interactions from this reference" | `replicate-design` |
+| "Audit this website's visual quality" | `audit-design` |
 | "Test everything" | `test-everything` |
 | "Security audit this repo" | `security-audit` |
 | "What can be improved?" / "refactor this" | `improve` |
@@ -29,13 +36,14 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "Ship it" / "merge, push and clean up" | `ship` |
 | "Which skill should I use?" / "add a skill" | `manage-skills` |
 
-All 35 skills (19 day skills, the `night` orchestrator and its 15 loops), with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
+All 43 skills (day skills, the `night` orchestrator and its 15 loops), with what each composes and needs: `docs/SKILL-CATALOG.md`. Not sure which one
 fits? `node scripts/route.mjs "your request"`.
 
 ```text
 agent-skills/
   skills/<name>/            the catalog: SKILL.md + workflows/ loaded on demand
   shared/                   files several skills read (codex-bridge.md, browser.md)
+  shared/creative/          creative engineering layer: adaptation, selector, visual loop, 17 techniques
   styles/                   style add-ons attached to revamp-ui/build-animation (cinematic, clay, glass)
   registry/                 generated skills.json and capabilities.json; compatibility.json
   working-agreements/       shared rules every repo imports (AGENTS.md, ui-quality.md, evidence)
@@ -44,6 +52,8 @@ agent-skills/
   history-learning/         learn from past agent conversations (scripts/hl.mjs) and skill
   scripts/                  install.mjs, validate.mjs, build-registry.mjs, route.mjs, hooks/
   tests/                    node:test suites (engine, installer, router, registry, hook, catalog)
+  evals/creative/           held-out routing evals for the creative skills
+  demos/creative/           static demos of the creative layer in three product modes
   docs/                     ARCHITECTURE, SKILL-CATALOG, MIGRATION, SOURCES, OPEN-QUESTIONS, INVENTORY
 ```
 
