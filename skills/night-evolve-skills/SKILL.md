@@ -41,6 +41,7 @@ this skill supplies the target, evidence and stopping rules.
 - Revert: Protected running code changes, unsupported generalisations, alias collisions or validator failures.
 - Inconclusive: missing evidence or unavailable checks cannot count as a successful iteration.
 - Record baseline and candidate results with exact commands for the supervisor to repeat.
+- Creative skills (revamp-ui, build-ui, add-interactions, build-animation, build-3d, create-visuals, replicate-design, audit-design): also run `node --test tests/creative-evals.test.mjs`; the held-out cases in `evals/creative/routing.json` are evidence only and are never edited or tuned against. Repeated defects come from the creative ledger (`~/agent-skills/shared/creative/learning.md`).
 
 ## Stop conditions
 

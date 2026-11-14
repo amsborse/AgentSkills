@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Defective fixture</title>
+<style>
+  /* Every defect here is deliberate: tests/visual-audit.test.mjs expects the audit to flag it. */
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; background: #ffffff; color: #111; }
+  .faint { color: #c8c8c8; }                     /* contrast about 1.7:1 on white */
+  .wide { width: 900px; height: 40px; background: #eee; } /* sideways scroll on phones */
+  button { outline: none; padding: 8px 16px; border: 1px solid #333; background: #fff; color: #111; }
+  button:focus { outline: none; }                /* no visible focus */
+  button.grow:hover { padding: 16px 32px; }      /* hover changes layout */
+  .pulse { width: 40px; height: 40px; background: #333; animation: pulse 1s infinite; } /* ignores reduced motion */
+  @keyframes pulse { 50% { transform: scale(1.3); } }
+  .spacer { height: 2400px; }
+  canvas { display: block; width: 300px; height: 150px; }
+</style>
+</head>
+<body>
+  <h1>Defective page</h1>
+  <p class="faint">This paragraph is far too faint to read.</p>
+  <div class="wide"></div>
+  <button class="grow">Grow on hover</button>
+  <button>Second</button>
+  <div class="pulse"></div>
+  <img src="does-not-exist.png" width="40" height="40">
+  <canvas id="c"></canvas>
+  <div class="spacer"></div>
+  <script>
+    // Render loop that never pauses, offscreen or under reduced motion.
+    const ctx = document.getElementById('c').getContext('2d');
+    (function loop(t) { ctx.fillStyle = `hsl(${t / 10 % 360} 60% 50%)`; ctx.fillRect(0, 0, 300, 150); requestAnimationFrame(loop); })(0);
+    throw new Error('deliberate fixture error');
+  </script>
+</body>
+</html>

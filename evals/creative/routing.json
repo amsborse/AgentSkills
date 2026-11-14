@@ -1,0 +1,101 @@
+{
+  "about": "Held-out routing phrasings for the creative skills. Written before measuring and never used to tune aliases or keywords (tune against tests/catalog-routing.test.mjs instead). The first measurement (2026-11-13) was 12/20 top-1: most misses returned no match, which leaves the choice to the agent's own skill descriptions. Gate: top-1 never drops below baselineTop1, and no case confidently routes to a different skill. Raise baselineTop1 only when a change outside this file improves it; never edit cases to make a change pass.",
+  "cases": [
+    {
+      "prompt": "Give this dashboard a premium redesign",
+      "expected": "revamp-ui"
+    },
+    {
+      "prompt": "The app looks cheap, polish it up",
+      "expected": "revamp-ui"
+    },
+    {
+      "prompt": "Redesign our settings screen so it feels less generic",
+      "expected": "revamp-ui"
+    },
+    {
+      "prompt": "Build a pricing page for the product",
+      "expected": "build-ui"
+    },
+    {
+      "prompt": "Create a new onboarding screen",
+      "expected": "build-ui"
+    },
+    {
+      "prompt": "Make the cards react when I hover them",
+      "expected": "add-interactions"
+    },
+    {
+      "prompt": "Add a magnetic effect to the buttons",
+      "expected": "add-interactions"
+    },
+    {
+      "prompt": "Let users drag items between columns with spring feedback",
+      "expected": "add-interactions"
+    },
+    {
+      "prompt": "Animate the hero section as you scroll",
+      "expected": "build-animation"
+    },
+    {
+      "prompt": "Add smooth page transitions between routes",
+      "expected": "build-animation"
+    },
+    {
+      "prompt": "Make the headline animate letter by letter",
+      "expected": "build-animation"
+    },
+    {
+      "prompt": "Add a three.js product viewer",
+      "expected": "build-3d"
+    },
+    {
+      "prompt": "Put a shader background behind the hero",
+      "expected": "build-3d"
+    },
+    {
+      "prompt": "Render a 3d globe with our data",
+      "expected": "build-3d"
+    },
+    {
+      "prompt": "Draw an animated illustration for the empty state",
+      "expected": "create-visuals"
+    },
+    {
+      "prompt": "Turn this architecture into an interactive diagram",
+      "expected": "create-visuals"
+    },
+    {
+      "prompt": "Make our site feel like this reference site",
+      "expected": "replicate-design"
+    },
+    {
+      "prompt": "Recreate this effect from the video I sent",
+      "expected": "replicate-design"
+    },
+    {
+      "prompt": "Do a design audit of the marketing site",
+      "expected": "audit-design"
+    },
+    {
+      "prompt": "Check the UI for contrast and layout shift problems",
+      "expected": "audit-design"
+    }
+  ],
+  "negatives": [
+    "Fix the failing login test",
+    "Explain how the payment service works",
+    "Update the npm dependencies"
+  ],
+  "creativeSkills": [
+    "revamp-ui",
+    "build-ui",
+    "add-interactions",
+    "build-animation",
+    "build-3d",
+    "create-visuals",
+    "replicate-design",
+    "audit-design"
+  ],
+  "baselineTop1": 0.6
+}

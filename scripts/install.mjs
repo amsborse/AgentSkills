@@ -19,6 +19,7 @@ const option = (name) => {
 };
 const routerOption = option('--router-hook');
 const codexOption = option('--codex-block');
+const learningOption = option('--learning-hooks');
 const results = [];
 const say = (status, what, detail = '') => {
   results.push({ status, what, detail });
@@ -46,7 +47,7 @@ function readSettings(settings) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error(`Cannot update ${settings}: expected JSON object; nothing changed`);
   return data;
 }
-const profilesToConfigure = routerOption || uninstall ? routerProfiles() : [];
+const profilesToConfigure = routerOption || learningOption || uninstall ? routerProfiles() : [];
 for (const profile of profilesToConfigure) readSettings(path.join(profile, 'settings.json'));
 
 // 1. A stable checkout path: ~/agent-skills -> this repository.
@@ -109,21 +110,30 @@ const backupSettings = (file) => {
   const backup = `${file}.agent-skills-backup`;
   if (fs.existsSync(file) && !fs.existsSync(backup)) fs.copyFileSync(file, backup);
 };
-// Forward slashes on every platform (matches the existing SessionStart hook); `ours` also
-// accepts backslashes so a hand-edited or older entry is still recognised and not duplicated.
-const hookCommand = `node "${path.join(REPO_ROOT, 'scripts', 'hooks', 'route-hook.mjs').replaceAll('\\', '/')}"`;
-const ours = (h) => typeof h?.command === 'string' && h.command.replaceAll('\\', '/').includes('scripts/hooks/route-hook.mjs');
-function configureRouter(profile, mode) {
+const repoScript = (...parts) => path.join(REPO_ROOT, ...parts).replaceAll('\\', '/');
+const hl = repoScript('history-learning', 'scripts', 'hl.mjs');
+// `marker` identifies our entry; matched after normalising backslashes so a hand-edited or older
+// entry is still recognised and not duplicated.
+const HOOKS = {
+  router: [{ event: 'UserPromptSubmit', label: 'router hook', command: `node "${repoScript('scripts', 'hooks', 'route-hook.mjs')}"`, marker: 'scripts/hooks/route-hook.mjs', timeout: 5 }],
+  // History learning: a daily scheduled run does the capture (below); this hook shows the review
+  // notice and catches up a missed day.
+  learning: [
+    { event: 'SessionStart', label: 'learning SessionStart hook', command: `node "${hl}" hook session-start`, marker: 'hl.mjs" hook session-start', timeout: 10 },
+  ],
+};
+function configureHook(profile, { event, label, command, marker, timeout }, mode) {
+  const ours = (h) => typeof h?.command === 'string' && h.command.replaceAll('\\', '/').includes(marker);
   const settings = path.join(profile, 'settings.json');
   if (!fs.existsSync(settings) && mode === 'off') return;
   const data = readSettings(settings);
   const hooks = data.hooks && typeof data.hooks === 'object' ? data.hooks : {};
-  const submitWasArray = Array.isArray(hooks.UserPromptSubmit);
-  const groups = Array.isArray(hooks.UserPromptSubmit) ? hooks.UserPromptSubmit : [];
+  const wasArray = Array.isArray(hooks[event]);
+  const groups = Array.isArray(hooks[event]) ? hooks[event] : [];
   const before = JSON.stringify(data);
   if (mode === 'on') {
-    if (!groups.some((g) => Array.isArray(g?.hooks) && g.hooks.some(ours))) groups.push({ hooks: [{ type: 'command', command: hookCommand, timeout: 5 }] });
-    hooks.UserPromptSubmit = groups;
+    if (!groups.some((g) => Array.isArray(g?.hooks) && g.hooks.some(ours))) groups.push({ hooks: [{ type: 'command', command, timeout }] });
+    hooks[event] = groups;
   } else if (mode === 'off') {
     const hadOurs = groups.some((g) => Array.isArray(g?.hooks) && g.hooks.some(ours));
     const remainingGroups = groups.flatMap((g) => {
@@ -131,8 +141,8 @@ function configureRouter(profile, mode) {
       const remaining = entries.filter((h) => !ours(h));
       return remaining.length || remaining.length === entries.length ? [{ ...g, hooks: remaining }] : [];
     });
-    if (hadOurs && !remainingGroups.length) delete hooks.UserPromptSubmit;
-    else if (submitWasArray || groups.length) hooks.UserPromptSubmit = remainingGroups;
+    if (hadOurs && !remainingGroups.length) delete hooks[event];
+    else if (wasArray || groups.length) hooks[event] = remainingGroups;
   }
   if (!Object.keys(hooks).length) delete data.hooks;
   else data.hooks = hooks;
@@ -142,11 +152,29 @@ function configureRouter(profile, mode) {
       fs.mkdirSync(profile, { recursive: true });
       fs.writeFileSync(settings, `${JSON.stringify(data, null, 2)}\n`);
     }
-    say(plan ? 'would-update' : 'updated', settings, `router hook ${mode}`);
-  } else say('ok', settings, `router hook already ${mode === 'on' ? 'installed' : 'absent'}`);
+    say(plan ? 'would-update' : 'updated', settings, `${label} ${mode}`);
+  } else say('ok', settings, `${label} already ${mode === 'on' ? 'installed' : 'absent'}`);
 }
 
-for (const profile of profilesToConfigure) configureRouter(profile, uninstall ? 'off' : routerOption);
+// Retired entries are removed whatever the mode: capture moved from SessionEnd to a daily run.
+const RETIRED = [{ event: 'SessionEnd', label: 'retired learning SessionEnd hook', marker: 'hl.mjs" hook session-end' }];
+if (learningOption || uninstall) for (const profile of profilesToConfigure) for (const hook of RETIRED) configureHook(profile, hook, 'off');
+
+for (const [kind, mode] of [['router', uninstall ? 'off' : routerOption], ['learning', uninstall ? 'off' : learningOption]]) {
+  if (!mode) continue;
+  for (const profile of profilesToConfigure) for (const hook of HOOKS[kind]) configureHook(profile, hook, mode);
+}
+
+const learningMode = uninstall ? 'off' : learningOption;
+if (learningMode) {
+  const { setSchedule } = await import('../history-learning/scripts/lib/auto.mjs');
+  if (plan) say(learningMode === 'on' ? 'would-schedule' : 'would-unschedule', 'history-learning daily run');
+  else {
+    const status = setSchedule('status', { hlPath: hl });
+    if (learningMode === 'off' && status === 'not scheduled') say('ok', 'history-learning daily run', 'already absent');
+    else say(learningMode === 'on' ? 'scheduled' : 'removed', 'history-learning daily run', setSchedule(learningMode, { hlPath: hl }));
+  }
+}
 
 const codexHome = process.env.CODEX_HOME ? path.resolve(process.env.CODEX_HOME) : path.join(home, '.codex');
 const codexFile = path.join(codexHome, 'AGENTS.md');

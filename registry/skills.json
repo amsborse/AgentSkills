@@ -2,6 +2,105 @@
   "version": 1,
   "skills": [
     {
+      "name": "add-interactions",
+      "path": "skills/add-interactions",
+      "description": "Add hover, press, drag and pointer interactions that fit the product (magnetic hover, cursor light, tilt, springs, drag) with keyboard parity, touch fallbacks and reduced motion, browser-verified. Use for \"add hover interactions\" or \"micro-interactions\".",
+      "aliases": [
+        "add interactions",
+        "hover interactions",
+        "add hover interactions",
+        "micro-interactions",
+        "micro interactions",
+        "make it interactive",
+        "make it feel interactive",
+        "magnetic button",
+        "magnetic hover",
+        "cursor effect",
+        "tilt effect",
+        "drag interaction",
+        "press feedback"
+      ],
+      "keywords": [
+        "interaction",
+        "hover",
+        "pointer",
+        "cursor",
+        "magnetic",
+        "tilt",
+        "drag",
+        "spring",
+        "press",
+        "feedback",
+        "touch",
+        "keyboard",
+        "focus"
+      ],
+      "composes": [
+        "build-animation",
+        "audit-design",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
+      "name": "audit-design",
+      "path": "skills/audit-design",
+      "description": "Audit a running site or app's visual quality with evidence: screenshots across viewports and both themes, measured checks (contrast, overflow, focus, hover, reduced motion, offscreen rendering, layout shift) and a ranked P0–P3 critique. Read-only. Use for \"audit this website's visual quality\" or \"visual audit\".",
+      "aliases": [
+        "audit design",
+        "visual audit",
+        "design audit",
+        "audit visual quality",
+        "visual quality",
+        "design review",
+        "ui audit",
+        "audit this website",
+        "audit the ui",
+        "motion audit",
+        "accessibility of the design"
+      ],
+      "keywords": [
+        "audit",
+        "visual",
+        "quality",
+        "screenshot",
+        "contrast",
+        "accessibility",
+        "reduced motion",
+        "layout shift",
+        "performance",
+        "critique",
+        "design",
+        "review",
+        "website",
+        "ui"
+      ],
+      "composes": [
+        "verify",
+        "revamp-ui",
+        "build-animation"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "playwright",
+          "optional": false
+        }
+      ],
+      "risk": "low",
+      "workflows": []
+    },
+    {
       "name": "automate-browser",
       "path": "skills/automate-browser",
       "description": "Automate a browser workflow — navigate, fill forms, click through flows, extract page data, take screenshots, or turn a repeated manual task into a reusable script — with the cheapest reliable browser tool available and explicit confirmation before anything outward-facing (submitting, purchasing, posting, sending). Use for \"automate this browser workflow\", \"fill this form\", \"scrape this page\", \"click through this flow\" or \"make a script for this web task\".",
@@ -43,11 +142,72 @@
       "workflows": []
     },
     {
+      "name": "build-3d",
+      "path": "skills/build-3d",
+      "description": "Build interactive 3D/WebGL scenes, shaders and particle fields that stay fast and accessible: lightest engine, capped pixel ratio, paused offscreen, fallbacks, browser-verified. Use for \"create an interactive 3D scene\" or \"add a WebGL effect\".",
+      "aliases": [
+        "build 3d",
+        "3d scene",
+        "interactive 3d",
+        "interactive 3d scene",
+        "create a 3d scene",
+        "webgl effect",
+        "webgl scene",
+        "shader effect",
+        "three.js scene",
+        "particle effect",
+        "3d model viewer",
+        "product configurator"
+      ],
+      "keywords": [
+        "3d",
+        "webgl",
+        "three",
+        "r3f",
+        "shader",
+        "glsl",
+        "particles",
+        "scene",
+        "camera",
+        "model",
+        "gltf",
+        "canvas",
+        "lighting"
+      ],
+      "composes": [
+        "build-animation",
+        "create-visuals",
+        "audit-design",
+        "coordinate-agents",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "build-animation",
       "path": "skills/build-animation",
-      "description": "Design and build motion that is calm, continuous and 60fps, respects reduced motion and pauses offscreen: hero animations, signature living visuals, transitions, scroll and micro-interactions, and WebGL, Canvas or SVG effects. Style add-ons (cinematic, claymorphism, glassmorphism) set the motion character on top of the shared calm feel. Includes cinematic-plate, which turns a reference image of a cinematic scene into a live web hero (a generated art plate plus thin live layers). Use for \"add an animation\", \"hero animation\", \"make it move\", a motion review, or replicating a cinematic reference.",
+      "description": "Build calm, continuous 60fps motion that respects reduced motion and pauses offscreen: hero visuals, transitions, scroll choreography, kinetic type, cinematic pages, WebGL/Canvas/SVG effects, cinematic-plate (reference image to live hero). Use for \"add an animation\", \"build motion\", \"cinematic landing page\" or a motion review.",
       "aliases": [
         "add animation",
+        "build motion",
+        "build-motion",
+        "cinematic landing page",
+        "cinematic page",
+        "scroll animation",
+        "scroll choreography",
+        "page transitions",
+        "kinetic typography",
         "animate this",
         "hero animation",
         "make it move",
@@ -65,6 +225,9 @@
       "keywords": [
         "animation",
         "motion",
+        "cinematic",
+        "choreography",
+        "kinetic",
         "transition",
         "webgl",
         "shader",
@@ -79,7 +242,10 @@
       "composes": [
         "verify",
         "revamp-ui",
-        "coordinate-agents"
+        "coordinate-agents",
+        "build-ui",
+        "build-3d",
+        "audit-design"
       ],
       "requires": [
         {
@@ -152,6 +318,61 @@
       ]
     },
     {
+      "name": "build-ui",
+      "path": "skills/build-ui",
+      "description": "Build new UI (page, screen, flow, component) that fits its product: inspect purpose, users, brand and design system, pick a direction, implement in the project's stack, verify in the browser across viewports and themes. Use for \"build a page\", \"create a dashboard\" or \"new landing page\".",
+      "aliases": [
+        "build ui",
+        "build a page",
+        "build this page",
+        "build this screen",
+        "create a page",
+        "new page",
+        "new screen",
+        "build a dashboard",
+        "create a dashboard",
+        "new landing page",
+        "build a landing page",
+        "build a component",
+        "design and build"
+      ],
+      "keywords": [
+        "ui",
+        "page",
+        "screen",
+        "component",
+        "dashboard",
+        "landing",
+        "layout",
+        "frontend",
+        "interface",
+        "form",
+        "design system",
+        "responsive"
+      ],
+      "composes": [
+        "revamp-ui",
+        "add-interactions",
+        "build-animation",
+        "create-visuals",
+        "audit-design",
+        "coordinate-agents",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "coordinate-agents",
       "path": "skills/coordinate-agents",
       "description": "Split work across agents — delegate an isolated implementation to OpenAI Codex through codex-bridge in its own git worktree, run independent parts in parallel subagents, then review and integrate the results yourself. Includes the former /codex-frontend workflow. Use for \"use Codex for this\", \"delegate to Codex\", \"split this work\", \"run agents in parallel\" or \"orchestrate agents\".",
@@ -201,6 +422,58 @@
       "workflows": [
         "skills/coordinate-agents/workflows/codex-implement.md"
       ]
+    },
+    {
+      "name": "create-visuals",
+      "path": "skills/create-visuals",
+      "description": "Create visuals that fit the product: a signature living visual, illustrations, animated icons, organic masks, interactive diagrams, hero images when an image tool exists. Real data only, verified in both themes. Use for \"create a hero visual\", \"add illustrations\" or \"make a diagram\".",
+      "aliases": [
+        "create visuals",
+        "hero visual",
+        "signature living visual",
+        "add illustrations",
+        "animated illustration",
+        "animated icons",
+        "make a diagram",
+        "interactive diagram",
+        "explainer visual",
+        "brand visual",
+        "organic shapes",
+        "background visual"
+      ],
+      "keywords": [
+        "visual",
+        "illustration",
+        "icon",
+        "diagram",
+        "chart",
+        "svg",
+        "lottie",
+        "rive",
+        "mask",
+        "blob",
+        "hero",
+        "image",
+        "graphic"
+      ],
+      "composes": [
+        "build-animation",
+        "build-3d",
+        "audit-design",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "image-generation",
+          "optional": true
+        }
+      ],
+      "risk": "low",
+      "workflows": []
     },
     {
       "name": "fix-bug",
@@ -309,6 +582,64 @@
       ],
       "risk": "medium",
       "workflows": []
+    },
+    {
+      "name": "improve-visuals",
+      "path": "skills/improve-visuals",
+      "description": "Make an existing UI look better in rounds, judged blind on real screenshots, not on speed. Use for \"improve the visuals\" or \"make it look better\".",
+      "aliases": [
+        "improve visuals",
+        "improve the visuals",
+        "look better",
+        "make it look better",
+        "make it prettier",
+        "better visuals",
+        "visual improvements",
+        "raise the visual quality",
+        "improve the design"
+      ],
+      "keywords": [
+        "visual",
+        "visuals",
+        "look",
+        "beautiful",
+        "prettier",
+        "design",
+        "aesthetic",
+        "polish",
+        "typography",
+        "hierarchy",
+        "depth",
+        "craft",
+        "judge",
+        "rounds",
+        "screenshots"
+      ],
+      "composes": [
+        "audit-design",
+        "revamp-ui",
+        "build-animation",
+        "add-interactions",
+        "create-visuals",
+        "review-changes",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "playwright",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/improve-visuals/workflows/ideas.md",
+        "skills/improve-visuals/workflows/judge.md",
+        "skills/improve-visuals/workflows/rubric.md"
+      ]
     },
     {
       "name": "manage-skills",
@@ -957,6 +1288,52 @@
       "workflows": []
     },
     {
+      "name": "replicate-design",
+      "path": "skills/replicate-design",
+      "description": "Reproduce the feel and interactions of a reference site, image or video in the user's product, ethically: capture, map each effect to a technique, rebuild with the project's stack and brand, compare side by side. Never copies protected assets. Use for \"reproduce the interactions from this reference\".",
+      "aliases": [
+        "replicate design",
+        "replicate this design",
+        "reproduce the interactions",
+        "from this reference",
+        "like this reference",
+        "make it like this site",
+        "copy this interaction",
+        "recreate this effect",
+        "reference site",
+        "match this reference"
+      ],
+      "keywords": [
+        "reference",
+        "replicate",
+        "reproduce",
+        "recreate",
+        "inspiration",
+        "interaction",
+        "effect",
+        "site",
+        "video",
+        "screenshot",
+        "compare"
+      ],
+      "composes": [
+        "build-ui",
+        "add-interactions",
+        "build-animation",
+        "build-3d",
+        "audit-design",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "research",
       "path": "skills/research",
       "description": "Research a topic, technology, library or question in depth: plan sub-questions, gather primary sources, cross-check claims, run a contrarian pass, and deliver a cited synthesis with confidence levels and what stays unknown. Also covers comparing libraries or tools, evaluating a repo before adopting it, and checking data or experiment results. Scales from a quick answer to a multi-agent deep dive. Use for \"research this topic deeply\", \"compare X and Y\", \"evaluate this library\" or \"what's the state of the art\".",
@@ -1004,17 +1381,19 @@
     {
       "name": "revamp-ui",
       "path": "skills/revamp-ui",
-      "description": "Revamp, redesign, polish or audit a UI (website, app, dashboard, landing page) to the owner's premium bar. It audits, picks a direction, fixes spacing, color, type, layout, details, visuals and motion, generates hero visuals when an image tool exists, and verifies with real screenshots in both themes. Scales from a quick polish to a full redesign with Codex concepts. Attaches a style add-on (cinematic, claymorphism, glassmorphism) on top of the general method. Includes unslop (remove AI-looking UI tells) and visual review against a reference. Use for \"revamp my website UI\", \"make it look premium\", \"make it claymorphic/glassy/cinematic\", \"unslop\", \"redesign\", \"UI audit\" or \"match this reference\".",
+      "description": "Revamp, redesign or polish an existing UI (site, app, dashboard) to a premium bar that fits the product: pick a direction, fix spacing, color, type, layout, visuals and motion, verify with real screenshots. Optional style add-ons (cinematic, clay, glass). Includes unslop. Use for \"revamp this app\", \"make it feel premium\", \"unslop\" or \"redesign\".",
       "aliases": [
         "revamp ui",
         "revamp my website",
+        "revamp this",
+        "revamp the app",
         "redesign",
         "redesign the ui",
         "unslop",
         "polish the ui",
         "make it look premium",
+        "feel premium",
         "looks ai generated",
-        "ui audit",
         "design concepts",
         "match this design",
         "claymorphism",
@@ -1027,6 +1406,10 @@
         "ui",
         "ux",
         "design",
+        "premium",
+        "interface",
+        "application",
+        "app",
         "website",
         "landing page",
         "dashboard",
@@ -1048,7 +1431,11 @@
       "composes": [
         "verify",
         "build-animation",
-        "coordinate-agents"
+        "coordinate-agents",
+        "audit-design",
+        "replicate-design",
+        "add-interactions",
+        "create-visuals"
       ],
       "requires": [
         {

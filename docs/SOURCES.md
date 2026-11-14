@@ -48,3 +48,53 @@ run; it only runs when the workflow asks for a snapshot of a URL the user gave.
 | [vercel-labs/skills](https://github.com/vercel-labs/skills) | d3701c11b1 | MIT | Optional tool | Skill installer CLI; telemetry is on by default. |
 
 Commit hashes are abbreviated to 10 characters as recorded during the review.
+
+## Creative engineering research (2026-11-13)
+
+Researched for `shared/creative/` and the creative skills. Nothing was vendored and no dependency
+was added to this repository; every idea below was rewritten in our own words. Libraries are
+chosen per project through `shared/creative/selector.md`, which repeats the license notes.
+
+### Libraries (recommended per project, never installed here)
+
+| Library | Version checked | License | Note |
+| --- | --- | --- | --- |
+| GSAP | 3.15.1 | Custom no-charge license (not OSI) | All plugins free; the license bars tools that compete with Webflow. Use only when timelines or ScrollTrigger earn it. |
+| Motion | 14.14 | MIT | Default for React springs, layout and gestures. |
+| three.js | r187 | MIT | Real 3D scenes. |
+| React Three Fiber / drei | 9.8.2 / 10.7.9 | MIT | three.js in React. |
+| OGL | 1.0.11 | Unlicense | One small shader plane; quiet project. |
+| PixiJS | 8.23 | MIT | 2D WebGL. |
+| Rive runtime | current | MIT | Editor is paid. |
+| dotLottie-web | 0.83 | MIT | Preferred over lottie-web. |
+| Theatre.js | | Studio is AGPL | Avoided: share-alike studio, stalled. |
+| Playwright | 1.65.1 | Apache-2.0 | Used by the `audit-design` runner from the project's own install. |
+| axe-core | 4.14 | MPL-2.0 | Injected from the project when present; never vendored. |
+
+Platform status used by the selector: same-document View Transitions Baseline (Oct 2025);
+cross-document View Transitions not Baseline; CSS scroll-driven animations Baseline (late 2026);
+`@starting-style` Baseline (2024); `linear()` easing widely available.
+
+### Skill repositories
+
+| Source | Commit | License | Decision | What we took |
+| --- | --- | --- | --- | --- |
+| [emilkowalski/skills](https://github.com/emilkowalski/skills) | 0f2e23b32b | MIT | Ideas; vendoring candidate | Stress data for UI, Lead/Support/Decoration/Static choreography. |
+| [greensock/gsap-skills](https://github.com/greensock/gsap-skills) | aed9cfd327 | MIT | Ideas; candidate once its pro-GSAP bias is removed | GSAP performance and ScrollTrigger hygiene. |
+| [MengTo/Skills](https://github.com/MengTo/Skills) | 07274a3b3d | MIT | Ideas | P0–P3 findings, top 5–8, removal test (`audit-design`). |
+| [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | c4cd1924c3 | Apache-2.0 | Ideas | Operate/Read/Persuade modes and craft floor (`adaptation.md`). |
+| [mthines/agent-skills](https://github.com/mthines/agent-skills) | 3f78b3bad1 | MIT | Ideas | First-match technology picker, intensity scale, "reduce, don't remove" for reduced motion. |
+| [moh4696/open-3d-skills](https://github.com/moh4696/open-3d-skills) | 53beb899e7 | MIT | Ideas | DPR cap of 2, virtual clock for comparable screenshots (`build-3d`). |
+| [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | 4f2dbb67e6 | MIT/Apache mixed | Ideas | Three-layer tokens. |
+| [anthropics/skills](https://github.com/anthropics/skills) | 2c5958ecac | Apache-2.0 (per skill) | Ideas | Two-pass frontend plan, seeded parameters for generative art. |
+| taste-skill, design-motion-principles | | MIT | Ideas | Motion principles. |
+| adamperlis/awwwards-motion | | No license | Read only | Nothing reused. |
+| vercel-labs/agent-skills | | Unclear | Ideas | View-transition priorities; its unpinned remote rules are a risk. |
+| subframe | | Unclear | Inspiration only | |
+| podo/design-agent-skills | | | Rejected | Supply-chain risk. |
+| JustineBijuPaul/frontend-ai-skills | | | Rejected | Padded and generic. |
+| rastian | | No license | Rejected | |
+| Jensen-Yao/agents-skills | | | Not found | 404 on 2026-11-13. |
+
+Reference galleries are captured only under `shared/creative/reference-workflow.md`: robots.txt
+respected, logged out, screenshots and short recordings, no assets copied.

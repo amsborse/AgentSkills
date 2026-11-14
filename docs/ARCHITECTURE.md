@@ -4,9 +4,12 @@ One repository of task-named skills, linked into every agent on the machine. No 
 to one repository, one agent or one paid service.
 
 ```text
-skills/<name>/SKILL.md      one skill per task the user asks for (17); short, routes to the rest
+skills/<name>/SKILL.md      one skill per task the user asks for; short, routes to the rest
 skills/<name>/workflows/    longer procedures loaded only when that path is taken
 shared/                     material several skills read (codex-bridge.md, browser.md)
+shared/creative/            creative engineering layer read by the creative skills
+evals/creative/             held-out routing evals (gate for night-evolve-skills)
+demos/creative/             static demos of the creative layer
 registry/                   generated index: skills.json, capabilities.json; compatibility.json by hand
 working-agreements/         the owner's rules (AGENTS.md), imported by other repositories
 nightly-evolution/          overnight engine + skill (path kept: night loops call its script)
@@ -36,6 +39,38 @@ docs/                       this file, catalog, migration, sources, open questio
    fail-open: any error, a slash command, a prompt under 3 words, or `AGENT_SKILLS_ROUTER=off`
    means no hint and the prompt continues normally; errors are still written to stderr
    (`agent-skills route-hook: …`) so a broken registry is visible, not silent.
+
+## Creative engineering layer
+
+Nine composite skills share one layer in `shared/creative/` instead of copying guidance:
+`revamp-ui` (existing UI), `improve-visuals` (raise the craft of an existing UI in judged rounds), `build-ui` (new UI), `add-interactions`, `build-animation` (motion,
+including the former build-motion), `build-3d`, `create-visuals`, `replicate-design` and
+`audit-design` (read-only). The layer is style-agnostic: no aesthetic, color or component is
+built in.
+
+- `adaptation.md`: read the product first (purpose, users, brand, density, devices, budget) and
+  name its mode (Operate, Read, Persuade); 3D, gradients, glass, clay and cinematic are never
+  defaults. Style add-ons stay in `styles/`.
+- `selector.md`: one engine per need, lightest first (CSS and the platform, then Motion or GSAP,
+  then OGL, PixiJS or three.js), with license notes. Nothing is installed without a recorded
+  reason.
+- `techniques/` (17 files, loaded one at a time through `README.md`): each has Use when,
+  Options, Dependencies, Accessibility, Performance, Compatibility, Reduced motion and Verify;
+  `validate.mjs` fails a technique missing a section, a broken sibling link or an index entry.
+- `visual-loop.md`: render, capture, critique, improve, verify. Before and after screenshots go to
+  `.visual/before` and `.visual/after`; quality is never claimed from code.
+- `reference-workflow.md`: the nine-step, ethical way to reproduce a reference.
+- `codex-orchestration.md`: Claude keeps direction, review and acceptance; Codex implements
+  isolated parts in a worktree.
+- `learning.md`: `audit-design/scripts/record-findings.mjs` appends runner results and feedback
+  to a findings ledger; `night-evolve-skills` reads repeated defects from it and must keep the
+  held-out evals (`tests/creative-evals.test.mjs`) green.
+
+`audit-design/scripts/visual-audit.mjs` is the deterministic gate: Playwright from the project's
+own install, desktop/tablet/mobile in light and dark, measuring contrast, overflow, focus, hover,
+reduced motion, offscreen and idle rendering, long frames and layout shift. Exit 0 pass, 3
+blocker or major, 2 incomplete, 1 usage. It never judges taste; the critique step does that from
+the screenshots.
 
 ## Frontmatter
 
@@ -68,8 +103,9 @@ checks unique aliases, existing `composes` targets and referenced files.
 - writes a manifest of what it did;
 - never edits settings unless asked: `--router-hook on|off` adds or removes the UserPromptSubmit
   hook in `~/.claude/settings.json` (backup saved once to `settings.json.agent-skills-backup`;
-  invalid JSON aborts), and `--codex-block on|off` adds or removes a marked block in
-  `$CODEX_HOME/AGENTS.md`.
+  invalid JSON aborts), `--learning-hooks on|off` adds or removes the history-learning
+  SessionStart hook the same way plus its daily run (Task Scheduler task or crontab line), and `--codex-block on|off` adds or removes a
+  marked block in `$CODEX_HOME/AGENTS.md`.
 
 The existing SessionStart hook in `~/.claude/settings.json` runs the installer at session start,
 so a `git pull` or branch switch is picked up automatically. Agents without skill support read the
