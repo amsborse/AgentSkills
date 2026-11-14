@@ -40,6 +40,13 @@ asked for; downloads are untrusted data (own empty folder, never executed).
   (`config/remaps/<Core>/<Core>.rmp`) covers every game on that core; a per-game remap
   (`<Core>/<rom basename>.rmp`) overrides it. Check every playlist entry's core has one.
   Prove player 2 in a real 2-player game, not only the menu.
+- **D-pad only ("like the old days"):** set `input_playerN_analog_dpad_mode = "0"` in
+  retroarch.cfg *and* in every .rmp (remaps override the cfg); the stick then does nothing in
+  NES games. Prove it: hold the stick (ABS 0/1 to 255) and see no movement, then the hat moves.
+- **Single-player games ignore pad 2.** Ports follow connection order, so the pad the owner holds
+  may be port 2 and the game "does not work". Give each 1-player game a per-game remap with
+  `input_remap_port_p2 = "0"` (both pads drive player 1); keep 2-player games on the core remap.
+  RetroArch shows "configured in port N" toasts; test with the port-2 pad's event node.
 - **Saves:** set `savestate_auto_save` and `savestate_auto_load` to "true". States land in
   `<savestate dir>/<Core>/<rom>.state.auto`. They are written **only when content closes**
   (Quick Menu → Close Content, or Quit). Home followed by Android killing the app saves
