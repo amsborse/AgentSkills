@@ -11,7 +11,10 @@ node ~/agent-skills/shared/creative/arsenal/search.mjs "pointer beam"
 node ~/agent-skills/shared/creative/arsenal/search.mjs --list
 ```
 
-The checkout is found from `--root <dir>`, then `ARSENAL_DIR`, then a `~/arsenal` link. The
+The checkout is found from `--root <dir>`, then `ARSENAL_DIR`, then a `~/arsenal` link; a folder
+counts only when its `packages/*/package.json` names start with `@arsenal/`. A project's
+`.arsenal/` folder (repo map, summaries) is context-engine output, not the library, and is
+skipped. The
 search reads each package's exports with their doc comments, the catalog files
 (`packages/*/src/*catalog*`) and the package READMEs. Every query word must match, so search
 by what the thing does ("draw in", "crosshair", "engraving", "design registry"), then by name.

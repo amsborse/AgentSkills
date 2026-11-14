@@ -6,10 +6,33 @@ import os from 'node:os';
 import path from 'node:path';
 
 /** Where Arsenal lives: --root, then ARSENAL_DIR, then a ~/arsenal link. Null when none exist. */
+/**
+ * True for an Arsenal library checkout: a `packages/` folder holding at least one `@arsenal/*`
+ * package. A project's `.arsenal/` folder (context written by Arsenal's context engine) and
+ * other monorepos are not the library.
+ */
+export function isArsenalCheckout(dir) {
+  const packages = path.join(dir, 'packages');
+  let names;
+  try {
+    names = fs.readdirSync(packages);
+  } catch {
+    return false;
+  }
+  return names.some((name) => {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.join(packages, name, 'package.json'), 'utf8'));
+      return typeof pkg.name === 'string' && pkg.name.startsWith('@arsenal/');
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function resolveArsenalRoot({ root, env = process.env, home = os.homedir() } = {}) {
   const candidates = [root, env.ARSENAL_DIR, path.join(home, 'arsenal'), path.join(home, 'Arsenal')];
   for (const dir of candidates) {
-    if (dir && fs.existsSync(path.join(dir, 'packages'))) return path.resolve(dir);
+    if (dir && isArsenalCheckout(dir)) return path.resolve(dir);
   }
   return null;
 }

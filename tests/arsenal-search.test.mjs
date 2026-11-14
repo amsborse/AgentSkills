@@ -113,6 +113,18 @@ test('resolveArsenalRoot prefers --root, then ARSENAL_DIR, then ~/arsenal, else 
   assert.equal(resolveArsenalRoot({ env: {}, home: empty }), null);
 });
 
+test("resolveArsenalRoot skips a project's .arsenal context folder and other monorepos", () => {
+  const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'home-'));
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'site-'));
+  fs.mkdirSync(path.join(project, '.arsenal', 'summaries'), { recursive: true });
+  fs.writeFileSync(path.join(project, '.arsenal', 'repo-map.json'), '{}');
+  fs.mkdirSync(path.join(project, 'packages', 'app'), { recursive: true });
+  fs.writeFileSync(path.join(project, 'packages', 'app', 'package.json'), JSON.stringify({ name: 'app' }));
+  for (const dir of [project, path.join(project, '.arsenal')]) {
+    assert.equal(resolveArsenalRoot({ root: dir, env: {}, home: empty }), null);
+  }
+});
+
 test('the CLI prints matches with import lines, and exits 2 when Arsenal is missing', () => {
   const dir = fixture();
   const ok = spawnSync(process.execPath, [cli, '--root', dir, 'crosshair'], { encoding: 'utf8' });
