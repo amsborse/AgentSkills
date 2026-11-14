@@ -1321,6 +1321,58 @@
       "workflows": []
     },
     {
+      "name": "retro-games",
+      "path": "skills/retro-games",
+      "description": "RetroArch on Android/Fire TV over adb: install games, PS5 pad for all games, save/resume, cheats, menu look, verified on the TV.",
+      "aliases": [
+        "retro games",
+        "retroarch",
+        "install game on fire tv",
+        "ps5 controller retroarch",
+        "dualsense retroarch",
+        "game cheats",
+        "save game progress",
+        "emulator on tv"
+      ],
+      "keywords": [
+        "retroarch",
+        "emulator",
+        "nes",
+        "rom",
+        "playlist",
+        "cheats",
+        "savestate",
+        "dualsense",
+        "ps5",
+        "controller",
+        "gamepad",
+        "fire tv",
+        "android tv",
+        "adb",
+        "remap",
+        "autoconfig"
+      ],
+      "composes": [
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "shell",
+          "optional": false
+        },
+        {
+          "capability": "adb",
+          "optional": false
+        },
+        {
+          "capability": "python-opencv",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": []
+    },
+    {
       "name": "revamp-ui",
       "path": "skills/revamp-ui",
       "description": "Revamp, redesign or polish an existing UI (site, app, dashboard) to a premium bar that fits the product: pick a direction, fix spacing, color, type, layout, visuals and motion, verify with real screenshots. Optional style add-ons (cinematic, clay, glass). Includes unslop. Use for \"revamp this app\", \"make it feel premium\", \"unslop\" or \"redesign\".",

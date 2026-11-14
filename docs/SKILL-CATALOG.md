@@ -30,6 +30,7 @@ repository or unattended.
 | `production-ready` | "Make this project production ready" | security-audit, test-everything, improve, verify, review-code | medium | |
 | `ship` | "Ship it", "merge, push and clean up" | verify, test-everything, fix-bug | high | |
 | `automate-browser` | "Automate this browser workflow", "fill this form" | verify, test-everything | high | uses `shared/browser.md` |
+| `retro-games` | "Install this game on the Fire TV", "make my PS5 controller work in RetroArch" | verify | high | `skills/retro-games/scripts/ra-tv.sh` |
 | `run-autonomous` | "Run this task autonomously overnight" | build-feature, fix-bug, improve, verify, coordinate-agents, review-code | high | nightly-evolution engine |
 | `coordinate-agents` | "Delegate this to Codex", "split this work" | review-code, verify | medium | `workflows/codex-implement.md` |
 | `manage-skills` | "Which skill should I use", "add a skill" | security-audit | medium | history-learning engine |

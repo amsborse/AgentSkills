@@ -1,6 +1,12 @@
 {
   "version": 1,
   "capabilities": {
+    "adb": {
+      "requiredBy": [
+        "retro-games"
+      ],
+      "optionalFor": []
+    },
     "browser": {
       "requiredBy": [
         "add-interactions",
@@ -87,6 +93,12 @@
       ],
       "optionalFor": []
     },
+    "python-opencv": {
+      "requiredBy": [
+        "retro-games"
+      ],
+      "optionalFor": []
+    },
     "scheduler": {
       "requiredBy": [],
       "optionalFor": [
@@ -117,6 +129,7 @@
         "night-visual",
         "nightly-evolution",
         "production-ready",
+        "retro-games",
         "review-changes",
         "run-autonomous",
         "security-audit",
