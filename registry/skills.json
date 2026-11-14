@@ -584,6 +584,64 @@
       "workflows": []
     },
     {
+      "name": "improve-visuals",
+      "path": "skills/improve-visuals",
+      "description": "Make an existing UI look better in rounds, judged blind on real screenshots, not on speed. Use for \"improve the visuals\" or \"make it look better\".",
+      "aliases": [
+        "improve visuals",
+        "improve the visuals",
+        "look better",
+        "make it look better",
+        "make it prettier",
+        "better visuals",
+        "visual improvements",
+        "raise the visual quality",
+        "improve the design"
+      ],
+      "keywords": [
+        "visual",
+        "visuals",
+        "look",
+        "beautiful",
+        "prettier",
+        "design",
+        "aesthetic",
+        "polish",
+        "typography",
+        "hierarchy",
+        "depth",
+        "craft",
+        "judge",
+        "rounds",
+        "screenshots"
+      ],
+      "composes": [
+        "audit-design",
+        "revamp-ui",
+        "build-animation",
+        "add-interactions",
+        "create-visuals",
+        "review-changes",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "playwright",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/improve-visuals/workflows/ideas.md",
+        "skills/improve-visuals/workflows/judge.md",
+        "skills/improve-visuals/workflows/rubric.md"
+      ]
+    },
+    {
       "name": "manage-skills",
       "path": "skills/manage-skills",
       "description": "Manage this skill catalog — find which skill fits a request, create or update a skill, vet and adopt a third-party skill, reinstall or repair skill discovery for Claude, Codex and other agents, and learn new rules from past agent conversations (history-learning). Use for \"which skill should I use\", \"add a skill\", \"update my skills\", \"install skills\", \"learn from my history\" or when a skill seems missing or broken.",

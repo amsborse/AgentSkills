@@ -26,6 +26,8 @@ const ACCEPTANCE = [
   ["Create an interactive 3D scene.", "build-3d"],
   ["Reproduce the interactions from this reference.", "replicate-design"],
   ["Audit this website's visual quality.", "audit-design"],
+  ["Improve the visuals.", "improve-visuals"],
+  ["Make this site look better, not just faster.", "improve-visuals"],
 ];
 
 for (const [prompt, expected] of ACCEPTANCE) {

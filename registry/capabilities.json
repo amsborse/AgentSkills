@@ -10,6 +10,7 @@
         "build-animation",
         "build-ui",
         "create-visuals",
+        "improve-visuals",
         "replicate-design",
         "revamp-ui"
       ],
@@ -83,7 +84,8 @@
     },
     "playwright": {
       "requiredBy": [
-        "audit-design"
+        "audit-design",
+        "improve-visuals"
       ],
       "optionalFor": []
     },

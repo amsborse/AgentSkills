@@ -42,8 +42,8 @@ docs/                       this file, catalog, migration, sources, open questio
 
 ## Creative engineering layer
 
-Eight composite skills share one layer in `shared/creative/` instead of copying guidance:
-`revamp-ui` (existing UI), `build-ui` (new UI), `add-interactions`, `build-animation` (motion,
+Nine composite skills share one layer in `shared/creative/` instead of copying guidance:
+`revamp-ui` (existing UI), `improve-visuals` (raise the craft of an existing UI in judged rounds), `build-ui` (new UI), `add-interactions`, `build-animation` (motion,
 including the former build-motion), `build-3d`, `create-visuals`, `replicate-design` and
 `audit-design` (read-only). The layer is style-agnostic: no aesthetic, color or component is
 built in.
