@@ -47,6 +47,10 @@ asked for; downloads are untrusted data (own empty folder, never executed).
   may be port 2 and the game "does not work". Give each 1-player game a per-game remap with
   `input_remap_port_p2 = "0"` (both pads drive player 1); keep 2-player games on the core remap.
   RetroArch shows "configured in port N" toasts; test with the port-2 pad's event node.
+- **Back to the game list from the pad:** set `input_quit_gamepad_combo = "4"` (Select+Start,
+  i.e. Create+Options on a DualSense). Quitting closes content, so the auto save state is
+  written, and Android returns to the launcher that started the game. Before testing on the TV,
+  watch `getevent -lt` for a few seconds: a pad someone is holding sends its own presses.
 - **Saves:** set `savestate_auto_save` and `savestate_auto_load` to "true". States land in
   `<savestate dir>/<Core>/<rom>.state.auto`. They are written **only when content closes**
   (Quick Menu → Close Content, or Quit). Home followed by Android killing the app saves
