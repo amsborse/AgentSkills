@@ -1,13 +1,14 @@
-// Automatic capture: a Claude Code SessionEnd hook queues the closed session and starts a
-// detached worker that runs the deterministic pipeline (learn + saved topic passes). A
-// SessionStart hook then tells the user what is waiting for review. Nothing here calls a model
-// or edits a skill; synthesis stays a human-started step (synthesis.md).
+// Automatic capture: a daily scheduled task (Windows Task Scheduler or cron) runs the
+// deterministic pipeline (learn + saved topic passes) in a detached worker. Sessions still open
+// are covered too, because learn re-reads any transcript that changed. A SessionStart hook tells
+// the user what is waiting for review and catches up a missed day. Nothing here calls a model or
+// edits a skill; synthesis stays a human-started step (synthesis.md).
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { readJson, stateDir, writeJson, writeText } from './util.mjs';
 
-const MAX_PASSES = 3; // a worker re-runs while sessions keep closing, but never unbounded
+const CATCH_UP_MS = 26 * 60 * 60 * 1000; // a daily run missed (machine off) is caught up at the next session start
 const STALE_LOCK_MS = 30 * 60 * 1000;
 const NOTICE_EVERY_MS = 20 * 60 * 60 * 1000;
 const KEEP_LOGS = 10;
@@ -71,14 +72,14 @@ export function pending({ write = false } = {}) {
     clusters: digest?.included || 0,
     digestAt: digest?.generatedAt || null,
     topics,
-    queued: readJson(file('queue.json'), []).length,
     running: workerRunning(),
     last: readJson(file('last.json')),
     error: readJson(file('error.json')),
   };
 }
 
-function spawnWorker(hlPath) {
+/** Start `hl auto-run` detached with its own log; returns the log path. */
+export function spawnWorker(hlPath) {
   fs.mkdirSync(path.join(autoDir(), 'logs'), { recursive: true });
   const logs = fs.readdirSync(path.join(autoDir(), 'logs')).sort();
   for (const old of logs.slice(0, Math.max(0, logs.length - (KEEP_LOGS - 1)))) fs.rmSync(path.join(autoDir(), 'logs', old), { force: true });
@@ -90,21 +91,18 @@ function spawnWorker(hlPath) {
   return log;
 }
 
-/** SessionEnd: queue the session and make sure a worker will pick it up. Must return fast. */
-export function onSessionEnd(input, { hlPath, start = spawnWorker } = {}) {
-  const queue = readJson(file('queue.json'), []);
-  queue.push({ session: input?.session_id || null, transcript: input?.transcript_path || null, reason: input?.reason || null, at: new Date().toISOString() });
-  writeJson(file('queue.json'), queue);
-  if (workerRunning()) return { queued: queue.length, started: false };
-  return { queued: queue.length, started: true, log: start(hlPath) };
+/** True when the last run (ok or failed) is older than a day and a half, or there never was one. */
+export function runDue(now = Date.now()) {
+  const last = readJson(file('last.json'));
+  return !last?.finishedAt || now - Date.parse(last.finishedAt) > CATCH_UP_MS;
 }
 
 /**
- * SessionStart: resume a queue a previous worker could not finish, and return a notice when
+ * SessionStart: catch up a missed daily run, and return a notice when
  * something waits for review (at most once per NOTICE_EVERY_MS) or the last run failed (always).
  */
 export function onSessionStart(input, { hlPath, start = spawnWorker, now = Date.now() } = {}) {
-  if (readJson(file('queue.json'), []).length && !workerRunning(now)) start(hlPath);
+  if (runDue(now) && !workerRunning(now)) start(hlPath);
   const p = pending();
   if (p.error) {
     const msg = `History learning: the last automatic run failed at ${p.error.at}: ${p.error.message}. Log: ${p.error.log || 'none'}. Run \`node ~/agent-skills/history-learning/scripts/hl.mjs auto-run\` to retry.`;
@@ -117,36 +115,25 @@ export function onSessionStart(input, { hlPath, start = spawnWorker, now = Date.
   if (last?.at && now - Date.parse(last.at) < NOTICE_EVERY_MS) return null;
   writeJson(file('notice.json'), { at: new Date(now).toISOString() });
   const parts = [p.clusters && `${p.clusters} new or grown preference clusters`, fresh && `${fresh} new taste statements (${p.topics.filter((t) => t.fresh).map((t) => `${t.name} ${t.fresh}`).join(', ')})`].filter(Boolean);
-  const msg = `History learning: ${parts.join(' and ')} captured from recent sessions since ${p.since ? p.since.slice(0, 10) : 'the start'}, waiting to be turned into skill updates. Say "review history learning" to run it.`;
+  const msg = `History learning: ${parts.join(' and ')} captured from your sessions since ${p.since ? p.since.slice(0, 10) : 'the start'}, waiting to be turned into skill updates. Say "review history learning" to run it.`;
   return {
     systemMessage: msg,
     additionalContext: `${msg} If the user asks for it, use the history-learning skill: run \`hl pending --write\`, then follow synthesis.md on the digest and the topics/*.new.md files. Do not start the review unprompted.`,
   };
 }
 
-/** The detached worker: drains the queue with bounded passes, records success or a loud failure. */
+/** The detached worker: one refresh, recording success or a loud failure for the next notice. */
 export async function runWorker({ learn, refreshTopics, log = () => {} }) {
   if (workerRunning()) { log('another worker is running; exiting'); return { skipped: true }; }
   const startedAt = new Date().toISOString();
   writeJson(file('run.json'), { pid: process.pid, startedAt });
   try {
-    let processed = 0;
-    let passes = 0;
-    // Sessions that close while a pass runs stay queued and get another pass, up to MAX_PASSES.
-    while (passes < MAX_PASSES) {
-      const taken = readJson(file('queue.json'), []).length;
-      await learn();
-      await refreshTopics();
-      passes++;
-      const rest = readJson(file('queue.json'), []).slice(taken);
-      writeJson(file('queue.json'), rest);
-      processed += taken;
-      if (!rest.length) break;
-    }
-    const result = { startedAt, finishedAt: new Date().toISOString(), ok: true, passes, sessionsQueued: processed, remaining: readJson(file('queue.json'), []).length };
+    await learn();
+    await refreshTopics();
+    const result = { startedAt, finishedAt: new Date().toISOString(), ok: true };
     writeJson(file('last.json'), result);
     fs.rmSync(file('error.json'), { force: true });
-    log(`auto-run ok: ${passes} pass(es), ${processed} queued session(s) processed`);
+    log('auto-run ok');
     return result;
   } catch (e) {
     const error = { at: new Date().toISOString(), message: e.message, log: process.env.HL_AUTO_LOG || null };
@@ -156,4 +143,52 @@ export async function runWorker({ learn, refreshTopics, log = () => {} }) {
   } finally {
     fs.rmSync(file('run.json'), { force: true });
   }
+}
+
+// Daily schedule. Windows: a Task Scheduler task; elsewhere: a marked crontab line. The scheduled
+// command is `auto-run --background`, which returns at once and leaves a hidden worker with a log.
+export const TASK_NAME = 'AgentSkills History Learning';
+const CRON_MARK = '# agent-skills:history-learning';
+
+function scheduler(cmd, argv, input) {
+  // Test seam: HL_SCHEDULER_LOG records the calls instead of touching the real scheduler.
+  if (process.env.HL_SCHEDULER_LOG) {
+    fs.appendFileSync(process.env.HL_SCHEDULER_LOG, `${JSON.stringify({ cmd, argv, input: input ?? null })}\n`);
+    const fake = process.env.HL_SCHEDULER_FAKE_OUTPUT;
+    const query = argv.includes('/Query') || argv[0] === '-l'; // the "is it there" calls
+    if (!query) return { status: 0, stdout: '', stderr: '' };
+    return { status: fake === 'missing' ? 1 : 0, stdout: fake && fake !== 'missing' ? fake : '', stderr: '' };
+  }
+  const r = spawnSync(cmd, argv, { input, encoding: 'utf8', windowsHide: true });
+  if (r.error) throw new Error(`${cmd}: ${r.error.message}`);
+  return r;
+}
+
+/** Install (`on`), remove (`off`) or inspect (`status`) the daily run. Returns a one-line result. */
+export function setSchedule(mode, { hlPath, at = '03:30', platform = process.platform, node = process.execPath } = {}) {
+  const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(at);
+  if (!m) throw new Error(`--at expects HH:MM, got ${at}`);
+  if (platform === 'win32') {
+    const exists = scheduler('schtasks', ['/Query', '/TN', TASK_NAME]).status === 0;
+    if (mode === 'status') return exists ? `scheduled: task "${TASK_NAME}"` : 'not scheduled';
+    if (mode === 'off') {
+      if (!exists) return 'not scheduled';
+      const r = scheduler('schtasks', ['/Delete', '/F', '/TN', TASK_NAME]);
+      if (r.status !== 0) throw new Error(`schtasks /Delete failed: ${(r.stderr || r.stdout).trim()}`);
+      return `removed task "${TASK_NAME}"`;
+    }
+    const r = scheduler('schtasks', ['/Create', '/F', '/SC', 'DAILY', '/ST', at, '/TN', TASK_NAME, '/TR', `"${node}" "${hlPath}" auto-run --background`]);
+    if (r.status !== 0) throw new Error(`schtasks /Create failed: ${(r.stderr || r.stdout).trim()}`);
+    return `${exists ? 'updated' : 'created'} task "${TASK_NAME}" daily at ${at}`;
+  }
+  const listed = scheduler('crontab', ['-l']);
+  const lines = (listed.status === 0 ? listed.stdout : '').split('\n').filter((l) => l.trim());
+  const ours = lines.filter((l) => l.includes(CRON_MARK));
+  if (mode === 'status') return ours.length ? `scheduled: ${ours[0]}` : 'not scheduled';
+  const rest = lines.filter((l) => !l.includes(CRON_MARK));
+  if (mode === 'off' && !ours.length) return 'not scheduled';
+  const next = mode === 'on' ? [...rest, `${Number(m[2])} ${Number(m[1])} * * * "${node}" "${hlPath}" auto-run --background ${CRON_MARK}`] : rest;
+  const r = scheduler('crontab', ['-'], next.length ? `${next.join('\n')}\n` : '');
+  if (r.status !== 0) throw new Error(`crontab update failed: ${(r.stderr || r.stdout).trim()}`);
+  return mode === 'on' ? `cron daily at ${at}` : 'removed cron entry';
 }

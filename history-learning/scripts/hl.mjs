@@ -10,7 +10,7 @@ import { clusterEvidence, loadClusters, saveClusters } from './lib/cluster.mjs';
 import { enabledSources, loadConsent, updateConsent } from './lib/consent.mjs';
 import { buildDigest, markSynthesized } from './lib/digest.mjs';
 import { allEvidence, extract } from './lib/extract.mjs';
-import { onSessionEnd, onSessionStart, pending, runWorker, savedTopics, stampReview } from './lib/auto.mjs';
+import { onSessionStart, pending, runWorker, savedTopics, setSchedule, spawnWorker, stampReview } from './lib/auto.mjs';
 import { buildInventory, coverageReport } from './lib/inventory.mjs';
 import { learningReport } from './lib/report.mjs';
 import { ruleSupport, writeEvidence } from './lib/support.mjs';
@@ -49,9 +49,12 @@ Learning (local, deterministic, incremental)
   forget [--source s]             delete derived evidence (all or one source); history untouched
   status                          state summary
 
-Automatic capture (Claude Code hooks; install with scripts/install.mjs --learning-hooks on)
-  hook session-end|session-start  hook entry points; read the hook JSON on stdin
-  auto-run                        drain the session queue: learn + refresh saved topic passes
+Automatic capture (install with scripts/install.mjs --learning-hooks on)
+  schedule on|off|status [--at HH:MM]
+                                  daily run via Task Scheduler (Windows) or cron (default 03:30)
+  auto-run [--background]         learn + refresh saved topic passes; --background detaches
+                                  with a log in auto/logs (what the schedule runs)
+  hook session-start              SessionStart hook: review notice, catches up a missed day
   pending [--write]               what waits for review; --write puts only new topic
                                   statements in topics/<name>.new.md
 
@@ -157,16 +160,23 @@ async function main() {
       // Hooks never block or fail a session: errors are recorded for the next SessionStart notice.
       if (!enabledSources(loadConsent()).length) break;
       const input = await readStdinJson();
-      if (args._[1] === 'session-end') onSessionEnd(input, { hlPath: HL_PATH });
-      else if (args._[1] === 'session-start') {
+      if (args._[1] === 'session-end') break; // retired: capture is a daily run now; stale hook entries stay harmless
+      if (args._[1] === 'session-start') {
         const n = onSessionStart(input, { hlPath: HL_PATH });
         if (n) out(JSON.stringify({ systemMessage: n.systemMessage, hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: n.additionalContext } }));
-      } else throw new Error('usage: hl hook session-end|session-start');
+      } else throw new Error('usage: hl hook session-start');
       break;
     }
     case 'auto-run': {
+      if (args.background) { out(`auto-run started in the background; log: ${spawnWorker(HL_PATH)}`); break; }
       out(`auto-run started ${new Date().toISOString()}`);
       await runWorker({ learn: runLearn, refreshTopics, log: out });
+      break;
+    }
+    case 'schedule': {
+      const mode = args._[1];
+      if (!['on', 'off', 'status'].includes(mode)) throw new Error('usage: hl schedule on|off|status [--at HH:MM]');
+      out(setSchedule(mode, { hlPath: HL_PATH, at: typeof args.at === 'string' ? args.at : undefined }));
       break;
     }
     case 'pending': {
@@ -174,7 +184,7 @@ async function main() {
       out(`last review: ${p.since || 'never'}`);
       out(`digest: ${p.clusters} new or grown clusters (${p.digestAt || 'no digest'}) in ${path.join(stateDir(), 'digest')}`);
       for (const t of p.topics) out(`topic ${t.name}: ${t.fresh} new of ${t.total} statements${t.newFile ? ` -> ${t.newFile}` : ''}`);
-      out(`queue: ${p.queued} session(s)${p.running ? ', worker running' : ''}; last run: ${p.last ? `${p.last.ok ? 'ok' : 'FAILED'} at ${p.last.finishedAt}` : 'never'}`);
+      out(`${p.running ? 'worker running; ' : ''}last run: ${p.last ? `${p.last.ok ? 'ok' : 'FAILED'} at ${p.last.finishedAt}` : 'never'}`);
       if (p.error) { err(`last automatic run failed: ${p.error.message} (log: ${p.error.log || 'none'})`); process.exitCode = 1; }
       break;
     }

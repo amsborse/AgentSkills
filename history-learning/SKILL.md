@@ -76,19 +76,23 @@ model review is consented) writes a digest containing only new or grown clusters
 run from a night loop or a scheduled task because it makes no model calls and writes only to
 the state directory. A human-started agent session then performs step 5 on that digest.
 
-## Automatic capture at session close
+## Automatic daily capture
 
-`node scripts/install.mjs --learning-hooks on` (from the repo root; `off` removes them) adds two
-Claude Code hooks to every Claude profile:
+`node scripts/install.mjs --learning-hooks on` (from the repo root; `off` removes it all) sets up:
 
-- **SessionEnd** queues the closed session and starts a detached worker (`hl auto-run`) that
-  runs `learn` and re-runs every saved topic pass (`topics/<name>.json`, e.g. `ui-taste`) with
-  its own parameters. About a minute, local, no model calls, nothing outside the state directory.
-  Sessions closing mid-run get another pass, at most three per worker; leftovers are picked up
-  at the next session start. Logs: `auto/logs/`.
-- **SessionStart** (new sessions only, at most once a day) tells the user how many new or grown
-  clusters and new taste statements wait for review. A failed run is reported at every start
-  until a run succeeds; it is never retried silently.
+- **A daily run** (`hl schedule on|off|status [--at HH:MM]`, default 03:30): a Task Scheduler
+  task on Windows, a marked crontab line elsewhere. It runs `hl auto-run --background`, a
+  detached worker that runs `learn` and re-runs every saved topic pass (`topics/<name>.json`,
+  e.g. `ui-taste`) with its own parameters. Sessions left open for days are covered, because
+  `learn` re-reads any transcript that changed. About a minute, local, no model calls, nothing
+  outside the state directory. Logs: `auto/logs/`.
+- **A SessionStart hook** in every Claude profile. If no run happened in the last 26 hours
+  (machine off at run time), it starts one. On new sessions, at most once a day, it tells the
+  user how many new or grown clusters and new taste statements wait for review. A failed run is
+  reported at every start until a run succeeds, and is not retried more than once a day.
+
+Capture used to run from a SessionEnd hook; the installer removes that entry, and `hl hook
+session-end` is a no-op for any profile that still has it.
 
 When the user asks to review it: `$HL pending --write` (writes `topics/<name>.new.md` with only
 the statements first seen since the last review), then synthesis step 5 on the digest plus those
@@ -124,5 +128,6 @@ store (an ownership check that needs POSIX uids); `hl` covers every source there
 | `forget [--source s]` | delete derived evidence (all, or one source); history untouched |
 | `status` | consent and state summary |
 | `pending [--write]` | what waits for review; `--write` emits `topics/<name>.new.md` deltas |
-| `hook session-end\|session-start` | hook entry points (JSON on stdin); installed by `--learning-hooks on` |
-| `auto-run` | drain the session queue: `learn` plus saved topic passes |
+| `schedule on\|off\|status [--at HH:MM]` | the daily run (Task Scheduler or cron); installed by `--learning-hooks on` |
+| `auto-run [--background]` | `learn` plus saved topic passes; `--background` detaches with a log |
+| `hook session-start` | SessionStart hook (JSON on stdin): review notice, catch-up of a missed day |

@@ -104,7 +104,7 @@ checks unique aliases, existing `composes` targets and referenced files.
 - never edits settings unless asked: `--router-hook on|off` adds or removes the UserPromptSubmit
   hook in `~/.claude/settings.json` (backup saved once to `settings.json.agent-skills-backup`;
   invalid JSON aborts), `--learning-hooks on|off` adds or removes the history-learning
-  SessionEnd and SessionStart hooks the same way, and `--codex-block on|off` adds or removes a
+  SessionStart hook the same way plus its daily run (Task Scheduler task or crontab line), and `--codex-block on|off` adds or removes a
   marked block in `$CODEX_HOME/AGENTS.md`.
 
 The existing SessionStart hook in `~/.claude/settings.json` runs the installer at session start,

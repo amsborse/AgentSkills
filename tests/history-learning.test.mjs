@@ -183,36 +183,72 @@ test('a topic pass needs model consent, reads uncued statements, and topic suppo
   assert.ok(!ev.includes('Widget') && !ev.includes('cheap'), 'topic evidence carries counts only');
 });
 
-test('session-end capture queues sessions, drains them in bounded passes and reports failures loudly', async () => {
+test('the daily worker holds a lock, a missed day is caught up once, and failures are reported loudly', async () => {
   const auto = await import('../history-learning/scripts/lib/auto.mjs');
   const autoDir = path.join(state, 'auto');
-  const queue = () => JSON.parse(fs.readFileSync(path.join(autoDir, 'queue.json'), 'utf8'));
   let starts = 0;
   const start = () => { starts++; return 'log'; };
-  assert.deepEqual(auto.onSessionEnd({ session_id: 'a', reason: 'prompt_input_exit' }, { start }), { queued: 1, started: true, log: 'log' });
-  fs.writeFileSync(path.join(autoDir, 'run.json'), JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
-  assert.equal(auto.onSessionEnd({ session_id: 'b' }, { start }).started, false, 'a running worker picks the session up instead');
-  assert.equal(starts, 1);
-  assert.deepEqual(await auto.runWorker({ learn: async () => {}, refreshTopics: async () => {} }), { skipped: true });
-  fs.rmSync(path.join(autoDir, 'run.json'));
+  const noop = { learn: async () => {}, refreshTopics: async () => {} };
+  const DAY = 24 * 60 * 60 * 1000;
 
-  // A session closing mid-run gets a second pass; a never-ending stream stops at the bound.
-  let calls = 0;
-  const r = await auto.runWorker({ learn: async () => { if (calls++ === 0) auto.onSessionEnd({ session_id: 'c' }, { start }); }, refreshTopics: async () => {} });
-  assert.equal(r.passes, 2);
-  assert.equal(r.sessionsQueued, 3);
-  assert.equal(queue().length, 0);
-  const endless = await auto.runWorker({ learn: async () => { auto.onSessionEnd({ session_id: 'x' }, { start }); }, refreshTopics: async () => {} });
-  assert.equal(endless.passes, 3);
-  assert.ok(endless.remaining > 0 && !fs.existsSync(path.join(autoDir, 'run.json')));
-  fs.writeFileSync(path.join(autoDir, 'queue.json'), '[]');
+  // Never ran: the first session start catches up, unless a worker already runs.
+  fs.rmSync(path.join(autoDir, 'last.json'), { force: true });
+  fs.mkdirSync(autoDir, { recursive: true });
+  fs.writeFileSync(path.join(autoDir, 'run.json'), JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+  auto.onSessionStart({ source: 'resume' }, { start });
+  assert.equal(starts, 0, 'a running worker is not doubled');
+  assert.deepEqual(await auto.runWorker(noop), { skipped: true });
+  fs.rmSync(path.join(autoDir, 'run.json'));
+  auto.onSessionStart({ source: 'resume' }, { start });
+  assert.equal(starts, 1, 'no run yet: caught up at session start');
+
+  const ok = await auto.runWorker(noop);
+  assert.equal(ok.ok, true);
+  assert.ok(!fs.existsSync(path.join(autoDir, 'run.json')));
+  auto.onSessionStart({ source: 'startup' }, { start, now: Date.now() + DAY });
+  assert.equal(starts, 1, 'the daily schedule covers a day-old run');
+  auto.onSessionStart({ source: 'startup' }, { start, now: Date.now() + 2 * DAY });
+  assert.equal(starts, 2, 'a missed daily run (machine off) is caught up');
 
   await assert.rejects(auto.runWorker({ learn: async () => { throw new Error('boom'); }, refreshTopics: async () => {} }), /boom/);
   assert.ok(!fs.existsSync(path.join(autoDir, 'run.json')), 'the lock is released after a failure');
   const failed = auto.onSessionStart({ source: 'resume' }, { start });
   assert.match(failed.systemMessage, /failed.*boom/);
-  await auto.runWorker({ learn: async () => {}, refreshTopics: async () => {} });
+  assert.equal(starts, 2, 'a failed run is reported, not retried at every session start');
+  await auto.runWorker(noop);
   assert.ok(!fs.existsSync(path.join(autoDir, 'error.json')), 'a successful run clears the failure');
+});
+
+test('the daily schedule is created, inspected and removed through the platform scheduler', async () => {
+  const auto = await import('../history-learning/scripts/lib/auto.mjs');
+  const log = path.join(state, 'scheduler.jsonl');
+  const calls = () => fs.readFileSync(log, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  const saved = { log: process.env.HL_SCHEDULER_LOG, fake: process.env.HL_SCHEDULER_FAKE_OUTPUT };
+  process.env.HL_SCHEDULER_LOG = log;
+  try {
+    const hlPath = 'D:/repo with space/history-learning/scripts/hl.mjs';
+    process.env.HL_SCHEDULER_FAKE_OUTPUT = 'missing';
+    assert.match(auto.setSchedule('on', { hlPath, platform: 'win32', node: 'C:/node/node.exe', at: '04:15' }), /created task.*04:15/);
+    const create = calls().find((c) => c.argv.includes('/Create'));
+    assert.deepEqual(create.argv.slice(0, 5), ['/Create', '/F', '/SC', 'DAILY', '/ST']);
+    assert.equal(create.argv.at(-1), '"C:/node/node.exe" "D:/repo with space/history-learning/scripts/hl.mjs" auto-run --background');
+    assert.equal(auto.setSchedule('off', { hlPath, platform: 'win32' }), 'not scheduled');
+    assert.throws(() => auto.setSchedule('on', { hlPath, at: '25:00' }), /HH:MM/);
+
+    // cron: our line is added once beside the user's own, and removed without touching them.
+    fs.rmSync(log);
+    process.env.HL_SCHEDULER_FAKE_OUTPUT = '0 1 * * * backup.sh\n';
+    auto.setSchedule('on', { hlPath, platform: 'linux', node: '/usr/bin/node', at: '03:05' });
+    const written = calls().find((c) => c.argv[0] === '-').input;
+    assert.equal(written, '0 1 * * * backup.sh\n5 3 * * * "/usr/bin/node" "D:/repo with space/history-learning/scripts/hl.mjs" auto-run --background # agent-skills:history-learning\n');
+    fs.rmSync(log);
+    process.env.HL_SCHEDULER_FAKE_OUTPUT = written;
+    assert.match(auto.setSchedule('status', { hlPath, platform: 'linux' }), /^scheduled: 5 3/);
+    auto.setSchedule('off', { hlPath, platform: 'linux' });
+    assert.equal(calls().find((c) => c.argv[0] === '-').input, '0 1 * * * backup.sh\n');
+  } finally {
+    for (const [k, v] of [['HL_SCHEDULER_LOG', saved.log], ['HL_SCHEDULER_FAKE_OUTPUT', saved.fake]]) if (v === undefined) delete process.env[k]; else process.env[k] = v;
+  }
 });
 
 test('the session-start notice reports only unreviewed learning, at most once a day, and the delta file is redacted', async () => {
@@ -233,17 +269,19 @@ test('the session-start notice reports only unreviewed learning, at most once a 
   assert.equal(auto.pending().topics.find((t) => t.name === 'ui').fresh, 0, 'a review resets the delta');
 });
 
-test('the real session-end hook starts a detached worker that refreshes learning', async () => {
+test('the scheduled command starts a real detached worker that refreshes learning', async () => {
   const { spawnSync } = await import('node:child_process');
   const hlPath = path.resolve('history-learning', 'scripts', 'hl.mjs');
   const last = path.join(state, 'auto', 'last.json');
   fs.rmSync(last, { force: true });
-  const r = spawnSync(process.execPath, [hlPath, 'hook', 'session-end'], { input: JSON.stringify({ session_id: 'real', reason: 'other' }), encoding: 'utf8', env: process.env });
+  const r = spawnSync(process.execPath, [hlPath, 'auto-run', '--background'], { encoding: 'utf8', env: process.env });
   assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /started in the background; log: /);
   for (let i = 0; i < 120 && !fs.existsSync(last); i++) await new Promise((res) => setTimeout(res, 500));
   const result = JSON.parse(fs.readFileSync(last, 'utf8'));
   assert.equal(result.ok, true);
-  assert.equal(result.sessionsQueued, 1);
+  const old = spawnSync(process.execPath, [hlPath, 'hook', 'session-end'], { input: '{}', encoding: 'utf8', env: process.env });
+  assert.equal(old.status, 0, 'a stale SessionEnd hook entry is a harmless no-op');
   const logs = fs.readdirSync(path.join(state, 'auto', 'logs'));
   assert.match(fs.readFileSync(path.join(state, 'auto', 'logs', logs.sort().pop()), 'utf8'), /topic ui:.*auto-run ok/s);
 });

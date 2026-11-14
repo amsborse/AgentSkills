@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 function install(home, ...args) {
-  const env = { ...process.env, AGENT_SKILLS_HOME_OVERRIDE: home, NIGHTLY_EVOLUTION_HOME: path.join(home, '.config', 'nightly-evolution'), PATH: '' };
+  const env = { ...process.env, AGENT_SKILLS_HOME_OVERRIDE: home, NIGHTLY_EVOLUTION_HOME: path.join(home, '.config', 'nightly-evolution'), PATH: '', HL_SCHEDULER_LOG: path.join(home, 'scheduler.jsonl') }; // never the real scheduler
   delete env.CLAUDE_CONFIG_DIR;
   delete env.CODEX_HOME;
   delete env.XDG_CONFIG_HOME;
@@ -158,12 +158,16 @@ test('invalid Claude settings aborts without modification', () => {
   fs.rmSync(home, { recursive: true, force: true });
 });
 
-test('learning hooks install once beside existing hooks and uninstall cleanly', () => {
+test('learning install adds the notice hook and a daily run, retires the SessionEnd hook, and uninstalls cleanly', () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-learning-'));
   const settingsPath = path.join(home, '.claude', 'settings.json');
+  const schedulerLog = path.join(home, 'scheduler.jsonl');
+  const calls = () => (fs.existsSync(schedulerLog) ? fs.readFileSync(schedulerLog, 'utf8').trim().split('\n').map((l) => JSON.parse(l)) : []);
   fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-  fs.writeFileSync(settingsPath, JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'keep-start' }] }] } }, null, 2));
-  install(home, '--learning-hooks', 'on');
+  // An earlier version installed a SessionEnd hook; it must be removed, other hooks kept.
+  const old = { type: 'command', command: 'node "D:/x/history-learning/scripts/hl.mjs" hook session-end', timeout: 5 };
+  fs.writeFileSync(settingsPath, JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'keep-start' }] }], SessionEnd: [{ hooks: [old] }, { hooks: [{ type: 'command', command: 'keep-end' }] }] } }, null, 2));
+  assert.equal(install(home, '--learning-hooks', 'on').code, 0);
   const first = fs.readFileSync(settingsPath, 'utf8');
   install(home, '--learning-hooks', 'on');
   assert.equal(fs.readFileSync(settingsPath, 'utf8'), first, 'idempotent');
@@ -171,10 +175,16 @@ test('learning hooks install once beside existing hooks and uninstall cleanly', 
   const commands = (event) => hooks[event].flatMap((g) => g.hooks).map((h) => h.command);
   assert.ok(commands('SessionStart').includes('keep-start'));
   assert.equal(commands('SessionStart').filter((c) => c.endsWith('hl.mjs" hook session-start')).length, 1);
-  assert.equal(commands('SessionEnd').filter((c) => c.endsWith('hl.mjs" hook session-end')).length, 1);
-  assert.ok(commands('SessionEnd').every((c) => !c.includes('\\')), 'forward slashes on every platform');
+  assert.ok(commands('SessionStart').every((c) => !c.includes('\\')), 'forward slashes on every platform');
+  assert.deepEqual(commands('SessionEnd'), ['keep-end'], 'retired SessionEnd hook removed, others kept');
+  const created = calls().filter((c) => c.argv.includes('/Create') || (c.cmd === 'crontab' && c.argv[0] === '-'));
+  assert.equal(created.length, 2, 'the daily run is (re)written on each install');
+  const scheduled = JSON.stringify(created[0]);
+  assert.match(scheduled, /hl\.mjs.*auto-run --background/);
+  if (process.platform === 'win32') assert.ok(created[0].argv.includes('DAILY'));
   install(home, '--learning-hooks', 'off');
   const after = JSON.parse(fs.readFileSync(settingsPath, 'utf8')).hooks;
-  assert.deepEqual(after, { SessionStart: [{ hooks: [{ type: 'command', command: 'keep-start' }] }] });
+  assert.deepEqual(after, { SessionStart: [{ hooks: [{ type: 'command', command: 'keep-start' }] }], SessionEnd: [{ hooks: [{ type: 'command', command: 'keep-end' }] }] });
+  assert.ok(calls().some((c) => c.argv.includes('/Delete') || (c.cmd === 'crontab' && c.argv[0] === '-' && !String(c.input).includes('auto-run'))), 'daily run removed');
   fs.rmSync(home, { recursive: true, force: true });
 });

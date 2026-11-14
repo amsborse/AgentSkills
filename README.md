@@ -78,8 +78,8 @@ The installer links (junctions on Windows, symlinks elsewhere) every skill into:
 It is idempotent, never overwrites a real directory or a link that points elsewhere, and removes
 only links it created that no longer match a skill. It changes no settings unless asked:
 `--router-hook on` adds an optional keyword-hint hook to Claude Code, `--codex-block on` adds a
-pointer block to `$CODEX_HOME/AGENTS.md`, `--learning-hooks on` adds Claude Code session hooks
-that capture preferences and taste from every closed session for later review
+pointer block to `$CODEX_HOME/AGENTS.md`, `--learning-hooks on` adds a daily run that captures
+preferences and taste from your sessions, plus a session-start notice when they wait for review
 (`history-learning/SKILL.md`); `off` removes them. How routing works, and the token
 cost: `docs/ARCHITECTURE.md`. Upgrading from the old layout and rolling back: `docs/MIGRATION.md`.
 Third-party code and its review: `docs/SOURCES.md`.

@@ -116,9 +116,9 @@ const hl = repoScript('history-learning', 'scripts', 'hl.mjs');
 // entry is still recognised and not duplicated.
 const HOOKS = {
   router: [{ event: 'UserPromptSubmit', label: 'router hook', command: `node "${repoScript('scripts', 'hooks', 'route-hook.mjs')}"`, marker: 'scripts/hooks/route-hook.mjs', timeout: 5 }],
-  // History learning at session close: queue + detached deterministic refresh, notice at next start.
+  // History learning: a daily scheduled run does the capture (below); this hook shows the review
+  // notice and catches up a missed day.
   learning: [
-    { event: 'SessionEnd', label: 'learning SessionEnd hook', command: `node "${hl}" hook session-end`, marker: 'hl.mjs" hook session-end', timeout: 5 },
     { event: 'SessionStart', label: 'learning SessionStart hook', command: `node "${hl}" hook session-start`, marker: 'hl.mjs" hook session-start', timeout: 10 },
   ],
 };
@@ -156,9 +156,24 @@ function configureHook(profile, { event, label, command, marker, timeout }, mode
   } else say('ok', settings, `${label} already ${mode === 'on' ? 'installed' : 'absent'}`);
 }
 
+// Retired entries are removed whatever the mode: capture moved from SessionEnd to a daily run.
+const RETIRED = [{ event: 'SessionEnd', label: 'retired learning SessionEnd hook', marker: 'hl.mjs" hook session-end' }];
+if (learningOption || uninstall) for (const profile of profilesToConfigure) for (const hook of RETIRED) configureHook(profile, hook, 'off');
+
 for (const [kind, mode] of [['router', uninstall ? 'off' : routerOption], ['learning', uninstall ? 'off' : learningOption]]) {
   if (!mode) continue;
   for (const profile of profilesToConfigure) for (const hook of HOOKS[kind]) configureHook(profile, hook, mode);
+}
+
+const learningMode = uninstall ? 'off' : learningOption;
+if (learningMode) {
+  const { setSchedule } = await import('../history-learning/scripts/lib/auto.mjs');
+  if (plan) say(learningMode === 'on' ? 'would-schedule' : 'would-unschedule', 'history-learning daily run');
+  else {
+    const status = setSchedule('status', { hlPath: hl });
+    if (learningMode === 'off' && status === 'not scheduled') say('ok', 'history-learning daily run', 'already absent');
+    else say(learningMode === 'on' ? 'scheduled' : 'removed', 'history-learning daily run', setSchedule(learningMode, { hlPath: hl }));
+  }
 }
 
 const codexHome = process.env.CODEX_HOME ? path.resolve(process.env.CODEX_HOME) : path.join(home, '.codex');
