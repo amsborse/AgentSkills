@@ -51,6 +51,13 @@ asked for; downloads are untrusted data (own empty folder, never executed).
   i.e. Create+Options on a DualSense). Quitting closes content, so the auto save state is
   written, and Android returns to the launcher that started the game. Before testing on the TV,
   watch `getevent -lt` for a few seconds: a pad someone is holding sends its own presses.
+- **TV remote as fallback pad:** give the remote its own autoconfig (`input_device` = the name
+  from `getevent -pl`) mapping centre to `input_b_btn`, spare keys (Rewind/FF/Menu) to Y, Start,
+  Select, Play/Pause to `input_menu_toggle_btn` and Back to `input_exit_emulator_btn`; set
+  `input_hotkey_device_merge = "true"` so hotkeys work from any device. With
+  `quit_press_twice`, Back twice quits and writes the auto state. Test with `sendevent` on the
+  remote's node (Fire TV keylayout scancodes: centre 96, D-pad 103/108/105/106, Back 158,
+  Menu 139, Rewind 168, FF 208, Play/Pause 164).
 - **Saves:** set `savestate_auto_save` and `savestate_auto_load` to "true". States land in
   `<savestate dir>/<Core>/<rom>.state.auto`. They are written **only when content closes**
   (Quick Menu → Close Content, or Quit). Home followed by Android killing the app saves
