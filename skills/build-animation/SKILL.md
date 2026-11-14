@@ -28,6 +28,10 @@ loading only the files you use (scroll choreography, kinetic typography, media r
 shared-element and scene transitions, parallax). Motion intensity follows the product
 (`~/agent-skills/shared/creative/adaptation.md`).
 
+Before building a component, interaction or effect, search Arsenal and reuse what fits; register
+what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
+follow `~/agent-skills/shared/creative/design-variants.md`.
+
 ## Pick the path
 
 - **Micro-interaction or transition:** use the project's motion library or CSS. Animate transform

@@ -16,6 +16,10 @@ Every pointer effect has a keyboard (`:focus-visible`) equivalent and a touch fa
 none shifts layout. For simple card and tile hovers, the hover-affordance workflow in
 `build-animation` is enough; this skill covers the richer techniques.
 
+Before building a component, interaction or effect, search Arsenal and reuse what fits; register
+what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
+follow `~/agent-skills/shared/creative/design-variants.md`.
+
 ## Steps
 
 1. **Fit:** read `~/agent-skills/shared/creative/adaptation.md` for the product's mode and

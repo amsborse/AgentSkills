@@ -26,6 +26,10 @@ The bar is the UI taste section of `~/agent-skills/working-agreements/AGENTS.md`
 specifics. Read the product with `~/agent-skills/shared/creative/adaptation.md` so improvements
 fit it rather than a house style.
 
+Before building a component, interaction or effect, search Arsenal and reuse what fits; register
+what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
+follow `~/agent-skills/shared/creative/design-variants.md`.
+
 ## 0. Scope and keep-list
 
 - Pages, viewports (default desktop 1440×900, mobile 390×844; add tablet for layout work),

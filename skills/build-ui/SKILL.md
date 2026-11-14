@@ -16,6 +16,10 @@ components, tokens and CSS approach come first; no new UI library or design lang
 a clear need. Never default to 3D, gradients, glass, clay or cinematic: the product decides.
 For improving existing screens use `revamp-ui` instead.
 
+Before building a component, interaction or effect, search Arsenal and reuse what fits; register
+what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
+follow `~/agent-skills/shared/creative/design-variants.md`.
+
 ## Steps
 
 1. **Inspect** the product with `~/agent-skills/shared/creative/adaptation.md`: purpose,

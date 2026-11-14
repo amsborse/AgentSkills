@@ -17,6 +17,8 @@ folder; pick techniques from the table below and open those files only.
 | `reference-workflow.md` | The user gives a reference site, image or video |
 | `codex-orchestration.md` | Splitting creative work between Claude (direction) and Codex (implementation) |
 | `learning.md` | Recording findings for skill evolution, or running the creative held-out evals |
+| `arsenal.md` | Before building any component, interaction or effect: search Arsenal, reuse, or build and register it |
+| `design-variants.md` | Adding a selectable design (design N) to a product that already has one |
 
 ## Techniques
 

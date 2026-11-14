@@ -20,6 +20,10 @@ says how to read purpose, users, brand and mode, and never to default to 3D, gra
 clay or cinematic. Load technique files from `~/agent-skills/shared/creative/README.md` only
 when a pass needs one.
 
+Before building a component, interaction or effect, search Arsenal and reuse what fits; register
+what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
+follow `~/agent-skills/shared/creative/design-variants.md`.
+
 UI implementation is Codex's work by default (`~/agent-skills/shared/agent-routing.md`): hand
 isolated components, pages and assets to Codex through the `coordinate-agents` skill, keep the
 direction, review and verification yourself, and fall back to Antigravity, then yourself, when

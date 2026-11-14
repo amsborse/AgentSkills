@@ -16,6 +16,10 @@ with masks and atmosphere, never boxed in a card. Every other visual explains so
 look comes from the product's brand and `~/agent-skills/shared/creative/adaptation.md`, never
 from a default style.
 
+Before building a component, interaction or effect, search Arsenal and reuse what fits; register
+what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
+follow `~/agent-skills/shared/creative/design-variants.md`.
+
 ## Steps
 
 1. **Purpose:** what should the visual communicate? If nothing, leave it out (removal test).
