@@ -182,3 +182,68 @@ test('a topic pass needs model consent, reads uncued statements, and topic suppo
   const ev = topic.topicSupportMarkdown('ui', rows);
   assert.ok(!ev.includes('Widget') && !ev.includes('cheap'), 'topic evidence carries counts only');
 });
+
+test('session-end capture queues sessions, drains them in bounded passes and reports failures loudly', async () => {
+  const auto = await import('../history-learning/scripts/lib/auto.mjs');
+  const autoDir = path.join(state, 'auto');
+  const queue = () => JSON.parse(fs.readFileSync(path.join(autoDir, 'queue.json'), 'utf8'));
+  let starts = 0;
+  const start = () => { starts++; return 'log'; };
+  assert.deepEqual(auto.onSessionEnd({ session_id: 'a', reason: 'prompt_input_exit' }, { start }), { queued: 1, started: true, log: 'log' });
+  fs.writeFileSync(path.join(autoDir, 'run.json'), JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+  assert.equal(auto.onSessionEnd({ session_id: 'b' }, { start }).started, false, 'a running worker picks the session up instead');
+  assert.equal(starts, 1);
+  assert.deepEqual(await auto.runWorker({ learn: async () => {}, refreshTopics: async () => {} }), { skipped: true });
+  fs.rmSync(path.join(autoDir, 'run.json'));
+
+  // A session closing mid-run gets a second pass; a never-ending stream stops at the bound.
+  let calls = 0;
+  const r = await auto.runWorker({ learn: async () => { if (calls++ === 0) auto.onSessionEnd({ session_id: 'c' }, { start }); }, refreshTopics: async () => {} });
+  assert.equal(r.passes, 2);
+  assert.equal(r.sessionsQueued, 3);
+  assert.equal(queue().length, 0);
+  const endless = await auto.runWorker({ learn: async () => { auto.onSessionEnd({ session_id: 'x' }, { start }); }, refreshTopics: async () => {} });
+  assert.equal(endless.passes, 3);
+  assert.ok(endless.remaining > 0 && !fs.existsSync(path.join(autoDir, 'run.json')));
+  fs.writeFileSync(path.join(autoDir, 'queue.json'), '[]');
+
+  await assert.rejects(auto.runWorker({ learn: async () => { throw new Error('boom'); }, refreshTopics: async () => {} }), /boom/);
+  assert.ok(!fs.existsSync(path.join(autoDir, 'run.json')), 'the lock is released after a failure');
+  const failed = auto.onSessionStart({ source: 'resume' }, { start });
+  assert.match(failed.systemMessage, /failed.*boom/);
+  await auto.runWorker({ learn: async () => {}, refreshTopics: async () => {} });
+  assert.ok(!fs.existsSync(path.join(autoDir, 'error.json')), 'a successful run clears the failure');
+});
+
+test('the session-start notice reports only unreviewed learning, at most once a day, and the delta file is redacted', async () => {
+  const auto = await import('../history-learning/scripts/lib/auto.mjs');
+  const start = () => 'log';
+  auto.stampReview(new Date('2026-01-01T00:00:00Z'));
+  assert.equal(auto.onSessionStart({ source: 'resume' }, { start }), null, 'resumed and compacted sessions stay quiet');
+  const n = auto.onSessionStart({ source: 'startup' }, { start });
+  assert.match(n.systemMessage, /new taste statements \(ui \d+\)/);
+  assert.match(n.additionalContext, /Do not start the review unprompted/);
+  assert.equal(auto.onSessionStart({ source: 'startup' }, { start }), null, 'throttled');
+  const p = auto.pending({ write: true });
+  const ui = p.topics.find((t) => t.name === 'ui');
+  assert.ok(ui.fresh >= 1 && ui.newFile);
+  const md = fs.readFileSync(ui.newFile, 'utf8');
+  for (const text of ['sk-ant-', 'example.com']) assert.ok(!md.includes(text), `delta file contains ${text}`);
+  auto.stampReview(new Date());
+  assert.equal(auto.pending().topics.find((t) => t.name === 'ui').fresh, 0, 'a review resets the delta');
+});
+
+test('the real session-end hook starts a detached worker that refreshes learning', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const hlPath = path.resolve('history-learning', 'scripts', 'hl.mjs');
+  const last = path.join(state, 'auto', 'last.json');
+  fs.rmSync(last, { force: true });
+  const r = spawnSync(process.execPath, [hlPath, 'hook', 'session-end'], { input: JSON.stringify({ session_id: 'real', reason: 'other' }), encoding: 'utf8', env: process.env });
+  assert.equal(r.status, 0, r.stderr);
+  for (let i = 0; i < 120 && !fs.existsSync(last); i++) await new Promise((res) => setTimeout(res, 500));
+  const result = JSON.parse(fs.readFileSync(last, 'utf8'));
+  assert.equal(result.ok, true);
+  assert.equal(result.sessionsQueued, 1);
+  const logs = fs.readdirSync(path.join(state, 'auto', 'logs'));
+  assert.match(fs.readFileSync(path.join(state, 'auto', 'logs', logs.sort().pop()), 'utf8'), /topic ui:.*auto-run ok/s);
+});

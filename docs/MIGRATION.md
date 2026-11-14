@@ -48,7 +48,7 @@ branch.
 
 ```sh
 cd "D:/1 - Projects/Projects/AgentSkills"
-node scripts/install.mjs --router-hook off --codex-block off   # only if you turned them on
+node scripts/install.mjs --router-hook off --codex-block off --learning-hooks off  # only if you turned them on
 git switch main                                                 # or archive/pre-restructure-2026-11-09
 node scripts/install.mjs                                        # old installer relinks the old names
 ```

@@ -76,6 +76,25 @@ model review is consented) writes a digest containing only new or grown clusters
 run from a night loop or a scheduled task because it makes no model calls and writes only to
 the state directory. A human-started agent session then performs step 5 on that digest.
 
+## Automatic capture at session close
+
+`node scripts/install.mjs --learning-hooks on` (from the repo root; `off` removes them) adds two
+Claude Code hooks to every Claude profile:
+
+- **SessionEnd** queues the closed session and starts a detached worker (`hl auto-run`) that
+  runs `learn` and re-runs every saved topic pass (`topics/<name>.json`, e.g. `ui-taste`) with
+  its own parameters. About a minute, local, no model calls, nothing outside the state directory.
+  Sessions closing mid-run get another pass, at most three per worker; leftovers are picked up
+  at the next session start. Logs: `auto/logs/`.
+- **SessionStart** (new sessions only, at most once a day) tells the user how many new or grown
+  clusters and new taste statements wait for review. A failed run is reported at every start
+  until a run succeeds; it is never retried silently.
+
+When the user asks to review it: `$HL pending --write` (writes `topics/<name>.new.md` with only
+the statements first seen since the last review), then synthesis step 5 on the digest plus those
+delta files, then stage as in step 6. `$HL mark --digest` sets the review date that both the
+cluster digest and the topic deltas count from.
+
 ## ShadowClone
 
 ShadowClone natively learns from `~/.claude`, Codex, OpenCode, Pi, the Cursor CLI and the
@@ -104,3 +123,6 @@ store (an ownership check that needs POSIX uids); `hl` covers every source there
 | `report` | `reports/learning.md` and refreshed coverage |
 | `forget [--source s]` | delete derived evidence (all, or one source); history untouched |
 | `status` | consent and state summary |
+| `pending [--write]` | what waits for review; `--write` emits `topics/<name>.new.md` deltas |
+| `hook session-end\|session-start` | hook entry points (JSON on stdin); installed by `--learning-hooks on` |
+| `auto-run` | drain the session queue: `learn` plus saved topic passes |

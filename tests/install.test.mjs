@@ -157,3 +157,24 @@ test('invalid Claude settings aborts without modification', () => {
   assert.ok(!fs.existsSync(path.join(home, 'agent-skills')), 'no stable checkout link before the abort');
   fs.rmSync(home, { recursive: true, force: true });
 });
+
+test('learning hooks install once beside existing hooks and uninstall cleanly', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-learning-'));
+  const settingsPath = path.join(home, '.claude', 'settings.json');
+  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+  fs.writeFileSync(settingsPath, JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'keep-start' }] }] } }, null, 2));
+  install(home, '--learning-hooks', 'on');
+  const first = fs.readFileSync(settingsPath, 'utf8');
+  install(home, '--learning-hooks', 'on');
+  assert.equal(fs.readFileSync(settingsPath, 'utf8'), first, 'idempotent');
+  const hooks = JSON.parse(first).hooks;
+  const commands = (event) => hooks[event].flatMap((g) => g.hooks).map((h) => h.command);
+  assert.ok(commands('SessionStart').includes('keep-start'));
+  assert.equal(commands('SessionStart').filter((c) => c.endsWith('hl.mjs" hook session-start')).length, 1);
+  assert.equal(commands('SessionEnd').filter((c) => c.endsWith('hl.mjs" hook session-end')).length, 1);
+  assert.ok(commands('SessionEnd').every((c) => !c.includes('\\')), 'forward slashes on every platform');
+  install(home, '--learning-hooks', 'off');
+  const after = JSON.parse(fs.readFileSync(settingsPath, 'utf8')).hooks;
+  assert.deepEqual(after, { SessionStart: [{ hooks: [{ type: 'command', command: 'keep-start' }] }] });
+  fs.rmSync(home, { recursive: true, force: true });
+});

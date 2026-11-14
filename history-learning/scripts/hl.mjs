@@ -3,12 +3,14 @@
 // private state directory outside any repository, and never calls a model itself.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { SOURCE_IDS } from './lib/adapters/index.mjs';
 import { buildCatalog } from './lib/catalog.mjs';
 import { clusterEvidence, loadClusters, saveClusters } from './lib/cluster.mjs';
 import { enabledSources, loadConsent, updateConsent } from './lib/consent.mjs';
 import { buildDigest, markSynthesized } from './lib/digest.mjs';
 import { allEvidence, extract } from './lib/extract.mjs';
+import { onSessionEnd, onSessionStart, pending, runWorker, savedTopics, stampReview } from './lib/auto.mjs';
 import { buildInventory, coverageReport } from './lib/inventory.mjs';
 import { learningReport } from './lib/report.mjs';
 import { ruleSupport, writeEvidence } from './lib/support.mjs';
@@ -47,6 +49,12 @@ Learning (local, deterministic, incremental)
   forget [--source s]             delete derived evidence (all or one source); history untouched
   status                          state summary
 
+Automatic capture (Claude Code hooks; install with scripts/install.mjs --learning-hooks on)
+  hook session-end|session-start  hook entry points; read the hook JSON on stdin
+  auto-run                        drain the session queue: learn + refresh saved topic passes
+  pending [--write]               what waits for review; --write puts only new topic
+                                  statements in topics/<name>.new.md
+
 State directory: ${stateDir()} (override with HISTORY_LEARNING_HOME)`;
 
 const args = parseArgs(process.argv.slice(2));
@@ -82,6 +90,33 @@ function runDigest() {
   return d;
 }
 
+const HL_PATH = fileURLToPath(import.meta.url);
+
+async function runLearn() {
+  const inv = await buildInventory({ log: () => {} });
+  out(`inventory: ${inv.sessions.length} session records`);
+  await runExtract();
+  runCluster();
+  if (loadConsent().model.allowed) runDigest();
+  else out('digest: skipped (model review not consented)');
+}
+
+// Re-runs each saved topic pass with its own parameters so new taste statements are picked up.
+async function refreshTopics() {
+  if (!loadConsent().model.allowed) return;
+  for (const t of savedTopics()) {
+    const r = await topicPass({ name: t.name, categories: t.categories, match: t.match || undefined, budget: t.budget, log: err });
+    out(`topic ${r.name}: ${r.statements} statements from ${r.sessions} sessions`);
+  }
+}
+
+async function readStdinJson() {
+  if (process.stdin.isTTY) return {};
+  let text = '';
+  for await (const chunk of process.stdin) text += chunk;
+  try { return text.trim() ? JSON.parse(text) : {}; } catch { return {}; }
+}
+
 async function main() {
   switch (cmd) {
     case 'inventory': {
@@ -115,13 +150,32 @@ async function main() {
     case 'digest':
       runDigest();
       break;
-    case 'learn': {
-      const inv = await buildInventory({ log: () => {} });
-      out(`inventory: ${inv.sessions.length} session records`);
-      await runExtract();
-      runCluster();
-      if (loadConsent().model.allowed) runDigest();
-      else out('digest: skipped (model review not consented)');
+    case 'learn':
+      await runLearn();
+      break;
+    case 'hook': {
+      // Hooks never block or fail a session: errors are recorded for the next SessionStart notice.
+      if (!enabledSources(loadConsent()).length) break;
+      const input = await readStdinJson();
+      if (args._[1] === 'session-end') onSessionEnd(input, { hlPath: HL_PATH });
+      else if (args._[1] === 'session-start') {
+        const n = onSessionStart(input, { hlPath: HL_PATH });
+        if (n) out(JSON.stringify({ systemMessage: n.systemMessage, hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: n.additionalContext } }));
+      } else throw new Error('usage: hl hook session-end|session-start');
+      break;
+    }
+    case 'auto-run': {
+      out(`auto-run started ${new Date().toISOString()}`);
+      await runWorker({ learn: runLearn, refreshTopics, log: out });
+      break;
+    }
+    case 'pending': {
+      const p = pending({ write: !!args.write });
+      out(`last review: ${p.since || 'never'}`);
+      out(`digest: ${p.clusters} new or grown clusters (${p.digestAt || 'no digest'}) in ${path.join(stateDir(), 'digest')}`);
+      for (const t of p.topics) out(`topic ${t.name}: ${t.fresh} new of ${t.total} statements${t.newFile ? ` -> ${t.newFile}` : ''}`);
+      out(`queue: ${p.queued} session(s)${p.running ? ', worker running' : ''}; last run: ${p.last ? `${p.last.ok ? 'ok' : 'FAILED'} at ${p.last.finishedAt}` : 'never'}`);
+      if (p.error) { err(`last automatic run failed: ${p.error.message} (log: ${p.error.log || 'none'})`); process.exitCode = 1; }
       break;
     }
     case 'evidence': {
@@ -140,7 +194,8 @@ async function main() {
       const cl = loadClusters();
       const ids = args.digest ? readJson(path.join(stateDir(), 'digest', 'included.json'), []) : list(args._[1]);
       markSynthesized(ids, cl.clusters);
-      out(`marked ${ids.length} clusters as synthesized`);
+      if (args.digest) stampReview();
+      out(`marked ${ids.length} clusters as synthesized${args.digest ? '; review date set, so topic statements up to now count as reviewed' : ''}`);
       break;
     }
     case 'topic': {
