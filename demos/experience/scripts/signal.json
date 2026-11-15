@@ -1,0 +1,24 @@
+{
+  "name": "signal: scan, open a service, go back, filter, legend, keyboard",
+  "steps": [
+    { "type": "move", "path": [[0.3, 0.45], [0.6, 0.6], [0.4, 0.8]], "duration": 500 },
+    { "type": "tap", "selector": "#rows .open" },
+    { "type": "wait", "ms": 700 },
+    { "type": "press", "key": "Escape" },
+    { "type": "wait", "ms": 700 },
+    { "type": "tap", "selector": "#only" },
+    { "type": "wait", "ms": 400 },
+    { "type": "tap", "selector": "#only" },
+    { "type": "wait", "ms": 300 },
+    { "type": "tap", "selector": "#legend-btn" },
+    { "type": "wait", "ms": 500 },
+    { "type": "tap", "selector": "#legend-btn" },
+    { "type": "tab", "count": 3 },
+    { "type": "press", "key": "Enter" },
+    { "type": "wait", "ms": 700 },
+    { "type": "press", "key": "Escape" },
+    { "type": "wait", "ms": 600 },
+    { "type": "scroll", "by": 600, "duration": 500 },
+    { "type": "scroll", "by": -600, "duration": 500 }
+  ]
+}

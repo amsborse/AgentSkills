@@ -61,7 +61,25 @@ is in pixels.
 ] }
 ```
 
-Step types: `wait`, `scroll`, `move`, `hover`, `click`, `press`, `type`, `drag`, `tab`.
+Step types: `wait`, `scroll`, `move`, `hover`, `click`, `tap`, `press`, `type`, `drag`, `tab`.
+`tap` is a real touch on a mobile viewport and a click elsewhere, so one script serves both.
+
+INP stays unknown when every interaction finishes in under 16 ms: the browser does not report
+events that short, so a fast machine gets "below 16 ms", not a number.
+
+## Other engines and slow networks
+
+`--browser firefox` or `--browser webkit` runs the same script in that engine when Playwright has
+it installed. Those engines do not report layout shift, long tasks or heap size, and often not LCP
+or INP: those stay unknown. CPU and network shaping are Chromium-only and are refused with a
+usage error elsewhere. `--network slow-4g|fast-4g|3g` applies the DevTools preset in Chromium; it
+shapes the browser, not a radio link. Playwright WebKit is the engine, not Safari on a phone.
+
+## Which element shifted
+
+Each run lists its five largest layout shifts not caused by input (`runs[].shifts`: time, score,
+the elements that moved and `by` how many pixels `[x, y]` each did), so a non-zero CLS names its
+cause instead of only a number.
 
 ## Comparison and budgets
 

@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   SCHEMA, METRICS, DEFAULT_BUDGET, parseList, parseCpu, buildMatrix, withTier, validateScript, samplePath, median, percentile, stat,
   frameStats, inpFrom, heapGrowth, flattenRun, summarizeRuns, conditionComplete, compareStat, compareReports, validateBudget, checkBudget,
-  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes,
+  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes, BROWSERS, NETWORKS, frameRateDrift,
 } from '../skills/audit-design/scripts/lib/bench.mjs';
 
 test('web-vitals is found in a project even though its exports map hides package.json', () => {
@@ -223,6 +223,23 @@ test('status: incomplete beats a breach, and the report always says what it cann
   assert.match(md, /Heap growth per repeat \| unknown/);
 });
 
+test('other engines and shaped networks are named in the caveats, and a tap needs a target', () => {
+  assert.deepEqual(BROWSERS, ['chromium', 'firefox', 'webkit']);
+  for (const n of Object.values(NETWORKS)) assert.ok(n.downloadThroughput > 0 && n.uploadThroughput > 0 && n.latency > 0);
+  assert.ok(NETWORKS['3g'].downloadThroughput < NETWORKS['slow-4g'].downloadThroughput && NETWORKS['slow-4g'].downloadThroughput < NETWORKS['fast-4g'].downloadThroughput);
+  const chromium = notValidated({ headed: true, renderer: 'NVIDIA', browser: 'chromium' }, { script: true, repeats: 5 });
+  assert.ok(chromium.some((n) => /measured Chromium only/.test(n)));
+  assert.ok(chromium.some((n) => /without network throttling/.test(n)));
+  const webkit = notValidated({ headed: true, renderer: 'x', browser: 'webkit' }, { script: true, repeats: 5 });
+  assert.ok(webkit.some((n) => /not the Safari app or an iPhone/.test(n) && /unknown, not zero/.test(n)));
+  assert.ok(notValidated({ headed: true, renderer: 'x', browser: 'firefox' }, {}).some((n) => /Firefox: the Playwright build/.test(n)));
+  const shaped = notValidated({ headed: true, renderer: 'x', network: 'slow-4g' }, {});
+  assert.ok(shaped.some((n) => /slow-4g preset.*not a real radio link/.test(n)));
+  assert.ok(!shaped.some((n) => /without network throttling/.test(n)));
+  assert.equal(validateScript({ steps: [{ type: 'tap', selector: '#a' }] }).steps.length, 1);
+  assert.throws(() => validateScript({ steps: [{ type: 'tap' }] }), /"selector" is required/);
+});
+
 // ---- Runner -----------------------------------------------------------------------------------
 function findPlaywright() {
   const dir = process.env.PLAYWRIGHT_PROJECT;
@@ -253,6 +270,12 @@ test('usage errors exit 1 before any browser starts', async () => {
   assert.equal((await exec(bench, ['--url', fixture('clean.html'), '--runs', '0'])).code, 1);
   assert.equal((await exec(bench, ['--url', fixture('clean.html'), '--tiers', 'turbo'])).code, 1);
   assert.match((await exec(bench, ['--url', fixture('clean.html'), '--script', fx('missing.json')])).stderr, /cannot read interaction script/);
+  assert.match((await exec(bench, ['--url', fixture('clean.html'), '--browser', 'netscape'])).stderr, /--browser must be one of chromium, firefox, webkit/);
+  assert.match((await exec(bench, ['--url', fixture('clean.html'), '--network', 'dialup'])).stderr, /--network must be one of/);
+  const ffCpu = await exec(bench, ['--url', fixture('clean.html'), '--browser', 'firefox', '--cpu', '4']);
+  assert.equal(ffCpu.code, 1);
+  assert.match(ffCpu.stderr, /only Chromium can slow the processor/);
+  assert.match((await exec(bench, ['--url', fixture('clean.html'), '--browser', 'webkit', '--network', '3g'])).stderr, /only Chromium can shape the network/);
   assert.match((await exec(bench, ['--url', fixture('clean.html'), '--baseline', fx('click.json')])).stderr, /not an experience-bench/);
 });
 
@@ -302,6 +325,10 @@ test('planted defects are measured: slow interaction, long tasks, layout shift a
   assert.ok(s.longTaskTotal.median >= 1500, `long task time ${s.longTaskTotal.median}`);
   assert.ok(s.loafWorst.median >= 280);
   assert.ok(s.cls.median > 0.005, `CLS ${s.cls.median}`);
+  const shift = report.conditions[0].runs[0].shifts[0];
+  assert.ok(shift && shift.value > 0.005 && shift.moved.length > 0, `a layout shift names what moved: ${JSON.stringify(shift)}`);
+  assert.ok(shift.moved.every((n) => typeof n === 'string' && n.length > 0));
+  assert.ok(shift.by.length === shift.moved.length && shift.by.some(([x, y]) => x !== 0 || y !== 0), `and by how far: ${JSON.stringify(shift.by)}`);
   assert.ok(s.heapGrowth.median > 400000, `heap growth ${s.heapGrowth.median}`);
   assert.ok(s.droppedPct.median > 20);
   assert.ok(report.budget.breaches.some((b) => b.metric === 'inp'));
@@ -338,4 +365,25 @@ test('a page that cannot load is incomplete, exits 2 and never becomes a baselin
   assert.ok(report.conditions[0].errors.length === 2);
   assert.match(stderr, /baseline not saved/);
   assert.equal(fs.existsSync(saved), false);
+});
+
+test('report: names what shifted, how far and in how many runs, and says when the network was shaped', () => {
+  const shifted = run({ cls: 0.345, shifts: [{ at: 506, value: 0.345, moved: ['main', 'a.card'], by: [[0, 212], [0, 212]] }] });
+  const c = { ...condition('a', [run(), shifted, run()]), runs: [run(), shifted, run()] };
+  const md = renderBenchMarkdown({ ...rep([c], { network: 'slow-4g' }), status: 'measured' });
+  assert.match(md, /Layout shifts:\n- main, a\.card: up to 0\.345 at 506 ms, moved 0px across and 212px down, in 1 of 3 run\(s\)/);
+  assert.match(md, /network: shaped to the slow-4g preset/);
+  const quiet = renderBenchMarkdown({ ...rep([condition('a', [run(), run(), run()])], { browser: 'firefox' }), status: 'measured' });
+  assert.doesNotMatch(quiet, /Layout shifts/);
+  assert.match(quiet, /CPU throttle: not available in this engine; network: unthrottled/);
+});
+
+test('a screen that changes its refresh rate part-way is reported, not read as a slow page', () => {
+  const at = (interval) => run({ frames: { p50: interval, p95: interval, worst: interval, droppedPct: 0, interval } });
+  const steady = [{ id: 'a', runs: [at(3.2), at(3.3), { error: 'x' }] }, { id: 'b', runs: [at(3.2)] }];
+  assert.deepEqual(frameRateDrift(steady), []);
+  const [note] = frameRateDrift([...steady, { id: 'static', runs: [at(33.2), at(33.2)] }]);
+  assert.match(note, /from 3\.2 ms to 33\.2 ms \(313 to 30 frames a second\)/);
+  assert.match(note, /Slower in: static\./);
+  assert.deepEqual(frameRateDrift([{ id: 'a', runs: [run({ frames: { interval: null } })] }]), [], 'no frame data is not a drift');
 });

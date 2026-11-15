@@ -1,0 +1,20 @@
+{
+  "name": "field notes: read down, open and close footnotes, hover the cards, return",
+  "steps": [
+    { "type": "scroll", "by": 500, "duration": 700 },
+    { "type": "tap", "selector": ".fn" },
+    { "type": "wait", "ms": 600 },
+    { "type": "tap", "selector": ".fn" },
+    { "type": "wait", "ms": 400 },
+    { "type": "scroll", "by": 1400, "duration": 1400 },
+    { "type": "tap", "selector": ".fn >> nth=1" },
+    { "type": "wait", "ms": 600 },
+    { "type": "scroll", "by": 2400, "duration": 1600 },
+    { "type": "hover", "selector": "a.card" },
+    { "type": "move", "path": [[0.2, 0.5], [0.5, 0.6], [0.8, 0.5]], "duration": 700 },
+    { "type": "press", "key": "Tab" },
+    { "type": "press", "key": "Tab" },
+    { "type": "wait", "ms": 300 },
+    { "type": "scroll", "by": -4400, "duration": 1500 }
+  ]
+}

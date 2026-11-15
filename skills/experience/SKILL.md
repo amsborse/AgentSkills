@@ -19,7 +19,8 @@ already knows what they want should call that skill directly.
 
 ## Modes
 
-`/experience <mode> [scope]`. With no mode, run `audit` and propose one.
+`/experience <mode> [scope]`. With no mode, run `audit` and propose one. `explore` is another
+name for `experiment`.
 
 | Mode | Does | Delegates to | Writes code |
 |---|---|---|---|

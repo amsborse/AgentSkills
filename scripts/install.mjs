@@ -7,6 +7,26 @@ import path from 'node:path';
 import { REPO_ROOT, createLink, detectAgents, linkState, ownedRepoLink, removeLink, repoLinkTarget, skillDirs } from './lib/agents.mjs';
 
 const args = new Set(process.argv.slice(2));
+const USAGE = `Usage: node scripts/install.mjs [--dry-run] [--uninstall]
+         [--router-hook on|off] [--codex-block on|off] [--learning-hooks on|off]
+
+Links every skill in this repository into each detected agent's skill folder.
+  --dry-run     show what would change and change nothing
+  --uninstall   remove the links and hooks this installer created
+`;
+if (args.has('--help') || args.has('-h')) { process.stdout.write(USAGE); process.exit(0); }
+{
+  // An unknown flag stops the run: a typo such as --dry-rnu must never become a real install.
+  const flags = new Set(['--dry-run', '--uninstall']);
+  const valued = new Set(['--router-hook', '--codex-block', '--learning-hooks']);
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    if (valued.has(argv[i])) { i++; continue; }
+    if (!flags.has(argv[i])) { process.stderr.write(`Unknown option ${argv[i]}
+
+${USAGE}`); process.exit(1); }
+  }
+}
 const plan = args.has('--dry-run');
 const uninstall = args.has('--uninstall');
 const home = process.env.AGENT_SKILLS_HOME_OVERRIDE || os.homedir();

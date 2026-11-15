@@ -230,3 +230,14 @@ test('validate checks a linked worktree against the primary checkout, and still 
   assert.ok(levels(installFindings(agents, { root: primary }), 'bad').some((m) => /gamma not installed/.test(m)), 'in the primary checkout an uninstalled skill is a failure');
   fs.rmSync(base, { recursive: true, force: true });
 });
+
+test('asking for help or passing an unknown flag never installs anything', () => {
+  for (const [flag, code, said] of [['--help', 0, /Usage:/], ['-h', 0, /Usage:/], ['--dry-rnu', 1, /unknown option --dry-rnu/i]]) {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-help-'));
+    fs.mkdirSync(path.join(home, '.claude'), { recursive: true });
+    const r = install(home, flag);
+    assert.equal(r.code, code, `${flag}: ${r.out}`);
+    assert.match(r.out, said);
+    assert.ok(!fs.existsSync(path.join(home, '.claude', 'skills')), `${flag} must not create or link anything`);
+  }
+});

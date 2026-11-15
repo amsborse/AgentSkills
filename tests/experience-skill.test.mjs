@@ -35,7 +35,7 @@ test('every path and skill named in the composer and the explore workflow exists
   }
   const skills = new Set(readdirSync(join(root, 'skills')));
   const recipes = new Set(readdirSync(join(root, 'shared/creative/recipes')));
-  const known = new Set(['audit', 'polish', 'transform', 'cinematic', 'interactions', 'performance', 'experiment', 'full', 'current', 'opacity']);
+  const known = new Set(['audit', 'polish', 'transform', 'cinematic', 'interactions', 'performance', 'experiment', 'explore', 'full', 'current', 'opacity']);
   for (const [, name] of skill.matchAll(/`([a-z]+(?:-[a-z0-9]+)*)`/g)) {
     assert.ok(skills.has(name) || recipes.has(name) || known.has(name), `unknown name \`${name}\` in experience`);
   }

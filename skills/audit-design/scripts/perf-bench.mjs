@@ -26,10 +26,10 @@ import { parseViewports, isLocalUrl } from './lib/audit.mjs';
 import {
   SCHEMA, TIERS, MOTIONS, DEFAULT_BUDGET, parseList, parseCpu, buildMatrix, withTier, validateScript, samplePath,
   frameStats, inpFrom, heapGrowth, summarizeRuns, conditionComplete, compareReports, validateBudget, checkBudget,
-  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes,
+  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes, BROWSERS, NETWORKS, frameRateDrift,
 } from './lib/bench.mjs';
 
-const USAGE = 'usage: node perf-bench.mjs --url URL [--project DIR] [--out DIR] [--viewports name=WxH,...] [--themes light,dark] [--cpu 1,4] [--motion no-preference,reduce] [--tiers default,low,...] [--tier-param NAME] [--runs N] [--script FILE] [--repeats N] [--settle MS] [--frames MS] [--headed] [--budget FILE] [--baseline FILE] [--save-baseline FILE] [--allow-remote] [--json]';
+const USAGE = 'usage: node perf-bench.mjs --url URL [--project DIR] [--out DIR] [--viewports name=WxH,...] [--themes light,dark] [--cpu 1,4] [--motion no-preference,reduce] [--tiers default,low,...] [--tier-param NAME] [--runs N] [--browser chromium|firefox|webkit] [--network slow-4g|fast-4g|3g] [--script FILE] [--repeats N] [--settle MS] [--frames MS] [--headed] [--budget FILE] [--baseline FILE] [--save-baseline FILE] [--allow-remote] [--json]';
 const usage = (msg) => {
   if (msg) console.error(`error: ${msg}`);
   console.error(USAGE);
@@ -55,6 +55,8 @@ try {
       settle: { type: 'string', default: '1500' },
       frames: { type: 'string', default: '2000' },
       headed: { type: 'boolean', default: false },
+      browser: { type: 'string', default: 'chromium' },
+      network: { type: 'string' },
       budget: { type: 'string' },
       baseline: { type: 'string' },
       'save-baseline': { type: 'string' },
@@ -84,6 +86,10 @@ try {
   cpu = parseCpu(o.cpu);
   motions = parseList(o.motion, MOTIONS, 'motion');
   tiers = parseList(o.tiers, ['default', ...TIERS], 'tiers');
+  if (!BROWSERS.includes(o.browser)) throw new Error(`--browser must be one of ${BROWSERS.join(', ')}`);
+  if (o.network && !NETWORKS[o.network]) throw new Error(`--network must be one of ${Object.keys(NETWORKS).join(', ')}`);
+  if (o.browser !== 'chromium' && cpu.some((c) => c > 1)) throw new Error('--cpu above 1 needs --browser chromium: only Chromium can slow the processor');
+  if (o.browser !== 'chromium' && o.network) throw new Error('--network needs --browser chromium: only Chromium can shape the network');
   RUNS = int('runs', 1, 50);
   REPEATS = int('repeats', 1, 50);
   SETTLE = int('settle', 0, 60000);
@@ -103,8 +109,9 @@ fs.mkdirSync(outDir, { recursive: true });
 const require = createRequire(path.resolve(o.project, 'package.json'));
 let chromium;
 for (const m of ['@playwright/test', 'playwright']) {
-  try { ({ chromium } = require(m)); break; } catch {}
+  try { chromium = require(m)[o.browser]; if (chromium) break; } catch {}
 }
+const CDP = o.browser === 'chromium';
 if (!chromium) {
   console.error(`Playwright not found from ${o.project}. Point --project at a folder where @playwright/test or playwright is installed. Nothing was measured.`);
   process.exit(2);
@@ -118,7 +125,7 @@ const vitalsVersion = vitals?.version || null;
 // Runs in the page before any app script. Collects everything the page itself can observe.
 const INIT = () => {
   const b = (window.__bench = {
-    lcp: null, cls: 0, clsSupported: false, events: {}, longTasks: { count: 0, total: 0, blocking: 0 }, longTaskSupported: false,
+    lcp: null, cls: 0, clsSupported: false, shifts: [], events: {}, longTasks: { count: 0, total: 0, blocking: 0 }, longTaskSupported: false,
     loaf: { count: 0, worst: 0 }, loafSupported: false, frames: null, wv: {}, errors: [],
   });
   const observe = (type, fn, extra = {}) => {
@@ -135,6 +142,11 @@ const INIT = () => {
     else { win = e.value; first = e.startTime; }
     last = e.startTime;
     if (win > b.cls) b.cls = win;
+    // Which elements moved and by how many pixels [x, y]: the largest few shifts, so a non-zero
+    // score names its cause.
+    const name = (n) => { if (!n || n.nodeType !== 1) return 'text'; const c = typeof n.className === 'string' && n.className.trim() ? '.' + n.className.trim().split(/\s+/).slice(0, 2).join('.') : ''; return n.id ? `#${n.id}` : n.nodeName.toLowerCase() + c; };
+    b.shifts.push({ at: Math.round(e.startTime), value: Math.round(e.value * 1e4) / 1e4, moved: (e.sources || []).slice(0, 3).map((x) => name(x.node)), by: (e.sources || []).slice(0, 3).map((x) => [Math.round(x.currentRect.x - x.previousRect.x), Math.round(x.currentRect.y - x.previousRect.y)]) });
+    b.shifts.sort((x, y) => y.value - x.value).splice(5);
   });
   observe('event', (e) => { if (e.interactionId) b.events[e.interactionId] = Math.max(b.events[e.interactionId] || 0, e.duration); }, { durationThreshold: 16 });
   b.longTaskSupported = observe('longtask', (e) => { b.longTasks.count++; b.longTasks.total += e.duration; b.longTasks.blocking += Math.max(0, e.duration - 50); });
@@ -165,7 +177,7 @@ const COLLECT = () => {
   const nav = performance.getEntriesByType('navigation')[0];
   const fcp = performance.getEntriesByName('first-contentful-paint')[0];
   return {
-    lcp: b.lcp, fcp: fcp ? fcp.startTime : null, cls: b.clsSupported ? b.cls : null,
+    lcp: b.lcp, fcp: fcp ? fcp.startTime : null, cls: b.clsSupported ? b.cls : null, shifts: b.shifts,
     ttfb: nav ? nav.responseStart : null, load: nav && nav.loadEventEnd > 0 ? nav.loadEventEnd : null,
     events: Object.values(b.events), interactionCount: performance.interactionCount ?? null,
     longTasks: b.longTaskSupported ? b.longTasks : null, loaf: b.loafSupported ? b.loaf : null,
@@ -195,6 +207,8 @@ async function playStep(page, step, vp) {
     case 'move': for (const p of samplePath(step.path, step.duration ?? 600)) { await page.mouse.move(...px(p)); await sleep(page, 16); } break;
     case 'hover': await page.locator(step.selector).first().hover({ timeout: 5000 }); break;
     case 'click': await page.locator(step.selector).first().click({ timeout: 5000 }); break;
+    // A real touch where the viewport has one, so touch handlers and INP see a tap; a click elsewhere.
+    case 'tap': if (vp.mobile) await page.locator(step.selector).first().tap({ timeout: 5000 }); else await page.locator(step.selector).first().click({ timeout: 5000 }); break;
     case 'press': await page.keyboard.press(step.key); break;
     case 'type': await page.locator(step.selector).first().pressSequentially(step.text, { delay: 30, timeout: 5000 }); break;
     case 'tab': for (let i = 0; i < (step.count ?? 1); i++) { await page.keyboard.press('Tab'); await sleep(page, 60); } break;
@@ -210,7 +224,10 @@ async function playStep(page, step, vp) {
 
 const TYPE = { Document: 'document', Stylesheet: 'style', Script: 'script', Image: 'image', Font: 'font', Media: 'media', XHR: 'data', Fetch: 'data' };
 
+const PW_TYPE = { document: 'document', stylesheet: 'style', script: 'script', image: 'image', font: 'font', media: 'media', xhr: 'data', fetch: 'data' };
+
 async function oneRun(browser, cell) {
+  const pending = [];
   const ctx = await browser.newContext({
     viewport: { width: cell.viewport.width, height: cell.viewport.height }, colorScheme: cell.theme, reducedMotion: cell.motion,
     isMobile: cell.viewport.mobile, hasTouch: cell.viewport.mobile, deviceScaleFactor: 1,
@@ -219,19 +236,29 @@ async function oneRun(browser, cell) {
     await ctx.addInitScript(INIT);
     if (vitalsLib) { await ctx.addInitScript({ path: vitalsLib }); await ctx.addInitScript(INIT_VITALS); }
     const page = await ctx.newPage();
-    const cdp = await ctx.newCDPSession(page);
-    await cdp.send('Network.enable');
-    await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
-    if (cell.cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cell.cpu });
     const reqs = new Map();
-    cdp.on('Network.requestWillBeSent', (e) => reqs.set(e.requestId, { url: e.request.url, type: TYPE[e.type] || 'other', bytes: null }));
-    cdp.on('Network.loadingFinished', (e) => { const r = reqs.get(e.requestId); if (r) r.bytes = e.encodedDataLength; });
+    let cdp = null;
+    if (CDP) {
+      cdp = await ctx.newCDPSession(page);
+      await cdp.send('Network.enable');
+      await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+      if (o.network) await cdp.send('Network.emulateNetworkConditions', { offline: false, ...NETWORKS[o.network] });
+      if (cell.cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cell.cpu });
+      cdp.on('Network.requestWillBeSent', (e) => reqs.set(e.requestId, { url: e.request.url, type: TYPE[e.type] || 'other', bytes: null }));
+      cdp.on('Network.loadingFinished', (e) => { const r = reqs.get(e.requestId); if (r) r.bytes = e.encodedDataLength; });
+    } else {
+      // Firefox and WebKit have no DevTools protocol here: sizes come from Playwright, and a size
+      // it cannot give stays unknown. Each run is a fresh context, so nothing is served from cache.
+      page.on('request', (rq) => reqs.set(rq, { url: rq.url(), type: PW_TYPE[rq.resourceType()] || 'other', bytes: null }));
+      page.on('requestfinished', (rq) => { pending.push(rq.sizes().then((z) => { const r = reqs.get(rq); if (r) r.bytes = z.responseBodySize + z.responseHeadersSize; }).catch(() => {})); });
+    }
 
     await page.goto(withTier(o.url, cell.tier, o['tier-param']), { waitUntil: 'load', timeout: 45000 });
     await sleep(page, SETTLE);
 
     const heapSeries = [];
     const heap = async () => {
+      if (!cdp) return null; // heap size is a Chromium-only measurement
       await cdp.send('HeapProfiler.collectGarbage');
       const { usedSize } = await cdp.send('Runtime.getHeapUsage');
       return usedSize;
@@ -250,6 +277,7 @@ async function oneRun(browser, cell) {
     await sleep(page, 150); // let the last event-timing and long-frame entries be delivered
     const used = heapSeries.length ? heapSeries[heapSeries.length - 1] : await heap();
     const m = await page.evaluate(COLLECT);
+    await Promise.all(pending);
 
     let fileSizes = false;
     const sized = [];
@@ -267,7 +295,7 @@ async function oneRun(browser, cell) {
     return {
       lcp: m.wv.lcp ?? m.lcp, fcp: m.wv.fcp ?? m.fcp, ttfb: m.wv.ttfb ?? m.ttfb, load: m.load, cls: m.wv.cls ?? m.cls,
       inp: script ? (m.wv.inp ?? builtinInp) : null,
-      interactions: m.interactionCount,
+      interactions: m.interactionCount, shifts: m.shifts,
       longTasks: m.longTasks, loaf: m.loaf, frames: frameStats(frames),
       heap: { used, series: heapSeries, growth: heapGrowth(heapSeries) },
       bytes: { ...weight, requests: sized.length, kind: fileSizes ? 'decoded' : 'transfer' },
@@ -280,7 +308,7 @@ let browser;
 try {
   browser = await chromium.launch({ headless: !o.headed });
 } catch (e) {
-  console.error(`Chromium could not start: ${String(e.message || e).split('\n')[0]}. Nothing was measured.`);
+  console.error(`${o.browser} could not start: ${String(e.message || e).split('\n')[0]}. Nothing was measured.`);
   process.exit(2);
 }
 let renderer = null;
@@ -290,7 +318,7 @@ try {
   await p.close();
 } catch {}
 const environment = {
-  browser: 'chromium', browserVersion: browser.version(), headed: o.headed, renderer,
+  browser: o.browser, browserVersion: browser.version(), headed: o.headed, renderer, network: o.network || null,
   platform: `${os.platform()} ${os.release()} ${os.arch()}`, cpuModel: os.cpus()[0]?.model?.trim() || null, cpuCount: os.cpus().length,
   memoryGb: Math.round(os.totalmem() / 1073741824), node: process.version,
 };
@@ -321,6 +349,7 @@ for (const cell of buildMatrix({ viewports, themes, cpu, motions, tiers })) {
   });
 }
 await browser.close();
+notes.push(...frameRateDrift(conditions));
 
 const report = {
   schema: SCHEMA, kind: 'lab', url: o.url, date: new Date().toISOString(), environment,

@@ -249,6 +249,26 @@ test('flow hero: still by default, live only when affordable and visible, and re
   assert.ok(widths.low < widths.balanced && widths.balanced < widths.ultra, `resolution follows the tier: ${JSON.stringify(widths)}`);
 });
 
+test('flow hero: a lost WebGL context falls back to the still, removes the dead canvas and stops asking for frames', { skip }, async (t) => {
+  const p = await open(demo('flow-hero', '?quality=high'));
+  await p.page.waitForTimeout(700);
+  if (!(await p.page.evaluate(() => !!document.querySelector('#hero canvas')))) { await p.close(); t.skip('WebGL is not available in this browser, so context loss was not exercised'); return; }
+  await p.page.evaluate(() => { const c = document.querySelector('#hero canvas'); c.getContext('webgl').getExtension('WEBGL_lose_context').loseContext(); });
+  await p.page.waitForTimeout(400);
+  const st = await p.page.evaluate(() => {
+    const hero = document.querySelector('#hero');
+    return { flow: hero.dataset.flow, live: hero.classList.contains('is-live'), canvas: !!hero.querySelector('canvas'), running: window.flow.loop.running };
+  });
+  assert.deepEqual(st, { flow: 'still', live: false, canvas: false, running: false });
+  assert.equal(await framesIn(p.page, 400), 0, 'no frames requested after the context is lost');
+  // Changing the tier afterwards must not throw or bring a broken canvas back.
+  await p.page.selectOption('[data-quality-pick]', 'ultra');
+  await p.page.waitForTimeout(300);
+  assert.equal(await p.page.evaluate(() => document.querySelector('#hero').dataset.flow), 'still');
+  assert.deepEqual(p.errors, []);
+  await p.close();
+});
+
 test('flow hero: without WebGL it stays on the still and stops asking for frames', { skip }, async () => {
   const p = await open(demo('flow-hero', '?quality=high'), { noWebgl: true });
   await p.page.waitForTimeout(500);

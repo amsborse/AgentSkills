@@ -100,3 +100,76 @@ Anything that needs the owner stays **pending** and never blocks other work.
   `--script` (and `--repeats 4` for heap growth) or its bench run is incomplete. Reversible.
 - **Approval required:** No. Owner may prefer option 2 for stricter CI.
 - **Status:** Resolved (option 1).
+
+## D-008 Stale `codex` command shim
+
+- **Question:** Repair `~/.local/bin/codex` and `codex.cmd`, which point at a
+  `~/.local/lib/codex-bridge/codex-bridge.mjs` that no longer exists.
+- **Context:** Found in Phase 3 while testing skill invocation. Typing `codex` fails; the
+  bridge in this repository (`tools/codex-bridge`) works when called directly, which is how
+  Phase 3 ran Codex. The files are outside the repository, so they were left untouched.
+- **Options:** (1) repoint the shim at this repository's bridge; (2) delete the shim so the
+  real Codex CLI is found; (3) leave it.
+- **Recommended:** 1.
+- **Risk and impact:** Changes a command outside the repository. Reversible (backups exist
+  next to the shim).
+- **Approval required:** Yes.
+- **Status:** Open.
+
+## D-009 OpenCode and Cursor invocation could not be tested
+
+- **Question:** How to prove the `experience` skill is invoked, not only linked, in OpenCode
+  and Cursor.
+- **Context:** The skill is linked where both agents read skills. OpenCode refused to run:
+  "This API key has expired" (OpenCode Go). Cursor has no headless agent command on this
+  machine. Invocation is therefore unverified for both, not passed.
+- **Options:** (1) owner renews the OpenCode key and opens Cursor once, typing
+  `/experience audit` in each; (2) accept link-level verification.
+- **Recommended:** 1.
+- **Risk and impact:** None to the repository.
+- **Approval required:** Yes (needs the owner's accounts).
+- **Status:** Open.
+
+## D-010 Phase 3 commits and the main branch
+
+- **Question:** Where Phase 3 fixes land after the approved merge.
+- **Context:** `main` was fast-forwarded to `feat/experience-engineering` (9bd3fed) as
+  approved. Phase 3 fixes continue on the same branch and `main` is fast-forwarded again at
+  the end. Nothing is pushed. The primary checkout was switched from `feat/improve-visuals`
+  (clean) to `main` to run the suite from the merged commit.
+- **Options:** (1) fast-forward `main` again at the end of Phase 3; (2) leave Phase 3 on the
+  branch for a second approval.
+- **Recommended:** 1 (taken: same approved branch, fast-forward only, no push).
+- **Risk and impact:** Local only; undo with `git branch -f main 9bd3fed`.
+- **Approval required:** No for the local fast-forward; yes for any push.
+- **Status:** Resolved (option 1).
+
+## D-011 Firefox and WebKit engines
+
+- **Question:** Where the extra Playwright engines live.
+- **Context:** Cross-browser runs need Firefox and WebKit builds. Installing them into the
+  shared Playwright cache would be a machine-wide change, so they were downloaded into the
+  session scratch folder and used through `PLAYWRIGHT_BROWSERS_PATH`.
+- **Options:** (1) keep them temporary; (2) owner runs `npx playwright install firefox webkit`
+  in a project to keep them.
+- **Recommended:** 1 until cross-browser runs are wanted regularly.
+- **Risk and impact:** Temporary files only; they vanish with the scratch folder.
+- **Approval required:** No.
+- **Status:** Resolved (option 1).
+
+## D-012 Signal crashes Playwright's WebKit build on the way back
+
+- **Question:** Whether to switch off the back view transition in WebKit.
+- **Context:** In Playwright WebKit 26.6 on Windows, a real key press or click that returns
+  from a service to the list on `low` and above kills the page process. The same code called
+  from script, the forward transition, the `static` tier and cut-down pages all survive.
+  Safari itself could not be tested (no Apple device here).
+- **Options:** (1) record it as a fault of that engine build and keep the transition; (2) skip
+  view transitions in every WebKit browser, which would remove a working effect from Safari on
+  the strength of a test build; (3) owner opens `demos/experience/signal.html` in Safari, opens
+  a service and presses Esc, then decides.
+- **Recommended:** 1 now, 3 when a Mac or iPhone is at hand.
+- **Risk and impact:** If Safari is affected, the Signal demo would crash there on going back.
+  Demo only; no product uses it yet.
+- **Approval required:** No for 1; a real device for 3.
+- **Status:** Open (option 1 taken).

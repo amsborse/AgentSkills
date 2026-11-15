@@ -117,6 +117,59 @@ Nothing is pushed. Decisions: `EXPERIENCE-DECISION-QUEUE.md`.
   (the change only affects pages whose long frame gaps recur; the demo tests still pass).
 - Not validated: real GPUs and phones, Safari, Firefox, INP in the demos, throttled network.
 
+## Phase 3, stage 1: integration — done
+
+- `main` fast-forwarded to `feat/experience-engineering` at 9bd3fed (7 commits, no merge
+  commit, working tree clean before and after). Not pushed.
+- From `main`: full suite 243 pass, 0 fail, 0 skipped; `validate.mjs` exit 0.
+- Installer: 45 skills linked for 4 agents, 0 conflicts. `experience` is linked in
+  `~/.claude/skills`, `~/.claude-work/skills` and `~/.agents/skills`.
+- Invocation, tested by asking each agent to load the skill and list its modes:
+  - Codex: verified. It was offered the skill in its catalog, loaded
+    `~/.agents/skills/experience/SKILL.md` and listed all eight modes.
+  - Claude Code: verified (listed in the session and invoked through the Skill tool in stage 3).
+  - OpenCode: not verified. The run failed with "This API key has expired" (D-009).
+  - Cursor: not verified. No headless agent command on this machine (D-009).
+- Found: the `codex` command shim outside the repository is stale (D-008); `install.mjs` has
+  no help flag, so `--help` runs an install.
+
+## Phase 3, stage 2: real browser and hardware validation — done, with limits
+
+Environment: headed Chromium 153, renderer ANGLE NVIDIA GeForce RTX 2070 Super with Max-Q on
+Direct3D 11 (hardware acceleration confirmed from the renderer string), Core i7-10750H, 16 GB,
+Windows 11, 300 Hz display. Phone results are a touch viewport in the desktop browser, never a
+real device. Full figures: `demos/experience/README.md`, "Measured".
+
+- Measured: 21 cells (3 demos × base in both themes and both viewports, five tiers, reduced
+  motion, processor slowed 4×, slow 4G, Firefox, WebKit), 5 runs each (3 for slow 4G and the
+  other engines), with a scripted interaction session per demo so INP is real.
+- Result: every Chromium cell is inside the budgets. Tier differences on this GPU are smaller
+  than run-to-run spread. Field Notes' scroll effects cost a few late frames at 300 Hz. INP under
+  a 4× slowed processor is 72–120 ms on Signal, the tightest cell.
+- Bench work this stage needed: `--browser`, `--network`, a `tap` step, sizes without the
+  DevTools protocol, layout-shift sources in the report, and a note when the display's refresh
+  rate changes part-way (`frameRateDrift`). Each has a test.
+- Incidents, all reported rather than smoothed over:
+  - The first matrix run was killed for low memory; it was restarted once memory was free.
+  - The display dropped to 30 Hz during the Lantern tier cells. Those cells were discarded and
+    re-measured; the drift note above exists because of this.
+  - During the re-measure other programs took free memory to about 470 MB: two Lantern runs lost
+    their page and one stalled at about 1 fps. Reported as 4 of 5 runs.
+  - Firefox headed stalled or crashed in about one run in four. Cause unknown.
+  - Playwright WebKit crashes on Signal when a real key press or click goes back through the
+    view transition. Seven probes: not reproducible from script, on `static`, on the forward
+    transition, or on cut-down pages. Recorded as an engine-build fault; Safari itself is
+    unverified (D-012).
+  - Signal, processor slowed 4×, desktop: one run of 5 recorded CLS 0.345 (main column and a
+    link moved at 506 ms). 20 more runs of that cell: CLS 0 in all. Once in 25, cause unknown,
+    left open.
+- Resilience (Lantern): context loss falls back to the still background and stops requesting
+  frames; a covered tab renders 0 frames and resumes; 40 enable/disable cycles leave one canvas
+  and no heap growth trend. A regression test covers the context-loss path.
+- Open, measured but not acted on: after a lost context the shader never restarts. That is the
+  conservative choice and is left as is.
+- Not done: a real phone, Safari, a low-end GPU, a 60 Hz display.
+
 ## Commits
 
 - db4f1f4 Stage 1: foundation and experience bench

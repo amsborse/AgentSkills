@@ -82,6 +82,15 @@ const STEP_TYPES = {
   type: { selector: 'string', text: 'string' },
   drag: { from: 'point', to: 'point', duration: 'number?' },
   tab: { count: 'number?' },
+  tap: { selector: 'string' },
+};
+
+export const BROWSERS = ['chromium', 'firefox', 'webkit'];
+// Chrome DevTools presets (bytes per second, round-trip ms), as Lighthouse and DevTools use them.
+export const NETWORKS = {
+  'slow-4g': { downloadThroughput: 1.6e6 / 8 * 0.9, uploadThroughput: 750e3 / 8 * 0.9, latency: 150 * 3.75 },
+  'fast-4g': { downloadThroughput: 9e6 / 8 * 0.9, uploadThroughput: 1.5e6 / 8 * 0.9, latency: 60 * 2.75 },
+  '3g': { downloadThroughput: 500e3 / 8 * 0.8, uploadThroughput: 500e3 / 8 * 0.8, latency: 400 * 5 },
 };
 const isPoint = (p) => Array.isArray(p) && p.length === 2 && p.every((n) => num(n) && n >= 0 && n <= 1);
 
@@ -162,6 +171,20 @@ export function frameStats(timestamps) {
     droppedPct: (dropped / (dropped + gaps.length)) * 100,
     fps: span > 0 ? (gaps.length / span) * 1000 : null,
   };
+}
+
+// The shortest common gap between frames is the screen's refresh interval. When it differs
+// between runs, the screen or the browser changed its rate part-way (power saving, a display
+// that went to sleep, a window that was covered): frame pacing and INP from the two halves cannot
+// be compared, and a slow half must not be read as a slow page. Returns notes, empty when steady.
+export function frameRateDrift(conditions) {
+  const seen = [];
+  for (const c of conditions || []) for (const r of c.runs || []) if (!r.error && r.frames?.interval) seen.push({ id: c.id, interval: r.frames.interval });
+  if (seen.length < 2) return [];
+  const lo = Math.min(...seen.map((x) => x.interval)), hi = Math.max(...seen.map((x) => x.interval));
+  if (hi / lo < 1.5) return [];
+  const slow = [...new Set(seen.filter((x) => x.interval / lo >= 1.5).map((x) => x.id))];
+  return [`The refresh interval changed during the measurement, from ${lo.toFixed(1)} ms to ${hi.toFixed(1)} ms (${Math.round(1000 / lo)} to ${Math.round(1000 / hi)} frames a second). Frame pacing and INP are not comparable across these runs; keep the screen awake and the window uncovered, then measure again. Slower in: ${slow.join(', ')}.`];
 }
 
 // INP for a short lab session: the worst interaction, skipping one outlier per 50 interactions.
@@ -306,9 +329,11 @@ export function notValidated(env, opts = {}) {
     'Field performance: these are lab numbers from one machine, not the 75th percentile of real users.',
     'Real mobile hardware, GPU thermals and battery: CPU throttling slows JavaScript only, it does not emulate a phone GPU.',
     'Energy use and GPU memory: no scriptable measurement exists.',
-    'Safari and Firefox: measured in Chromium only (CLS and long animation frames are Chromium-only APIs).',
-    'Network conditions: loaded locally without network throttling.',
   ];
+  const b = env?.browser || 'chromium';
+  if (b === 'chromium') list.push('Safari and Firefox: this run measured Chromium only. Re-run with --browser firefox or webkit for those engines.');
+  else list.push(`${b === 'webkit' ? 'Safari: Playwright WebKit is the engine, not the Safari app or an iPhone' : 'Firefox: the Playwright build of the engine'}. Metrics this engine does not report (layout shift, long tasks, heap, sometimes LCP and INP) are unknown, not zero; CPU and network shaping are unavailable.`);
+  list.push(env?.network ? `Network: shaped to the ${env.network} preset in the browser, which is not a real radio link.` : 'Network conditions: loaded locally without network throttling.');
   if (!env?.headed) list.push('Frame pacing ran headless: requestAnimationFrame timing without a display is not proven to match a real screen. Re-run with --headed for frame numbers you intend to quote.');
   if (/swiftshader|software|llvmpipe|basic render/i.test(env?.renderer || '')) list.push(`Software renderer (${env.renderer}): frame numbers say nothing about real GPUs.`);
   if (!env?.renderer) list.push('GPU renderer could not be read (WebGL unavailable): rendering path unknown.');
@@ -340,7 +365,7 @@ export function renderBenchMarkdown(report) {
     `- Browser: ${e.browser} ${e.browserVersion} (${e.headed ? 'headed' : 'headless'})`,
     `- Renderer: ${e.renderer || 'unknown'}`,
     `- Machine: ${e.cpuModel || 'unknown CPU'}, ${e.cpuCount ?? '?'} threads, ${e.platform}`,
-    `- CPU throttle: Chrome DevTools Protocol slowdown rate per condition; network: unthrottled`,
+    `- CPU throttle: ${e.browser && e.browser !== 'chromium' ? 'not available in this engine' : 'Chrome DevTools Protocol slowdown rate per condition'}; network: ${e.network ? `shaped to the ${e.network} preset` : 'unthrottled'}`,
     `- Vitals source: ${report.vitalsSource}`,
     `- Interaction: ${report.script ? `"${report.script.name}", ${report.script.steps} step(s), repeated ${report.repeats}x per run` : 'none'}`,
     `- Result: **${report.status}**`,
@@ -351,6 +376,20 @@ export function renderBenchMarkdown(report) {
     for (const k of SHOWN) {
       const s = c.summary[k];
       lines.push(`| ${METRICS[k].label} | ${fmt(k, s.median)} | ${s.n ? `${fmt(k, s.min)} to ${fmt(k, s.max)}` : '-'} | ${s.n} |`);
+    }
+    // Which element moved, how far and in how many runs: a shift in one run of five is noise to
+    // chase, the same shift in every run is a defect.
+    const seen = new Map();
+    (c.runs || []).forEach((r, i) => (r.shifts || []).forEach((sh) => {
+      const key = (sh.moved || []).join(', ') || 'unknown element';
+      const x = seen.get(key) || { runs: new Set(), worst: 0, by: null, at: sh.at };
+      x.runs.add(i);
+      if (sh.value >= x.worst) { x.worst = sh.value; x.by = sh.by?.[0] || null; x.at = sh.at; }
+      seen.set(key, x);
+    }));
+    if (seen.size) {
+      lines.push('', 'Layout shifts:');
+      for (const [key, x] of seen) lines.push(`- ${key}: up to ${x.worst} at ${x.at} ms${x.by ? `, moved ${x.by[0]}px across and ${x.by[1]}px down` : ''}, in ${x.runs.size} of ${c.completed} run(s)`);
     }
     lines.push('');
   }
