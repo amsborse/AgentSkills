@@ -1,0 +1,1 @@
+{ "budgets": { "inp": 200 }, "tradeoffs": [ { "metric": "inp", "limit": 5000, "reason": "fixture: deliberate slow handler", "date": "2026-11-14" } ] }

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bench fixture: planted defects</title>
+<style>body{margin:0;font:16px/1.5 system-ui;background:#101418;color:#f2f4f6}main{max-width:40rem;margin:0 auto;padding:4rem 1rem 120vh}button{font:inherit;padding:.6rem 1rem}#late{height:0}</style></head>
+<body><main><div id="late"></div><h1>Slow page</h1><p>Planted: a 300 ms click handler, a late layout shift, a blocking task at load and a leak per click.</p><button id="go">Work</button><output id="n">0</output></main>
+<script>
+  const burn = (ms) => { const end = performance.now() + ms; while (performance.now() < end) {} };
+  burn(180); // long task during load
+  setTimeout(() => { document.getElementById('late').style.height = '240px'; }, 400); // unreserved space: layout shift
+  window.leak = [];
+  let n = 0;
+  document.getElementById('go').addEventListener('click', () => {
+    burn(300); // slow interaction
+    window.leak.push(new Array(200000).fill(n)); // ~1.6 MB kept per click
+    document.getElementById('n').textContent = ++n;
+  });
+</script>
+</body></html>

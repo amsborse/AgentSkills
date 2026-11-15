@@ -44,6 +44,11 @@ node ~/agent-skills/skills/audit-design/scripts/visual-audit.mjs --url http://lo
 What the runner measures, and what it cannot, is listed in
 `~/agent-skills/shared/creative/visual-loop.md`.
 
+For performance (Core Web Vitals, frame pacing, long tasks, memory, page weight, each quality
+tier), add `--perf`: several runs per condition, a saved baseline and a before/after verdict
+that separates a real change from noise. Lab data only; flags, budgets and limits are in
+`references/experience-bench.md`.
+
 ## 3. Critique
 
 Open the screenshots yourself (and hover, keyboard and reduced-motion states the runner

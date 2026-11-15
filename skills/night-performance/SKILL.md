@@ -32,6 +32,9 @@ this skill supplies the target, evidence and stopping rules.
 2. **Choose:** Report raw values, units, median and spread (min-max); define the noise band before editing.
 3. **One change:** Use `improve` to change one measured bottleneck while preserving output and public behaviour.
 4. **Check:** Repeat at least five candidate runs under the same conditions; compare medians and spreads.
+   For a web page, the workload is the experience bench: `audit-design`'s
+   `visual-audit.mjs --perf` with `--save-baseline` before and `--baseline` after (same flags,
+   same machine). Keep only on `improved`; `no measurable change` and `unknown` are not gains.
 5. **Hand back:** run fast checks and report evidence, including failed or unavailable commands.
    The supervisor re-runs checks and decides keep/revert; never weaken tests or assertions.
 

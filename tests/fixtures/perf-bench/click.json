@@ -1,0 +1,1 @@
+{ "name": "click the button", "steps": [ { "type": "click", "selector": "#go" }, { "type": "wait", "ms": 250 } ] }

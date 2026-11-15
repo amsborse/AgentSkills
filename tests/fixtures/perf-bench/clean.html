@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en" data-quality="high">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bench fixture: clean</title>
+<style>body{margin:0;font:16px/1.5 system-ui;background:#101418;color:#f2f4f6}main{max-width:40rem;margin:0 auto;padding:4rem 1rem 120vh}button{font:inherit;padding:.6rem 1rem}</style>
+<script>
+  // Honours ?quality= so the bench's tier check has something real to read.
+  const q = new URLSearchParams(location.search).get('quality');
+  if (q) document.documentElement.dataset.quality = q;
+</script></head>
+<body><main><h1>Quiet page</h1><p>Nothing here should cost anything measurable.</p><button id="go">Count</button><output id="n">0</output></main>
+<script>let n = 0; document.getElementById('go').addEventListener('click', () => { document.getElementById('n').textContent = ++n; });</script>
+</body></html>

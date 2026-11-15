@@ -8,6 +8,8 @@
 //   node visual-audit.mjs --url http://localhost:3000 [--project DIR] [--out DIR]
 //     [--viewports desktop=1440x900,tablet=834x1112,mobile=390x844] [--themes light,dark]
 //     [--hover 6] [--tabs 12] [--settle 800] [--allow-remote] [--json]
+//   node visual-audit.mjs --perf --url ... runs the experience bench instead (perf-bench.mjs:
+//     repeated lab measurement of vitals, frames, memory and bytes; see its header for options).
 //
 // --project is the folder whose node_modules has playwright or @playwright/test (default: cwd).
 // If axe-core is installed there too, its WCAG AA rules run as an extra check.
@@ -21,6 +23,12 @@ import {
   parseViewports, isLocalUrl, rafRate, findingsForView, findingsForMotion, findingsForInteraction,
   themeFindings, summarize, mergeFindings, renderMarkdown,
 } from './lib/audit.mjs';
+
+// --perf hands the whole command line to the bench, which ends the process with its own exit code.
+if (process.argv.includes('--perf')) {
+  process.argv.splice(process.argv.indexOf('--perf'), 1);
+  await import('./perf-bench.mjs');
+}
 
 const { values: o } = parseArgs({
   options: {

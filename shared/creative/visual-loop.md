@@ -48,6 +48,17 @@ changes anything.
 Not measured: taste, brand fit, hierarchy, copy, hidden-tab pausing (unreliable headless),
 motion smoothness by eye. Those stay in the critique step and in the report as unchecked.
 
+## Performance: the experience bench
+
+When a change adds motion, 3D, heavy imagery or script, measure it too. Before the change:
+`visual-audit.mjs --perf --url … --save-baseline .visual/bench/baseline.json`; after it, the
+same flags with `--baseline`. The bench runs each condition (viewport, theme, CPU slowdown,
+motion preference, quality tier) several times and reports medians with their range: Core Web
+Vitals, frame pacing, long tasks, heap growth and bytes. A verdict is `improved`, `regressed`,
+`no measurable change` or `unknown`; only the first is evidence of a gain. It is lab data from
+one machine, not what visitors experience. Details:
+`~/agent-skills/skills/audit-design/references/experience-bench.md`.
+
 ## Quality gates
 
 A change is done only when all of these hold, each backed by a screenshot or a runner finding:
