@@ -4,6 +4,9 @@ An element travels from its place in one state to its place in the next (thumbna
 card to modal, list to page) instead of disappearing and reappearing. This is the owner's
 "things travel to their new place" rule.
 
+**Ready-made recipe:** `../recipes/route-transition/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Navigation between list and detail, opening and closing panels, reordering, filtering.

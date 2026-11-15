@@ -19,6 +19,7 @@ folder; pick techniques from the table below and open those files only.
 | `learning.md` | Recording findings for skill evolution, or running the creative held-out evals |
 | `arsenal.md` | Before building any component, interaction or effect: search Arsenal, reuse, or build and register it |
 | `design-variants.md` | Adding a selectable design (design N) to a product that already has one |
+| `recipes/README.md` | Before writing an effect by hand: six tested, tiered recipes (spring-states, cursor-light, magnetic-target, scroll-reveal, route-transition, flow-hero), the quality runtime they share, and framework adapters. Seen together in `demos/experience/` |
 
 ## Techniques
 
@@ -45,6 +46,9 @@ listeners), **medium** (per-frame JS or a library), **high** (WebGL, video, cont
 | Animated illustrations | `techniques/animated-illustrations.md` | low–medium | create-visuals |
 | Environmental lighting | `techniques/environmental-lighting.md` | medium–high | build-3d |
 | Responsive scene transitions | `techniques/scene-transitions.md` | medium | build-animation, build-3d |
+
+Techniques marked with a **Ready-made recipe** line have a working implementation in
+`recipes/`; use it before writing the effect from the description.
 
 Rules that hold for every technique:
 

@@ -3,6 +3,9 @@
 Elements enter, transform and hand off to each other as the user scrolls, telling a story in
 sequence. Scroll drives progress; the user stays in control.
 
+**Ready-made recipe:** `../recipes/scroll-reveal/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Landing pages, launches, editorial features, explainers (Persuade and Read surfaces).

@@ -3,6 +3,9 @@
 A fragment shader bends an image, video or text: ripples on hover, liquid displacement,
 noise warps, RGB split on transition. The GPU does the work per pixel.
 
+**Ready-made recipe:** `../recipes/flow-hero/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Portfolio, agency, art, music and brand pages where one striking media moment carries the

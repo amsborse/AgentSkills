@@ -3,6 +3,9 @@
 Moving between pages, routes, steps or full-screen scenes with one continuous movement that
 tells the user where they went, and adapts to screen size and input.
 
+**Ready-made recipe:** `../recipes/route-transition/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Route changes, multi-step flows, galleries opening to detail, slide-based storytelling,

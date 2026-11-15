@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Signal · service health (demo)</title>
+<link rel="stylesheet" href="../../shared/creative/recipes/spring-states/recipe.css">
+<link rel="stylesheet" href="../../shared/creative/recipes/route-transition/recipe.css">
+<style>
+  /* Signal: an Operate surface. Dense, flat, lines instead of shadows, sharp corners,
+     mono numerals. Intensity 1: state changes only. Nothing draws while the page is at rest. */
+  @view-transition { navigation: none; } /* single page: only ExperienceRoute.transition() animates */
+  :root {
+    --bg: #0a0e13; --bg-2: #0e141b; --surface: #111922; --line: #223142; --line-2: #2d4057;
+    --ink: #e7eef5; --muted: #a3b3c4; --accent: #62c6ff;
+    --ok: #4fca8f; --warn: #f2b632; --down: #ff7373; --idle: #33465c;
+    --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", "SF Mono", ui-monospace, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #eef1f5; --bg-2: #e6eaf0; --surface: #ffffff; --line: #d3dae3; --line-2: #b9c3d0;
+      --ink: #0e1620; --muted: #455466; --accent: #0a5fb4;
+      --ok: #157347; --warn: #8a5a00; --down: #c0282d; --idle: #c9d2dc;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; color: var(--ink); font: 14px/1.45 var(--sans);
+    background: linear-gradient(180deg, var(--bg-2), var(--bg) 320px) no-repeat, var(--bg);
+    min-height: 100vh;
+  }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .bar {
+    display: flex; align-items: center; gap: 16px; padding: 10px 20px;
+    border-bottom: 1px solid var(--line); background: var(--surface);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: .02em; }
+  .brand svg { display: block; }
+  .env { font: 12px var(--mono); padding: 2px 8px; border: 1px solid var(--line-2); color: var(--muted); }
+  .bar .spacer { flex: 1; }
+  .bar a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .bar a:hover { color: var(--ink); text-decoration: underline; }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 20px; font-weight: 650; margin: 0; letter-spacing: -.005em; }
+  .head { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 24px; margin-bottom: 14px; }
+  .head p { margin: 2px 0 0; color: var(--muted); }
+  .tally { display: flex; gap: 0; margin-left: auto; border: 1px solid var(--line); background: var(--surface); }
+  .tally div { padding: 8px 16px; border-left: 1px solid var(--line); min-width: 92px; }
+  .tally div:first-child { border-left: 0; }
+  .tally b { display: block; font: 600 20px/1.1 var(--mono); }
+  .tally span { font-size: 12px; color: var(--muted); }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding: 10px 0; }
+  .tools label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+  .spring-toggle { --spring-toggle-line: var(--line-2); --spring-toggle-on: var(--accent); --spring-toggle-thumb-on: var(--bg); color: var(--muted); }
+  .link { background: none; border: 0; padding: 4px 0; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .link:hover { color: var(--ink); }
+  .legend { margin: 0; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; margin-bottom: 10px; }
+  .legend div { display: flex; gap: 10px; align-items: baseline; }
+  .legend dt { min-width: 96px; font-weight: 600; }
+  .legend dd { margin: 0; color: var(--muted); }
+  .state { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; white-space: nowrap; }
+  .state i { width: 9px; height: 9px; flex: none; background: var(--c); }
+  .state[data-s="ok"] { --c: var(--ok); } .state[data-s="warn"] { --c: var(--warn); } .state[data-s="down"] { --c: var(--down); }
+  .state[data-s="warn"] i { transform: rotate(45deg); } .state[data-s="down"] i { border-radius: 50%; } /* shape as well as colour */
+  .state { color: var(--c); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; background: var(--bg-2); }
+  td.r, th.r { text-align: right; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .open { background: none; border: 0; padding: 2px 0; cursor: pointer; font-weight: 600; text-align: left; }
+  .open:hover { color: var(--accent); }
+  .open:hover .name { text-decoration: underline; text-underline-offset: 3px; }
+  .name { display: inline-block; }
+  .team { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+  .ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; width: 100%; min-width: 150px; max-width: 240px; height: 18px; }
+  .ribbon i { background: var(--idle); }
+  .ribbon i[data-s="ok"] { background: var(--ok); } .ribbon i[data-s="warn"] { background: var(--warn); height: 70%; align-self: end; } .ribbon i[data-s="down"] { background: var(--down); height: 40%; align-self: end; }
+  .empty { padding: 28px; text-align: center; color: var(--muted); background: var(--surface); border: 1px solid var(--line); }
+  /* Detail */
+  .back { background: var(--surface); border: 1px solid var(--line-2); padding: 6px 12px; cursor: pointer; margin-bottom: 14px; }
+  .detail-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 14px; }
+  .detail-head h2 { font-size: 26px; font-weight: 650; margin: 0; letter-spacing: -.01em; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--surface); }
+  .grid div { padding: 12px 14px; border-left: 1px solid var(--line); }
+  .grid div:first-child { border-left: 0; }
+  .grid b { display: block; font: 600 22px/1.2 var(--mono); }
+  .grid span { font-size: 12px; color: var(--muted); }
+  .chart { margin-top: 12px; border: 1px solid var(--line); background: var(--surface); padding: 14px; }
+  .chart h3, .log h3 { margin: 0 0 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .chart svg { display: block; width: 100%; height: 180px; overflow: visible; }
+  .chart .axis { stroke: var(--line); } .chart .line { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .chart .fill { fill: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .chart .lab { display: flex; justify-content: space-between; font: 12px var(--mono); color: var(--muted); margin-top: 6px; }
+  .log { margin-top: 12px; border: 1px solid var(--line); background: var(--surface); padding: 14px; }
+  .log ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .log li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; }
+  .log time { font: 13px var(--mono); color: var(--muted); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 16px; }
+  @media (max-width: 760px) {
+    main { padding: 14px; }
+    .tally { margin-left: 0; width: 100%; } .tally div { flex: 1; min-width: 0; padding: 8px 10px; }
+    .hide-s { display: none; }
+    th, td { padding: 10px 8px; }
+    th:first-child, td:first-child { padding-left: 12px; }
+    .ribbon { min-width: 48px; gap: 1px; }
+    .bar { flex-wrap: wrap; gap: 8px 12px; padding: 10px 14px; }
+    .name { font-size: 13px; letter-spacing: -.02em; } .num { white-space: nowrap; font-size: 13px; }
+    .state { font-size: 13px; }
+    .grid { grid-template-columns: repeat(2, 1fr); } .grid div:nth-child(3) { border-left: 0; } .grid div:nth-child(n+3) { border-top: 1px solid var(--line); }
+    .open, .back, .link { min-height: 44px; }
+    .bar a { display: inline-flex; align-items: center; min-height: 44px; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <span class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M1 12h4l2.5-8 4 15 3-10 1.5 3H21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="square"/></svg>
+    Signal
+  </span>
+  <span class="env">production · sample data</span>
+  <span class="spacer"></span>
+  <a href="index.html">All demos</a>
+</header>
+
+<main>
+  <section id="list" aria-labelledby="t">
+    <div class="head">
+      <div>
+        <h1 id="t">Service health</h1>
+        <p>Last 24 hours, one bar per hour. Select a service for detail.</p>
+      </div>
+      <div class="tally" aria-label="Services by state">
+        <div title="Services answering within their latency and error targets"><b class="num" id="n-ok">–</b><span>Healthy</span></div>
+        <div title="Services answering, but outside a latency or error target"><b class="num" id="n-warn">–</b><span>Degraded</span></div>
+        <div title="Services failing their health check"><b class="num" id="n-down">–</b><span>Down</span></div>
+      </div>
+    </div>
+    <div class="tools">
+      <label><input type="checkbox" class="spring-toggle" id="only"> Only services needing attention</label>
+      <button class="link" id="legend-btn" aria-expanded="false" aria-controls="legend">What the states mean</button>
+    </div>
+    <div class="spring-disclose" id="legend" data-open="false">
+      <div>
+        <dl class="legend">
+          <div><dt><span class="state" data-s="ok"><i></i>Healthy</span></dt><dd>Inside both targets: p95 latency and error rate.</dd></div>
+          <div><dt><span class="state" data-s="warn"><i></i>Degraded</span></dt><dd>Answering, but one target is being missed.</dd></div>
+          <div><dt><span class="state" data-s="down"><i></i>Down</span></dt><dd>Health check failing. Someone is paged.</dd></div>
+        </dl>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th scope="col">Service</th><th scope="col">State</th>
+        <th scope="col" class="r" title="95 of every 100 requests finish faster than this">p95</th>
+        <th scope="col" class="r hide-s" title="Share of requests that returned an error in the last hour">Errors</th>
+        <th scope="col">24 h</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="empty" id="empty" hidden>Nothing needs attention.</p>
+    <p class="note">Sample data generated in the page. No requests are made and nothing animates while the page is at rest.</p>
+  </section>
+
+  <section id="detail" hidden aria-labelledby="d-name">
+    <button class="back spring-press" id="back">← All services <span class="num" aria-hidden="true">Esc</span></button>
+    <div class="detail-head">
+      <h2 id="d-name" tabindex="-1"></h2>
+      <span class="state" id="d-state"><i></i><span></span></span>
+      <span class="env" id="d-team"></span>
+    </div>
+    <div class="grid">
+      <div title="95 of every 100 requests finish faster than this"><b id="d-p95"></b><span>p95 latency now</span></div>
+      <div title="Slowest hourly p95 in the last 24 hours"><b id="d-peak"></b><span>24 h peak</span></div>
+      <div title="Share of requests that returned an error in the last hour"><b id="d-err"></b><span>Error rate</span></div>
+      <div title="Hours in the last 24 spent in the healthy state"><b id="d-up"></b><span>Healthy hours</span></div>
+    </div>
+    <div class="chart">
+      <h3 id="c-title">p95 latency, last 24 hours</h3>
+      <svg id="chart" viewBox="0 0 240 100" preserveAspectRatio="none" role="img" aria-labelledby="c-title c-desc"><desc id="c-desc"></desc></svg>
+      <div class="lab"><span>24 h ago</span><span>12 h</span><span>now</span></div>
+    </div>
+    <div class="log"><h3>Timeline</h3><ol id="d-log"></ol></div>
+  </section>
+</main>
+
+<!-- The page script runs before the two library files are fetched, so the rows are in the first
+     paint and nothing moves when they arrive (the libraries are only needed once you interact). -->
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // Deterministic sample data: a small seeded generator, so screenshots are repeatable.
+  function rng(seed) { return function () { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
+  var defs = [
+    ['checkout-api', 'Payments', 180, 'warn', 17], ['identity', 'Platform', 62, 'ok', 3], ['search', 'Discovery', 95, 'ok', 5],
+    ['media-resize', 'Content', 410, 'down', 21], ['notifications', 'Growth', 140, 'ok', 8], ['catalog', 'Discovery', 75, 'ok', 11],
+    ['ledger', 'Payments', 120, 'ok', 13], ['webhooks', 'Platform', 230, 'warn', 19], ['recommendations', 'Discovery', 160, 'ok', 23],
+    ['exports', 'Content', 300, 'ok', 29]
+  ];
+  var services = defs.map(function (d) {
+    var r = rng(d[4] * 7919), hours = [], lat = [];
+    for (var h = 0; h < 24; h++) {
+      var s = 'ok', bump = 1;
+      if (d[3] !== 'ok' && h >= 20) { s = d[3] === 'down' && h >= 22 ? 'down' : 'warn'; bump = s === 'down' ? 3.2 : 1.9; }
+      else if (r() > 0.94) { s = 'warn'; bump = 1.6; }
+      hours.push(s);
+      lat.push(Math.round(d[2] * bump * (0.85 + r() * 0.3)));
+    }
+    return { id: d[0], team: d[1], state: d[3], hours: hours, lat: lat,
+      err: d[3] === 'down' ? 38.2 : d[3] === 'warn' ? +(1.2 + r() * 2).toFixed(1) : +(r() * 0.3).toFixed(2) };
+  });
+  var WORD = { ok: 'Healthy', warn: 'Degraded', down: 'Down' };
+  var rows = $('rows'), list = $('list'), detail = $('detail'), current = null;
+
+  function el(tag, attrs, text) {
+    var n = document.createElement(tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function stateEl(s) { var w = el('span', { class: 'state', 'data-s': s }); w.appendChild(el('i')); w.appendChild(document.createTextNode(WORD[s])); return w; }
+
+  function render() {
+    var only = $('only').checked, shown = 0;
+    rows.textContent = '';
+    services.forEach(function (s) {
+      if (only && s.state === 'ok') return;
+      shown++;
+      var tr = el('tr'), th = el('th', { scope: 'row' });
+      th.style.cssText = 'text-transform:none;letter-spacing:0;background:none;font-size:14px;color:inherit';
+      var b = el('button', { class: 'open', 'data-id': s.id });
+      b.appendChild(el('span', { class: 'name num' }, s.id));
+      b.appendChild(el('span', { class: 'team' }, s.team));
+      th.appendChild(b); tr.appendChild(th);
+      var td = el('td'); td.appendChild(stateEl(s.state)); tr.appendChild(td);
+      tr.appendChild(el('td', { class: 'r num' }, s.lat[23] + ' ms'));
+      tr.appendChild(el('td', { class: 'r num hide-s' }, s.err + '%'));
+      var rib = el('div', { class: 'ribbon', role: 'img', 'aria-label': s.hours.filter(function (h) { return h === 'ok'; }).length + ' of 24 hours healthy' });
+      s.hours.forEach(function (h) { rib.appendChild(el('i', { 'data-s': h })); });
+      td = el('td'); td.appendChild(rib); tr.appendChild(td);
+      rows.appendChild(tr);
+    });
+    $('empty').hidden = shown > 0;
+    rows.parentNode.hidden = shown === 0;
+  }
+  ['ok', 'warn', 'down'].forEach(function (k) { $('n-' + k).textContent = services.filter(function (s) { return s.state === k; }).length; });
+
+  function fill(s) {
+    $('d-name').textContent = s.id; $('d-name').className = 'num';
+    var st = $('d-state'); st.dataset.s = s.state; st.lastElementChild.textContent = WORD[s.state];
+    $('d-team').textContent = s.team;
+    var max = Math.max.apply(null, s.lat), min = Math.min.apply(null, s.lat);
+    $('d-p95').textContent = s.lat[23] + ' ms'; $('d-peak').textContent = max + ' ms'; $('d-err').textContent = s.err + '%';
+    $('d-up').textContent = s.hours.filter(function (h) { return h === 'ok'; }).length + ' / 24';
+    var top = max * 1.1, pts = s.lat.map(function (v, i) { return (i * 240 / 23).toFixed(1) + ',' + (100 - v / top * 100).toFixed(1); });
+    var svg = $('chart'), NS = 'http://www.w3.org/2000/svg';
+    Array.prototype.slice.call(svg.querySelectorAll(':not(desc)')).forEach(function (n) { n.remove(); });
+    [25, 50, 75].forEach(function (y) { var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'axis'); l.setAttribute('x1', 0); l.setAttribute('x2', 240); l.setAttribute('y1', y); l.setAttribute('y2', y); svg.appendChild(l); });
+    var a = document.createElementNS(NS, 'polygon'); a.setAttribute('class', 'fill'); a.setAttribute('points', '0,100 ' + pts.join(' ') + ' 240,100'); svg.appendChild(a);
+    var p = document.createElementNS(NS, 'polyline'); p.setAttribute('class', 'line'); p.setAttribute('points', pts.join(' ')); svg.appendChild(p);
+    $('c-desc').textContent = 'Between ' + min + ' and ' + max + ' milliseconds; ' + s.lat[23] + ' now.';
+    var log = $('d-log'); log.textContent = '';
+    var first = s.hours.findIndex(function (h, i) { return i >= 20 && h !== 'ok'; });
+    var items = s.state === 'ok' ? [['now', 'Inside both targets.']] :
+      [[(24 - first) + ' h ago', 'p95 latency crossed its target.'],
+       s.state === 'down' ? ['2 h ago', 'Health check started failing. On-call paged.'] : ['1 h ago', 'Error rate above target.'],
+       ['now', WORD[s.state] + '.']];
+    items.forEach(function (it) { var li = el('li'); li.appendChild(el('time', {}, it[0])); li.appendChild(el('span', {}, it[1])); log.appendChild(li); });
+  }
+
+  function show(id, animate) {
+    var s = services.find(function (x) { return x.id === id; });
+    if (!s) return Promise.resolve();
+    var from = rows.querySelector('[data-id="' + id + '"] .name');
+    var update = function () { fill(s); list.hidden = true; detail.hidden = false; current = id; };
+    var done = function () { history.replaceState(null, '', '#' + id); $('d-name').focus({ preventScroll: true }); window.scrollTo(0, 0); };
+    if (!animate || !from) { update(); done(); return Promise.resolve(); }
+    return ExperienceRoute.transition(update, { shared: [{ from: from, to: function () { return $('d-name'); }, name: 'service-name' }] }).then(done);
+  }
+  function back() {
+    if (!current) return;
+    var id = current;
+    ExperienceRoute.transition(function () { detail.hidden = true; list.hidden = false; current = null; render(); }, {
+      shared: [{ from: $('d-name'), to: function () { return rows.querySelector('[data-id="' + id + '"] .name'); }, name: 'service-name' }]
+    }).then(function () {
+      history.replaceState(null, '', location.pathname + location.search);
+      var b = rows.querySelector('[data-id="' + id + '"]'); if (b) b.focus();
+    });
+  }
+
+  rows.addEventListener('click', function (e) { var b = e.target.closest('.open'); if (b) show(b.dataset.id, true); });
+  $('back').addEventListener('click', back);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') back(); });
+  $('only').addEventListener('change', render);
+  $('legend-btn').addEventListener('click', function () {
+    var open = $('legend').dataset.open !== 'true';
+    $('legend').dataset.open = open; this.setAttribute('aria-expanded', open);
+  });
+  render();
+  if (location.hash.length > 1) show(decodeURIComponent(location.hash.slice(1)), false);
+})();
+</script>
+<script src="../../shared/creative/recipes/_runtime/quality.js"></script>
+<script src="../../shared/creative/recipes/route-transition/recipe.js"></script>
+<script>ExperienceQuality.shared(); // applies ?quality= and reduced motion to <html data-quality></script>
+</body>
+</html>

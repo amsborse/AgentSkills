@@ -3,6 +3,9 @@
 A soft highlight, border glow or spotlight follows the pointer across a surface or a grid of
 cards, revealing material and inviting exploration.
 
+**Ready-made recipe:** `../recipes/cursor-light/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Card grids, feature sections or hero surfaces where the light hints at interactivity.

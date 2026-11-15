@@ -272,9 +272,11 @@
       if (el && w.IntersectionObserver) {
         inView = false;
         io = new w.IntersectionObserver(function (entries) {
+          // The default -1px margin matters: an element whose edge only touches the viewport edge
+          // counts as intersecting at 0px, and nothing may draw with nothing on screen.
           inView = entries[entries.length - 1].isIntersecting;
           refresh();
-        }, { rootMargin: o.rootMargin || '100px' });
+        }, { rootMargin: o.rootMargin || '-1px' });
         io.observe(el);
       }
       if (destroyed) handle.stop(); else refresh();

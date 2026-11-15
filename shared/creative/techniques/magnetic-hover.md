@@ -3,6 +3,9 @@
 An element (usually a primary button or icon link) drifts a few pixels toward the pointer when
 the pointer is near, and springs back on leave.
 
+**Ready-made recipe:** `../recipes/magnetic-target/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - One or two hero calls to action on a Persuade surface, or playful products.

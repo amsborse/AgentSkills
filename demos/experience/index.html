@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Experience demos</title>
+<link rel="stylesheet" href="../../shared/creative/recipes/spring-states/recipe.css">
+<style>
+  /* The index stays neutral on purpose: the three demos carry the character, not this page. */
+  :root { --bg: #f6f6f4; --surface: #fff; --ink: #16171a; --muted: #50545c; --line: #dcdcd6; --shadow: 0 1px 2px #0000000f, 0 12px 28px -18px #00000040; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #101113; --surface: #17191c; --ink: #eef0f2; --muted: #a9afb8; --line: #2a2d32; --shadow: none; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 1rem/1.55 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: clamp(32px, 8vh, 88px) 24px 64px; }
+  h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.05; letter-spacing: -.02em; margin: 0 0 12px; font-weight: 650; }
+  .lede { color: var(--muted); max-width: 44em; margin: 0 0 36px; font-size: 1.125rem; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  a.demo { display: grid; grid-template-rows: 150px auto; border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); color: inherit; text-decoration: none; }
+  a.demo:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .sw { display: grid; place-items: center; }
+  .sw.signal { background: #0a0e13; color: #62c6ff; font: 600 15px "Cascadia Mono", Consolas, ui-monospace, monospace; }
+  .sw.notes { background: #f5eee1; color: #963a20; font: italic 500 30px "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
+  .sw.lantern { background: radial-gradient(120% 90% at 12% 8%, #4b2a8f, transparent 62%), radial-gradient(95% 85% at 88% 92%, #ff8a3d, transparent 66%), #0c0a1a; color: #fff; font: 600 34px Bahnschrift, "Arial Narrow", sans-serif; font-stretch: 75%; letter-spacing: .12em; text-transform: uppercase; }
+  .txt { padding: 18px 20px 22px; }
+  .txt small { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .txt b { display: block; font-size: 1.25rem; margin: 6px 0 6px; }
+  .txt span { color: var(--muted); font-size: .9375rem; }
+  a.demo:hover b { text-decoration: underline; text-underline-offset: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 44px; font-size: .9375rem; }
+  caption { text-align: left; font-weight: 650; font-size: 1.125rem; padding-bottom: 10px; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  p.foot { color: var(--muted); font-size: .9375rem; margin-top: 28px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } table { min-width: 640px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Experience demos</h1>
+  <p class="lede">Three products built from the same recipes and the same quality runtime, each made to look and behave like itself. Add <code>?quality=static</code> (or <code>low</code>, <code>balanced</code>, <code>high</code>, <code>ultra</code>) to any of them to hold a tier.</p>
+  <div class="grid">
+    <a class="demo spring-press" href="signal.html"><div class="sw signal" aria-hidden="true">▂▅▂▇▃ signal</div><div class="txt"><small>Operate</small><b>Signal</b><span>A service health console. Dense, flat, mono. Motion only when a view changes.</span></div></a>
+    <a class="demo spring-press" href="field-notes.html"><div class="sw notes" aria-hidden="true">Field Notes</div><div class="txt"><small>Read</small><b>Field Notes</b><span>A long essay on warm paper. Reading progress and figures that arrive as you reach them.</span></div></a>
+    <a class="demo spring-press" href="lantern.html"><div class="sw lantern" aria-hidden="true">Lantern</div><div class="txt"><small>Persuade</small><b>Lantern</b><span>A landing page with a living sky you can move from dusk to dawn.</span></div></a>
+  </div>
+  <div class="scroll">
+  <table>
+    <caption>How they differ</caption>
+    <thead><tr><th scope="col"></th><th scope="col">Signal</th><th scope="col">Field Notes</th><th scope="col">Lantern</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Type</th><td>Grotesque and mono</td><td>Old-style serif</td><td>Condensed display</td></tr>
+      <tr><th scope="row">Colour</th><td>Cool slate, blue accent, status colours with a legend</td><td>Warm paper, oxblood accent</td><td>Violet night, ember accent</td></tr>
+      <tr><th scope="row">Density and shape</th><td>Dense, sharp, lines</td><td>Airy, soft, shadows</td><td>Balanced, round, glow</td></tr>
+      <tr><th scope="row">Recipes</th><td>spring-states, route-transition</td><td>scroll-reveal, spring-states, cursor-light</td><td>flow-hero, magnetic-target, cursor-light, scroll-reveal</td></tr>
+      <tr><th scope="row">Interaction</th><td>Row opens to detail and back (Enter, Esc)</td><td>Footnotes open in place</td><td>A slider moves the evening</td></tr>
+      <tr><th scope="row">Cost at rest</th><td>No frames</td><td>No script frames; scroll effects run in CSS</td><td>One shader, tiered; a still gradient on static and reduced motion</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="foot">All content is sample data written for these pages. Measured numbers and screenshots: <code>demos/experience/README.md</code>.</p>
+</main>
+</body>
+</html>

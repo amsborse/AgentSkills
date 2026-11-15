@@ -3,6 +3,9 @@
 Presses, toggles, drops and selections respond with a short spring (a small overshoot and
 settle) so the interface feels physical and confirms the action.
 
+**Ready-made recipe:** `../recipes/spring-states/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Buttons, toggles, chips, likes, add-to-cart, drag drops: moments that confirm an action.

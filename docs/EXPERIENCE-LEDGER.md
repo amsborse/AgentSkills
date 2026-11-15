@@ -73,16 +73,44 @@ Nothing is pushed. Decisions: `EXPERIENCE-DECISION-QUEUE.md`.
   Full suite 226 pass, 0 fail, 0 skipped.
 - Not validated: the composer has not been run end to end by an agent on a real product; that
   is exercised partly by the Stage 4 demos and otherwise remains open.
-## Stage 4: demos and integration — pending
+
+## Stage 4: demos and integration — done
+
+- Three demos in `demos/experience/` plus an index: **Signal** (service console: dense, mono,
+  spring-states + route-transition), **Field Notes** (essay on warm paper: scroll-reveal,
+  spring-states, cursor-light) and **Lantern** (landing page with a tiered shader sky:
+  flow-hero, magnetic-target, cursor-light, scroll-reveal). A test asserts they share no
+  typeface, background or accent.
+- Evidence: `demos/experience/README.md` (per-tier bench table, method, limits) and
+  `demos/experience/screenshots/` (12 real captures: desktop and phone, light and dark).
+- Bench (lab, headless Chromium 153, SwiftShader software renderer, 1440×900, 3 runs, medians):
+  Signal and Field Notes LCP 92–124 ms, CLS 0, no long tasks, 16.7 ms frames on every tier,
+  about 40 KB transferred. Lantern: static 16.7 ms p50; low 16.7 / 33.3 p95; balanced 33.3;
+  high 50.0; ultra 66.7 (p95 83.4), 53.1 KB. Automatic: high → balanced at about 4.2 s → low at
+  about 7.8 s. INP not measured.
+- `audit-design` passes on all three (both sizes, both themes): 0 blocker, major or minor.
+- Defects found by the demos and fixed, each with a regression test that failed first:
+  - `_runtime/quality.js` `loop()`: the observer's default margin was 100px, so a canvas kept
+    drawing just off screen, and at exactly 0px an edge-touching element still counts as
+    intersecting. Default is now `-1px`.
+  - Signal painted its table empty on a slow processor and shifted when rows arrived (CLS
+    0.023). The page script now runs before the library files are fetched; CLS 0.
+- Catalog integration: `shared/creative/README.md` and `selector.md` point to the recipes; nine
+  technique pages carry a "Ready-made recipe" line; `recipes/README.md` points to the demos.
+- Tests: `tests/experience-demos.test.mjs` (10, real browser). Full suite 236 pass, 0 fail.
+- Not validated: real GPUs and phones, Safari, Firefox, INP, throttled network; the demos are
+  plain HTML, so framework wrappers remain documented patterns only.
 ## Stage 5: validation and review — pending
 
 ## Commits
 
 - db4f1f4 Stage 1: foundation and experience bench
 - 3b98214 Stage 2: adaptive quality runtime and six recipes
+- f12f8aa Stage 3: experience composer skill and three-direction explore workflow
+- Stage 4: experience demos, catalog integration, two runtime fixes (this commit)
 
 ## Codex findings
 
 ## Remaining work
 
-Stages 3–5.
+Stage 5: full validation, discovery failures (D-002), independent Codex review, final report.

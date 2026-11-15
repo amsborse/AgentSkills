@@ -26,6 +26,10 @@ Each recipe folder has a `recipe.md` (use, API, tiers, accessibility, verificati
 `demo.html` that opens straight from disk. Add `?quality=static|low|balanced|high|ultra` to a
 demo URL to pin a tier.
 
+To see the recipes combined in real pages with three different characters (a console, an essay
+and a landing page), open `demos/experience/index.html`; its `README.md` has screenshots and
+per-tier measurements.
+
 ## The contract every recipe keeps
 
 1. **Still first.** The page is complete and readable before any script runs and if every script

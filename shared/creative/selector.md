@@ -50,6 +50,12 @@ tags in production, and any library whose license has not been checked.
 | 2D particles | Canvas 2D | PixiJS |
 | 3D scene, models | R3F (React) / three.js | none |
 
+Six of these needs already have a tested first-choice implementation with no dependency:
+`recipes/spring-states` (press, focus), `recipes/cursor-light` and `recipes/magnetic-target`
+(pointer tracking), `recipes/scroll-reveal` (scroll reveal, progress), `recipes/route-transition`
+(page or route transition) and `recipes/flow-hero` (a tiered shader background). Check
+`recipes/README.md` before reaching for a library.
+
 ## Before installing
 
 - Check the license and last release in the package registry; record it in the PR.

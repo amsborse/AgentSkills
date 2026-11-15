@@ -3,6 +3,9 @@
 Images and video enter with a purposeful reveal (mask wipe, scale settle, blur-to-sharp) and
 video starts only when seen.
 
+**Ready-made recipe:** `../recipes/scroll-reveal/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Galleries, product media, editorial images, case studies, hero video.

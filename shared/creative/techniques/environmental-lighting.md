@@ -3,6 +3,9 @@
 The page has a light environment: soft pools of light, ambient gradients, shadows that agree
 on a light direction, glow that responds to time, scroll or the active section.
 
+**Ready-made recipe:** `../recipes/flow-hero/` (tiered, tested, with a demo). Start from it and adapt; see
+`../recipes/README.md` for the contract and `demos/experience/` for it in a real page.
+
 ## Use when
 
 - Dark themes that should feel deep and layered instead of flat; product heroes; immersive
