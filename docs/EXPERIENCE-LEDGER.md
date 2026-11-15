@@ -100,17 +100,47 @@ Nothing is pushed. Decisions: `EXPERIENCE-DECISION-QUEUE.md`.
 - Tests: `tests/experience-demos.test.mjs` (10, real browser). Full suite 236 pass, 0 fail.
 - Not validated: real GPUs and phones, Safari, Firefox, INP, throttled network; the demos are
   plain HTML, so framework wrappers remain documented patterns only.
-## Stage 5: validation and review — pending
+## Stage 5: validation and review: done
+
+- Full suite with a real browser (`PLAYWRIGHT_PROJECT` set): 243 pass, 0 fail, 0 skipped.
+- `node scripts/validate.mjs` from this worktree: all checks passed, exit 0, with two warnings
+  that are true until the branch is merged: installation is checked against the primary
+  checkout, and `experience` cannot be installed from a worktree. Description budget 15,385 of
+  16,000 characters. Before the fixes below the same run had 6 failures.
+- Fixed: `skills/experience/SKILL.md` pointed at a workflow file that lives in another skill.
+- Fixed (D-002): the OpenCode and Cursor discovery failures came from running validate in a
+  worktree; the check is now worktree-aware and still fails a missing link.
+- Fixed (D-004): the `web-vitals` path could never activate; now verified against 6.2.3.
+- Independent Codex review (read-only, `codex-bridge review --base main`, one call): five
+  findings, all confirmed, all fixed with a test that failed first. See "Codex findings".
+- Not re-measured after the runtime fix: the bench numbers in `demos/experience/README.md`
+  (the change only affects pages whose long frame gaps recur; the demo tests still pass).
+- Not validated: real GPUs and phones, Safari, Firefox, INP in the demos, throttled network.
 
 ## Commits
 
 - db4f1f4 Stage 1: foundation and experience bench
 - 3b98214 Stage 2: adaptive quality runtime and six recipes
 - f12f8aa Stage 3: experience composer skill and three-direction explore workflow
-- Stage 4: experience demos, catalog integration, two runtime fixes (this commit)
+- Stage 4: experience demos, catalog integration, two runtime fixes (d9c8cca)
+- aa79d88 Stage 5: validation, discovery and web-vitals fixes, Codex review fixes
 
 ## Codex findings
 
+1. P1, bench: a budgeted metric that was not measured passed with exit 0 and could become a
+   baseline. Now incomplete (exit 2) for a project budget file; the built-in budget lists the
+   gap (D-007).
+2. P2, bench: page weight was a partial sum when a request could not be sized. Now unknown.
+3. P2, bench: built-in INP ranked only the interactions of 16 ms or more. Now ranked against
+   the page's interaction count, unknown when the ranked one was below the threshold.
+4. P2, quality runtime: long gaps alternating with normal frames never stepped down and could
+   be promoted. Recurring long gaps in a window now count as slow frames; an isolated pause is
+   still a pause.
+5. P2, flow-hero: a failed WebGL set-up left the frame loop running for ever. It now stops, and
+   the runtime honours a loop stopped from its own set-up.
+
 ## Remaining work
 
-Stage 5: full validation, discovery failures (D-002), independent Codex review, final report.
+Nothing in Phase 2. For the owner: merge `feat/experience-engineering` (not pushed), then run
+the installer so `experience` is discoverable; re-run the bench on a real GPU with `--headed`
+and an interaction script before quoting frame or INP numbers.
