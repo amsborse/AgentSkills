@@ -128,5 +128,8 @@ cleaner shell, fixed vendor apps.
 
 ## Next step
 
+Third-party skills that help build or sell these (PR iteration, threat modelling, pricing,
+launch, copy) are copied, not installed, in `vendor/`; see `vendor/README.md`.
+
 Pick one of 1 or 2, write a brief with `build-feature` (buyer, smallest version, how to verify
 it), and build the first version as a new skill folder under `skills/`.
