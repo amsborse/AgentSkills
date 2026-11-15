@@ -1,6 +1,6 @@
 ---
 name: manage-skills
-description: Manage this skill catalog — find which skill fits a request, create or update a skill, vet and adopt a third-party skill, reinstall or repair skill discovery for Claude, Codex and other agents, and learn new rules from past agent conversations (history-learning). Use for "which skill should I use", "add a skill", "update my skills", "install skills", "learn from my history" or when a skill seems missing or broken.
+description: Manage this skill catalog — find which skill fits a request, create or update a skill, vet and adopt a third-party skill, reinstall or repair skill discovery for any agent, and learn new rules from past agent conversations (history-learning). Use for "which skill should I use", "add a skill", "update my skills", "install skills", "learn from my history" or when a skill seems missing or broken.
 metadata:
   aliases: "manage skills, which skill, add a skill, create a skill, update my skills, install skills, learn from history, learn from my conversations, skill router"
   keywords: "skill, skills, catalog, registry, router, install, discovery, history, learning, vendor, adopt"

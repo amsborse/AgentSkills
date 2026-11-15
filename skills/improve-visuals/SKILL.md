@@ -2,7 +2,7 @@
 name: improve-visuals
 description: Make an existing UI look better in rounds, judged blind on real screenshots, not on speed. Use for "improve the visuals" or "make it look better".
 metadata:
-  aliases: "improve visuals, improve the visuals, look better, make it look better, make it prettier, better visuals, visual improvements, raise the visual quality, improve the design"
+  aliases: "improve visuals, improve-visuals explore, improve the visuals, look better, make it look better, make it prettier, better visuals, visual improvements, raise the visual quality, improve the design"
   keywords: "visual, visuals, look, beautiful, prettier, design, aesthetic, polish, typography, hierarchy, depth, craft, judge, rounds, screenshots"
   composes: "audit-design, revamp-ui, build-animation, add-interactions, create-visuals, review-changes, verify"
   requires: "browser, playwright"
@@ -29,6 +29,13 @@ fit it rather than a house style.
 Before building a component, interaction or effect, search Arsenal and reuse what fits; register
 what you build there (`~/agent-skills/shared/creative/arsenal.md`). Extra selectable designs
 follow `~/agent-skills/shared/creative/design-variants.md`.
+
+## Explore (optional first round)
+
+When the direction itself is in doubt, or the request is `improve-visuals explore` or
+`/experience experiment`, run `workflows/explore.md` first: three prototypes forced apart on
+named axes, judged blind and pairwise against the current design, then stop for the owner's
+choice. Skip it when the direction is liked; the rounds below keep the direction.
 
 ## 0. Scope and keep-list
 

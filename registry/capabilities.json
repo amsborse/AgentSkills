@@ -10,6 +10,7 @@
         "build-animation",
         "build-ui",
         "create-visuals",
+        "experience",
         "improve-visuals",
         "replicate-design",
         "revamp-ui"
@@ -34,6 +35,7 @@
         "build-animation",
         "build-ui",
         "coordinate-agents",
+        "experience",
         "night",
         "revamp-ui",
         "review-code",
@@ -87,7 +89,9 @@
         "audit-design",
         "improve-visuals"
       ],
-      "optionalFor": []
+      "optionalFor": [
+        "experience"
+      ]
     },
     "scheduler": {
       "requiredBy": [],

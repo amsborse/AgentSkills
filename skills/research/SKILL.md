@@ -1,6 +1,6 @@
 ---
 name: research
-description: Research a topic, technology, library or question in depth: plan sub-questions, gather primary sources, cross-check claims, run a contrarian pass, and deliver a cited synthesis with confidence levels and what stays unknown. Also covers comparing libraries or tools, evaluating a repo before adopting it, and checking data or experiment results. Scales from a quick answer to a multi-agent deep dive. Use for "research this topic deeply", "compare X and Y", "evaluate this library" or "what's the state of the art".
+description: Research a topic, technology, library or question in depth: plan sub-questions, gather primary sources, cross-check claims, run a contrarian pass, and deliver a cited synthesis with confidence levels and what stays unknown. Also covers comparing libraries or tools, evaluating a repo before adopting it, and checking data or experiment results. Scales from a quick answer to a deep dive. Use for "research this topic deeply", "compare X and Y", "evaluate this library" or "what's the state of the art".
 metadata:
   aliases: "research this, research this topic, deep research, deeply research, compare options, evaluate this library, evaluate this repo, state of the art, literature review"
   keywords: "research, sources, compare, evaluate, library, alternatives, benchmark, study, paper, investigate, data, experiment"

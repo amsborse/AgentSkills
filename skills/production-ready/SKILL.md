@@ -1,6 +1,6 @@
 ---
 name: production-ready
-description: Take a project from "works on my machine" to ready for real users: a readiness audit across security, tests, error handling and observability, performance, configuration and secrets, build and deploy, data safety and docs, then fix the gaps in priority order and prove each with evidence. Does not deploy or publish unless asked. Use for "make this project production ready", "prepare for launch", "harden this", "release readiness" or "is this ready to ship".
+description: Take a project from "works on my machine" to ready for real users: a readiness audit across security, tests, error handling and observability, performance, configuration and secrets, build and deploy, data safety and docs, then fix the gaps in priority order with evidence. Does not deploy or publish unless asked. Use for "make this project production ready", "prepare for launch", "harden this", "release readiness" or "is this ready to ship".
 metadata:
   aliases: "production ready, make this production ready, prepare for launch, harden this, release readiness, ready to ship, go live checklist"
   keywords: "production, launch, release, harden, readiness, observability, logging, monitoring, deploy, ci, rollback, backup, reliability"

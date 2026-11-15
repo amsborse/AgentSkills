@@ -1,6 +1,6 @@
 ---
 name: working-agreements
-description: The owner's standing rules for any coding agent, learned from their own repeated instructions and corrections across Claude Code, Codex, Cursor, OpenCode and Antigravity. Use at the start of any coding, debugging, UI or automation task in the owner's repositories; before reporting work as done or fixed; before any commit, push, merge, deploy or paid model call; when touching secrets, git state or another agent's work; during long autonomous or overnight runs; and for any UI, visual design or animation change. A repository's AGENTS.md and the current task's explicit instructions take precedence.
+description: The owner's standing rules for any coding agent, learned from their repeated instructions and corrections across coding agents. Use at the start of any coding, debugging, UI or automation task in the owner's repositories; before reporting work as done or fixed; before any commit, push, merge, deploy or paid model call; when touching secrets, git state or another agent's work; during long autonomous or overnight runs; and for any UI, visual design or animation change. A repository's AGENTS.md and the current task's explicit instructions take precedence.
 license: MIT
 metadata:
   aliases: "working agreements, my rules, house rules, how i work"

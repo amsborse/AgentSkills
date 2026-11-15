@@ -1,6 +1,6 @@
 ---
 name: run-autonomous
-description: Run a long or multi-step task autonomously — overnight, while the user is away, or until a list of milestones is done — with an isolated branch or worktree, a written ledger of progress and decisions, bounded retries, and a final evidence-backed report. Includes the nightly-evolution routine (one draft PR of improvements per night). Never pushes, merges or deploys unless asked. Use for "run this task autonomously overnight", "keep going until done", "work on this while I sleep" or "run nightly evolution".
+description: Run a long or multi-step task autonomously — overnight, while the user is away, or until a list of milestones is done — with an isolated branch or worktree, a ledger of progress and decisions, bounded retries, and an evidence-backed report. Includes the nightly-evolution routine (one draft PR of improvements per night). Never pushes, merges or deploys unless asked. Use for "run this task autonomously overnight", "keep going until done", "work on this while I sleep" or "run nightly evolution".
 metadata:
   aliases: "run this task autonomously, run autonomously, overnight, while i sleep, keep going until done, nightly evolution, work unattended"
   keywords: "autonomous, unattended, overnight, nightly, loop, ledger, milestones, long running, background, schedule"

@@ -1,6 +1,6 @@
 ---
 name: night
-description: Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to Claude, Codex or a configured agent, independently verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for "/night", "/night auto", "/night tests", "run loops overnight", "night status", "night report" or "stop the night run".
+description: Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to an agent, verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for "/night", "/night auto", "/night tests", "run loops overnight", "night status", "night report" or "stop the night run".
 metadata:
   aliases: "night, /night, night loop, night run, overnight loops, night status, night report, night stop, night resume"
   keywords: "night, overnight, loop, autonomous, unattended, watchdog, orchestrator, morning report, keep or revert, experiments"

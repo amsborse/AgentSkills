@@ -9,8 +9,9 @@ repository or unattended.
 
 | Skill | Ask for example | Builds on | Risk | Extra procedures |
 | --- | --- | --- | --- | --- |
+| `experience` | "/experience", "take this site to the next level", "show me three directions" | audit-design, improve-visuals, revamp-ui, build-ui, add-interactions, build-animation, build-3d, create-visuals, replicate-design, review-changes, coordinate-agents, verify | medium | modes: audit, polish, transform, cinematic, interactions, performance, experiment, full; recipes in `shared/creative/recipes/` |
 | `revamp-ui` | "Revamp my website UI", "make this interface feel premium" | verify, build-animation, audit-design, replicate-design, add-interactions, create-visuals, coordinate-agents | medium | `workflows/unslop/`, `workflows/codex-visual.md`, style add-ons in `styles/` |
-| `improve-visuals` | "Improve the visuals", "make it look better" | audit-design, revamp-ui, build-animation, add-interactions, create-visuals, review-changes, verify | medium | `workflows/rubric.md`, `workflows/ideas.md`, `workflows/judge.md`, `scripts/blind-pairs.mjs` |
+| `improve-visuals` | "Improve the visuals", "make it look better" | audit-design, revamp-ui, build-animation, add-interactions, create-visuals, review-changes, verify | medium | `workflows/explore.md`, `workflows/rubric.md`, `workflows/ideas.md`, `workflows/judge.md`, `scripts/blind-pairs.mjs` |
 | `build-animation` | "Animate this hero", "build a cinematic landing page", "match this reference image" | verify, revamp-ui, build-ui, build-3d, audit-design, coordinate-agents | low | `workflows/cinematic-plate/`, `workflows/chapter-rail.md`, `workflows/heavy-hero-performance.md`, `workflows/hover-affordance.md`, style add-ons in `styles/` |
 | `build-ui` | "Build a new page", "create a dashboard" | revamp-ui, add-interactions, build-animation, create-visuals, audit-design, coordinate-agents | medium | uses `shared/creative/` |
 | `add-interactions` | "Add stunning hover interactions", "micro-interactions" | build-animation, audit-design, verify | medium | techniques in `shared/creative/techniques/` |

@@ -51,13 +51,35 @@ Nothing is pushed. Decisions: `EXPERIENCE-DECISION-QUEUE.md`.
 - Not validated: real low-end phones and integrated GPUs; Firefox and WebKit; the framework
   wrappers in `adapters.md` are patterns, not tested code.
 
-## Stage 3: experience composer — pending
+## Stage 3: experience composer — done
+
+- New skill `skills/experience/SKILL.md`: decides and delegates only. Eight modes (audit, polish,
+  transform, cinematic, interactions, performance, experiment, full), 13 steps, a selection
+  table from audit signals to one primary skill plus recipes, and bounding rules (native first,
+  one signature effect per run, keep-list out of scope, quality runtime for anything continuous).
+- New workflow `skills/improve-visuals/workflows/explore.md`: three directions forced apart on
+  eight axes (no two share more than two positions), direction cards before code, bounded
+  prototypes, blind pairwise comparison with two seeds including the current design, then stop
+  for the owner's pick. `transform` requires the owner to have asked for a redesign.
+- Catalog budget (name + description, `tests/catalog-routing.test.mjs`, limit 16,000): 15,966
+  with 45 skills. Made room by trimming 233 description characters from review-changes, night,
+  research, run-autonomous, working-agreements, manage-skills and production-ready without
+  removing a trigger phrase.
+- Routing: the bare word "experience" is not an alias or keyword (it scored 13 on "improve the
+  user experience of the API docs"); mode phrases and "next level" / "three directions" are.
+  Held-out creative eval unchanged at 12/20 top-1.
+- Tests: `tests/experience-skill.test.mjs` (registry entry, composed skills exist, referenced
+  paths exist, modes and redesign guard, explore rules, routing incl. the negative case).
+  Full suite 226 pass, 0 fail, 0 skipped.
+- Not validated: the composer has not been run end to end by an agent on a real product; that
+  is exercised partly by the Stage 4 demos and otherwise remains open.
 ## Stage 4: demos and integration — pending
 ## Stage 5: validation and review — pending
 
 ## Commits
 
 - db4f1f4 Stage 1: foundation and experience bench
+- 3b98214 Stage 2: adaptive quality runtime and six recipes
 
 ## Codex findings
 

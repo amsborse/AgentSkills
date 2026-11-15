@@ -476,6 +476,72 @@
       "workflows": []
     },
     {
+      "name": "experience",
+      "path": "skills/experience",
+      "description": "One entry point to make a web product look, feel and perform better. Audits first, then runs the fewest creative skills that fit. Use for \"/experience\" or \"take this site to the next level\".",
+      "aliases": [
+        "experience composer",
+        "experience audit",
+        "experience polish",
+        "experience transform",
+        "experience cinematic",
+        "experience interactions",
+        "experience performance",
+        "experience experiment",
+        "experience full",
+        "next level",
+        "take this site to the next level",
+        "look feel and perform better",
+        "three directions",
+        "explore three directions",
+        "design directions",
+        "different directions"
+      ],
+      "keywords": [
+        "composer",
+        "perform",
+        "directions",
+        "explore",
+        "experiment",
+        "transform",
+        "polish",
+        "cinematic",
+        "quality tiers",
+        "bench",
+        "orchestrate"
+      ],
+      "composes": [
+        "audit-design",
+        "improve-visuals",
+        "revamp-ui",
+        "build-ui",
+        "add-interactions",
+        "build-animation",
+        "build-3d",
+        "create-visuals",
+        "replicate-design",
+        "review-changes",
+        "coordinate-agents",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "browser",
+          "optional": false
+        },
+        {
+          "capability": "playwright",
+          "optional": true
+        },
+        {
+          "capability": "codex-bridge",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "fix-bug",
       "path": "skills/fix-bug",
       "description": "Find and fix a bug — reproduce it on the real target, find the root cause, write a failing regression test, fix, and confirm the fix where the user saw the bug. Use for errors, crashes, failing tests or CI, wrong behavior, \"this is broken\", \"still broken\" or \"I still see the old one\".",
@@ -589,6 +655,7 @@
       "description": "Make an existing UI look better in rounds, judged blind on real screenshots, not on speed. Use for \"improve the visuals\" or \"make it look better\".",
       "aliases": [
         "improve visuals",
+        "improve-visuals explore",
         "improve the visuals",
         "look better",
         "make it look better",
@@ -636,6 +703,7 @@
       ],
       "risk": "medium",
       "workflows": [
+        "skills/improve-visuals/workflows/explore.md",
         "skills/improve-visuals/workflows/ideas.md",
         "skills/improve-visuals/workflows/judge.md",
         "skills/improve-visuals/workflows/rubric.md"
@@ -644,7 +712,7 @@
     {
       "name": "manage-skills",
       "path": "skills/manage-skills",
-      "description": "Manage this skill catalog — find which skill fits a request, create or update a skill, vet and adopt a third-party skill, reinstall or repair skill discovery for Claude, Codex and other agents, and learn new rules from past agent conversations (history-learning). Use for \"which skill should I use\", \"add a skill\", \"update my skills\", \"install skills\", \"learn from my history\" or when a skill seems missing or broken.",
+      "description": "Manage this skill catalog — find which skill fits a request, create or update a skill, vet and adopt a third-party skill, reinstall or repair skill discovery for any agent, and learn new rules from past agent conversations (history-learning). Use for \"which skill should I use\", \"add a skill\", \"update my skills\", \"install skills\", \"learn from my history\" or when a skill seems missing or broken.",
       "aliases": [
         "manage skills",
         "which skill",
@@ -684,7 +752,7 @@
     {
       "name": "night",
       "path": "skills/night",
-      "description": "Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to Claude, Codex or a configured agent, independently verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for \"/night\", \"/night auto\", \"/night tests\", \"run loops overnight\", \"night status\", \"night report\" or \"stop the night run\".",
+      "description": "Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to an agent, verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for \"/night\", \"/night auto\", \"/night tests\", \"run loops overnight\", \"night status\", \"night report\" or \"stop the night run\".",
       "aliases": [
         "night",
         "/night",
@@ -1242,7 +1310,7 @@
     {
       "name": "production-ready",
       "path": "skills/production-ready",
-      "description": "Take a project from \"works on my machine\" to ready for real users: a readiness audit across security, tests, error handling and observability, performance, configuration and secrets, build and deploy, data safety and docs, then fix the gaps in priority order and prove each with evidence. Does not deploy or publish unless asked. Use for \"make this project production ready\", \"prepare for launch\", \"harden this\", \"release readiness\" or \"is this ready to ship\".",
+      "description": "Take a project from \"works on my machine\" to ready for real users: a readiness audit across security, tests, error handling and observability, performance, configuration and secrets, build and deploy, data safety and docs, then fix the gaps in priority order with evidence. Does not deploy or publish unless asked. Use for \"make this project production ready\", \"prepare for launch\", \"harden this\", \"release readiness\" or \"is this ready to ship\".",
       "aliases": [
         "production ready",
         "make this production ready",
@@ -1336,7 +1404,7 @@
     {
       "name": "research",
       "path": "skills/research",
-      "description": "Research a topic, technology, library or question in depth: plan sub-questions, gather primary sources, cross-check claims, run a contrarian pass, and deliver a cited synthesis with confidence levels and what stays unknown. Also covers comparing libraries or tools, evaluating a repo before adopting it, and checking data or experiment results. Scales from a quick answer to a multi-agent deep dive. Use for \"research this topic deeply\", \"compare X and Y\", \"evaluate this library\" or \"what's the state of the art\".",
+      "description": "Research a topic, technology, library or question in depth: plan sub-questions, gather primary sources, cross-check claims, run a contrarian pass, and deliver a cited synthesis with confidence levels and what stays unknown. Also covers comparing libraries or tools, evaluating a repo before adopting it, and checking data or experiment results. Scales from a quick answer to a deep dive. Use for \"research this topic deeply\", \"compare X and Y\", \"evaluate this library\" or \"what's the state of the art\".",
       "aliases": [
         "research this",
         "research this topic",
@@ -1460,7 +1528,7 @@
     {
       "name": "review-changes",
       "path": "skills/review-changes",
-      "description": "Show what a branch, PR or diff changes for a person, not as code. Interface changes appear as real before/after screenshots of the running app, side by side with a pixel diff, in both themes and at desktop and mobile widths. Backend changes become plain-English cards that say what changed, what it improves, the risk and how it could break, and a confidence level backed by evidence (a test that fails without the change, a run, or only a code read). Suggestions are cross-checked before they are shown. Use for \"show me the changes\", \"before and after\", \"ui side by side\", \"visual diff of this branch\", \"change report\" or \"what did this PR change\".",
+      "description": "Show what a branch, PR or diff changes for a person, not as code. Interface changes appear as real before/after screenshots of the running app, side by side with a pixel diff, in both themes and at desktop and mobile widths. Backend changes become plain-English cards: what changed, what it improves, how it could break, and a confidence level backed by evidence. Suggestions are cross-checked before they are shown. Use for \"show me the changes\", \"before and after\", \"ui side by side\", \"visual diff of this branch\", \"change report\" or \"what did this PR change\".",
       "aliases": [
         "show me the changes",
         "before and after",
@@ -1549,7 +1617,7 @@
     {
       "name": "run-autonomous",
       "path": "skills/run-autonomous",
-      "description": "Run a long or multi-step task autonomously — overnight, while the user is away, or until a list of milestones is done — with an isolated branch or worktree, a written ledger of progress and decisions, bounded retries, and a final evidence-backed report. Includes the nightly-evolution routine (one draft PR of improvements per night). Never pushes, merges or deploys unless asked. Use for \"run this task autonomously overnight\", \"keep going until done\", \"work on this while I sleep\" or \"run nightly evolution\".",
+      "description": "Run a long or multi-step task autonomously — overnight, while the user is away, or until a list of milestones is done — with an isolated branch or worktree, a ledger of progress and decisions, bounded retries, and an evidence-backed report. Includes the nightly-evolution routine (one draft PR of improvements per night). Never pushes, merges or deploys unless asked. Use for \"run this task autonomously overnight\", \"keep going until done\", \"work on this while I sleep\" or \"run nightly evolution\".",
       "aliases": [
         "run this task autonomously",
         "run autonomously",
@@ -1813,7 +1881,7 @@
     {
       "name": "working-agreements",
       "path": "skills/working-agreements",
-      "description": "The owner's standing rules for any coding agent, learned from their own repeated instructions and corrections across Claude Code, Codex, Cursor, OpenCode and Antigravity. Use at the start of any coding, debugging, UI or automation task in the owner's repositories; before reporting work as done or fixed; before any commit, push, merge, deploy or paid model call; when touching secrets, git state or another agent's work; during long autonomous or overnight runs; and for any UI, visual design or animation change. A repository's AGENTS.md and the current task's explicit instructions take precedence.",
+      "description": "The owner's standing rules for any coding agent, learned from their repeated instructions and corrections across coding agents. Use at the start of any coding, debugging, UI or automation task in the owner's repositories; before reporting work as done or fixed; before any commit, push, merge, deploy or paid model call; when touching secrets, git state or another agent's work; during long autonomous or overnight runs; and for any UI, visual design or animation change. A repository's AGENTS.md and the current task's explicit instructions take precedence.",
       "aliases": [
         "working agreements",
         "my rules",
