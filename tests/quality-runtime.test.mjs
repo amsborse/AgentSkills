@@ -403,3 +403,29 @@ test('spring: bad input fails loudly', () => {
   assert.throws(() => springLinear({ stiffness: -1 }), /stiffness must be a positive number/);
   assert.throws(() => springLinear({ stiffness: 100, damping: 0.001 }), /does not settle/);
 });
+
+test('long gaps that keep recurring between normal frames are slow frames, not pauses', () => {
+  const env = fakeWindow();
+  const q = quality(env);
+  q.loop({ render() {} });
+  env.run(2);
+  const start = TIERS.indexOf(q.tier);
+  let highest = start;
+  q.on((e) => { highest = Math.max(highest, TIERS.indexOf(e.tier)); });
+  for (let i = 0; i < 120; i++) { env.frame(300); env.frame(16); } // every other frame takes 300 ms
+  assert.ok(TIERS.indexOf(q.tier) < start, `stepped down from ${TIERS[start]}, got ${q.tier}`);
+  assert.equal(highest, start, 'and was never promoted on the strength of the short frames');
+  assert.notEqual(q.tier, 'static', 'the frames in between are usable, so it keeps moving');
+});
+
+test('loop: a setup that stops its own loop leaves nothing running', () => {
+  const env = fakeWindow();
+  const q = quality(env);
+  let renders = 0;
+  const loop = q.loop({ element: {}, setup() { loop.stop(); }, render() { renders++; } });
+  env.observers[0].set(true); // in view: set-up runs now, and gives up
+  env.run(5);
+  assert.equal(loop.running, false);
+  assert.equal(env.pending, 0, 'no frame is requested');
+  assert.equal(renders, 0);
+});

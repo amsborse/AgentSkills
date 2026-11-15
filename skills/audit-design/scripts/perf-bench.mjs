@@ -26,7 +26,7 @@ import { parseViewports, isLocalUrl } from './lib/audit.mjs';
 import {
   SCHEMA, TIERS, MOTIONS, DEFAULT_BUDGET, parseList, parseCpu, buildMatrix, withTier, validateScript, samplePath,
   frameStats, inpFrom, heapGrowth, summarizeRuns, conditionComplete, compareReports, validateBudget, checkBudget,
-  notValidated, renderBenchMarkdown, benchStatus,
+  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes,
 } from './lib/bench.mjs';
 
 const USAGE = 'usage: node perf-bench.mjs --url URL [--project DIR] [--out DIR] [--viewports name=WxH,...] [--themes light,dark] [--cpu 1,4] [--motion no-preference,reduce] [--tiers default,low,...] [--tier-param NAME] [--runs N] [--script FILE] [--repeats N] [--settle MS] [--frames MS] [--headed] [--budget FILE] [--baseline FILE] [--save-baseline FILE] [--allow-remote] [--json]';
@@ -111,13 +111,9 @@ if (!chromium) {
 }
 // Optional: Google's web-vitals library, when the project has it. Without it the same numbers
 // come from PerformanceObserver directly; the report says which source was used.
-let vitalsLib = null;
-let vitalsVersion = null;
-try {
-  const pkg = require.resolve('web-vitals/package.json');
-  const iife = path.join(path.dirname(pkg), 'dist', 'web-vitals.iife.js');
-  if (fs.existsSync(iife)) { vitalsLib = iife; vitalsVersion = JSON.parse(fs.readFileSync(pkg, 'utf8')).version; }
-} catch {}
+const vitals = findVitalsLib(o.project);
+const vitalsLib = vitals?.file || null;
+const vitalsVersion = vitals?.version || null;
 
 // Runs in the page before any app script. Collects everything the page itself can observe.
 const INIT = () => {
@@ -256,9 +252,7 @@ async function oneRun(browser, cell) {
     const m = await page.evaluate(COLLECT);
 
     let fileSizes = false;
-    const byType = {};
-    let total = 0;
-    let unsized = 0;
+    const sized = [];
     for (const r of reqs.values()) {
       if (r.url.startsWith('data:') || r.url.startsWith('blob:')) continue;
       let bytes = r.bytes > 0 ? r.bytes : null;
@@ -266,19 +260,17 @@ async function oneRun(browser, cell) {
         fileSizes = true;
         if (bytes === null) { try { bytes = fs.statSync(fileURLToPath(r.url.split(/[?#]/)[0])).size; } catch {} }
       }
-      if (bytes === null) { unsized++; continue; }
-      byType[r.type] = (byType[r.type] || 0) + bytes;
-      total += bytes;
+      sized.push({ type: r.type, bytes });
     }
-    const requests = [...reqs.values()].filter((r) => !r.url.startsWith('data:') && !r.url.startsWith('blob:')).length;
-    const builtinInp = inpFrom(m.events);
+    const weight = tallyBytes(sized);
+    const builtinInp = inpFrom(m.events, m.interactionCount);
     return {
       lcp: m.wv.lcp ?? m.lcp, fcp: m.wv.fcp ?? m.fcp, ttfb: m.wv.ttfb ?? m.ttfb, load: m.load, cls: m.wv.cls ?? m.cls,
       inp: script ? (m.wv.inp ?? builtinInp) : null,
       interactions: m.interactionCount,
       longTasks: m.longTasks, loaf: m.loaf, frames: frameStats(frames),
       heap: { used, series: heapSeries, growth: heapGrowth(heapSeries) },
-      bytes: { total: requests ? total : null, byType, requests, unsized, kind: fileSizes ? 'decoded' : 'transfer' },
+      bytes: { ...weight, requests: sized.length, kind: fileSizes ? 'decoded' : 'transfer' },
       tierObserved: m.tier, pageErrors: m.errors,
     };
   } finally { await ctx.close(); }
@@ -345,7 +337,7 @@ report.status = status;
 fs.writeFileSync(path.join(outDir, 'perf-report.json'), JSON.stringify(report, null, 2));
 fs.writeFileSync(path.join(outDir, 'perf-report.md'), renderBenchMarkdown(report));
 if (o['save-baseline']) {
-  if (code === 2) console.error('baseline not saved: the run is incomplete.');
+  if (code === 2) console.error(`baseline not saved: ${status}.`);
   else { fs.mkdirSync(path.dirname(path.resolve(o['save-baseline'])), { recursive: true }); fs.writeFileSync(path.resolve(o['save-baseline']), JSON.stringify(report, null, 2)); }
 }
 if (o.json) process.stdout.write(JSON.stringify(report, null, 2) + '\n');

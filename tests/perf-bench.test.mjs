@@ -12,8 +12,24 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   SCHEMA, METRICS, DEFAULT_BUDGET, parseList, parseCpu, buildMatrix, withTier, validateScript, samplePath, median, percentile, stat,
   frameStats, inpFrom, heapGrowth, flattenRun, summarizeRuns, conditionComplete, compareStat, compareReports, validateBudget, checkBudget,
-  notValidated, renderBenchMarkdown, benchStatus,
+  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes,
 } from '../skills/audit-design/scripts/lib/bench.mjs';
+
+test('web-vitals is found in a project even though its exports map hides package.json', () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-wv-'));
+  assert.equal(findVitalsLib(project), null, 'absent package means the built-in observers are used');
+  const pkg = path.join(project, 'node_modules', 'web-vitals');
+  fs.mkdirSync(path.join(pkg, 'dist'), { recursive: true });
+  // Same shape as the published package: no "./package.json" entry in exports.
+  fs.writeFileSync(path.join(pkg, 'package.json'), JSON.stringify({ name: 'web-vitals', version: '9.9.9', exports: { '.': './dist/web-vitals.js' } }));
+  assert.equal(findVitalsLib(project), null, 'a package without the browser build is not used');
+  fs.writeFileSync(path.join(pkg, 'dist', 'web-vitals.iife.js'), 'var webVitals={};');
+  assert.throws(() => createRequire(path.join(project, 'package.json')).resolve('web-vitals/package.json'), 'the old lookup cannot see it');
+  const nested = path.join(project, 'apps', 'web');
+  fs.mkdirSync(nested, { recursive: true });
+  for (const from of [project, nested]) assert.deepEqual(findVitalsLib(from), { file: path.join(pkg, 'dist', 'web-vitals.iife.js'), version: '9.9.9' });
+  fs.rmSync(project, { recursive: true, force: true });
+});
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bench = path.join(root, 'skills/audit-design/scripts/perf-bench.mjs');
@@ -83,6 +99,11 @@ test('INP is the worst interaction, and unknown when nothing was interacted with
   assert.equal(inpFrom([40, 320, 64]), 320);
   const many = Array.from({ length: 100 }, (_, i) => i + 1);
   assert.equal(inpFrom(many), 98, 'past 50 interactions one outlier per 50 is skipped');
+  // Only interactions of 16 ms or more are observed; the page's own count says how many there were.
+  assert.equal(inpFrom([300, 200, 20], 100), 20, 'ranked against every interaction, not only the slow ones seen');
+  assert.equal(inpFrom([300, 200], 100), null, 'the ranked interaction was below the observation threshold: unknown');
+  assert.equal(inpFrom([300], 10), 300);
+  assert.equal(inpFrom([40, 320], null), 320, 'no count from the page: fall back to what was seen');
 });
 
 test('heap growth is a slope after warm-up and needs enough samples', () => {
@@ -152,6 +173,34 @@ test('budgets fail on a breach, an accepted trade-off needs a reason, and unmeas
   assert.throws(() => validateBudget({ budgets: { speed: 1 } }), /unknown metric/);
   assert.throws(() => validateBudget({}), /"budgets" object/);
   for (const k of Object.keys(DEFAULT_BUDGET)) assert.ok(METRICS[k]);
+});
+
+test('a project budget that could not be evaluated is incomplete, never a pass', () => {
+  const conds = [condition('a', [run({ inp: null }), run({ inp: null }), run({ inp: null })])];
+  const report = rep(conds);
+  const own = { ...report, budget: checkBudget(conds, validateBudget({ budgets: { inp: 200, lcp: 2500 } })) };
+  assert.deepEqual(own.budget.unmeasured, [{ condition: 'a', metric: 'inp' }]);
+  const st = benchStatus(own);
+  assert.equal(st.code, 2);
+  assert.match(st.status, /incomplete.*not measured.*INP/i);
+  // The built-in budget is indicative: its unmeasured metrics are reported, not failed.
+  const def = { ...report, budget: checkBudget(conds, { budgets: DEFAULT_BUDGET, tradeoffs: [] }, { isDefault: true }) };
+  assert.ok(def.budget.unmeasured.length);
+  assert.equal(benchStatus(def).code, 0);
+  assert.match(renderBenchMarkdown({ ...def, status: 'measured', notValidated: [] }), /Not measured, so not checked/);
+});
+
+test('page weight is unknown when any request could not be sized', () => {
+  const all = tallyBytes([{ type: 'script', bytes: 1000 }, { type: 'image', bytes: 500 }, { type: 'script', bytes: 24 }]);
+  assert.deepEqual(all, { total: 1524, byType: { script: 1024, image: 500 }, unsized: 0 });
+  const partial = tallyBytes([{ type: 'script', bytes: 1000 }, { type: 'image', bytes: null }]);
+  assert.equal(partial.total, null, 'a partial sum is not the page weight');
+  assert.equal(partial.unsized, 1);
+  const flat = flattenRun({ bytes: { ...partial, requests: 2 } });
+  assert.equal(flat.bytesTotal, null);
+  assert.equal(flat.bytesScript, null);
+  assert.equal(flat.requests, 2);
+  assert.equal(tallyBytes([]).total, null, 'no requests seen: unknown, not zero');
 });
 
 test('status: incomplete beats a breach, and the report always says what it cannot prove', () => {

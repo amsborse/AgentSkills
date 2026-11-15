@@ -27,7 +27,7 @@ before(async () => { if (pw) browser = await pw.chromium.launch(); });
 after(async () => { if (browser) await browser.close(); });
 
 // Opens a page that records errors and counts animation frames, so "nothing runs at rest" is measured.
-async function open(url, { reducedMotion = 'no-preference', viewport = { width: 1280, height: 800 }, hasTouch = false } = {}) {
+async function open(url, { reducedMotion = 'no-preference', viewport = { width: 1280, height: 800 }, hasTouch = false, noWebgl = false } = {}) {
   const context = await browser.newContext({ viewport, reducedMotion, hasTouch });
   const page = await context.newPage();
   const errors = [];
@@ -37,6 +37,10 @@ async function open(url, { reducedMotion = 'no-preference', viewport = { width: 
     window.__raf = 0;
     const real = window.requestAnimationFrame.bind(window);
     window.requestAnimationFrame = (fn) => { window.__raf += 1; return real(fn); };
+  });
+  if (noWebgl) await page.addInitScript(() => {
+    const real = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...rest) { return /webgl/.test(type) ? null : real.call(this, type, ...rest); };
   });
   await page.goto(url);
   return { page, errors, close: () => context.close() };
@@ -243,4 +247,16 @@ test('flow hero: still by default, live only when affordable and visible, and re
     await p.close();
   }
   assert.ok(widths.low < widths.balanced && widths.balanced < widths.ultra, `resolution follows the tier: ${JSON.stringify(widths)}`);
+});
+
+test('flow hero: without WebGL it stays on the still and stops asking for frames', { skip }, async () => {
+  const p = await open(demo('flow-hero', '?quality=high'), { noWebgl: true });
+  await p.page.waitForTimeout(500);
+  const st = await p.page.evaluate(() => {
+    const hero = document.querySelector('#hero');
+    return { flow: hero.dataset.flow, canvas: !!hero.querySelector('canvas'), running: window.flow.loop.running };
+  });
+  assert.deepEqual(st, { flow: 'still', canvas: false, running: false });
+  assert.equal(await framesIn(p.page, 400), 0, 'no frames requested once set-up has failed');
+  await p.close();
 });

@@ -188,3 +188,45 @@ test('learning install adds the notice hook and a daily run, retires the Session
   assert.ok(calls().some((c) => c.argv.includes('/Delete') || (c.cmd === 'crontab' && c.argv[0] === '-' && !String(c.input).includes('auto-run'))), 'daily run removed');
   fs.rmSync(home, { recursive: true, force: true });
 });
+
+test('validate checks a linked worktree against the primary checkout, and still fails a missing link', async () => {
+  const { installFindings, primaryCheckout } = await import('../scripts/lib/agents.mjs');
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-worktree-'));
+  const skill = (root, name) => {
+    fs.mkdirSync(path.join(root, 'skills', name), { recursive: true });
+    fs.writeFileSync(path.join(root, 'skills', name, 'SKILL.md'), `---\nname: ${name}\n---\n`);
+  };
+  const primary = path.join(base, 'primary');
+  const worktree = path.join(base, 'worktree');
+  for (const name of ['alpha', 'beta']) { skill(primary, name); skill(worktree, name); }
+  skill(worktree, 'gamma'); // exists only on the branch checked out in the worktree
+  const gitDir = path.join(primary, '.git', 'worktrees', 'wt');
+  fs.mkdirSync(gitDir, { recursive: true });
+  fs.writeFileSync(path.join(gitDir, 'commondir'), '../..\n');
+  fs.writeFileSync(path.join(worktree, '.git'), `gitdir: ${gitDir}\n`);
+  assert.equal(primaryCheckout(worktree), primary);
+  assert.equal(primaryCheckout(primary), primary);
+
+  const target = path.join(base, 'home', '.claude', 'skills');
+  fs.mkdirSync(target, { recursive: true });
+  for (const name of ['alpha', 'beta']) fs.symlinkSync(path.join(primary, 'skills', name), path.join(target, name), 'junction');
+  const agents = [{ name: 'Claude Code', targets: [target] }, { name: 'Cursor', targets: [], coveredBy: target }];
+  const levels = (found, level) => found.filter(([l]) => l === level).map(([, m]) => m);
+
+  const fromWorktree = installFindings(agents, { root: worktree });
+  assert.deepEqual(levels(fromWorktree, 'bad'), [], 'links to the primary checkout are a correct installation');
+  assert.equal(levels(fromWorktree, 'ok').length, 3);
+  assert.ok(levels(fromWorktree, 'warn').some((m) => /until merged: gamma/.test(m)), 'the branch-only skill is reported, not hidden');
+
+  assert.deepEqual(levels(installFindings(agents, { root: primary }), 'bad'), []);
+
+  fs.rmSync(path.join(target, 'beta'), { recursive: true });
+  for (const root of [worktree, primary]) {
+    const bad = levels(installFindings(agents, { root }), 'bad');
+    assert.equal(bad.length, 2, 'a missing link fails for the target and for the agent it covers');
+    assert.match(bad[0], /beta not installed/);
+  }
+  skill(primary, 'gamma');
+  assert.ok(levels(installFindings(agents, { root: primary }), 'bad').some((m) => /gamma not installed/.test(m)), 'in the primary checkout an uninstalled skill is a failure');
+  fs.rmSync(base, { recursive: true, force: true });
+});

@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { REPO_ROOT, detectAgents, linkState, ownedRepoLink, skillDirs } from './lib/agents.mjs';
+import { REPO_ROOT, detectAgents, installFindings, skillDirs } from './lib/agents.mjs';
 import { parseFrontmatter, listValue } from './lib/frontmatter.mjs';
 
 const quick = process.argv.includes('--quick');
@@ -182,28 +182,7 @@ process.stdout.write('\nPrivacy (this repository is public)\n');
 }
 
 process.stdout.write('\nInstallation\n');
-for (const agent of detectAgents(process.env.AGENT_SKILLS_HOME_OVERRIDE || os.homedir())) {
-  for (const dir of [...agent.targets, ...(agent.migrated || [])]) {
-    let entries = [];
-    try { entries = fs.readdirSync(dir); } catch {}
-    const stale = entries.filter((name) => ownedRepoLink(path.join(dir, name)) && !(agent.targets.includes(dir) && skills.some((s) => path.basename(s) === name)));
-    if (stale.length) warn(`${agent.name}: stale repo links in ${dir}: ${stale.join(', ')}`);
-  }
-  if (agent.coveredBy) {
-    const allOk = skillDirs().every((s) => linkState(path.join(agent.coveredBy, path.basename(s)), path.join(REPO_ROOT, ...s.split('/'))) === 'ok');
-    (allOk ? ok : bad)(`${agent.name}: discovers skills via ${agent.coveredBy}`);
-    continue;
-  }
-  for (const dir of agent.targets) {
-    for (const s of skillDirs()) {
-      const link = path.join(dir, path.basename(s));
-      const state = linkState(link, path.join(REPO_ROOT, ...s.split('/')));
-      if (state === 'ok' && fs.existsSync(path.join(link, 'SKILL.md'))) ok(`${agent.name}: ${link}`);
-      else if (state === 'missing') bad(`${agent.name}: ${link} not installed (run scripts/install.sh)`);
-      else warn(`${agent.name}: ${link} is ${state}; installer leaves it untouched`);
-    }
-  }
-}
+for (const [level, message] of installFindings(detectAgents(process.env.AGENT_SKILLS_HOME_OVERRIDE || os.homedir()))) ({ ok, bad, warn })[level](message);
 
 process.stdout.write('\nRepository policies\n');
 const home = process.env.NIGHTLY_EVOLUTION_HOME || path.join(os.homedir(), '.config', 'nightly-evolution');

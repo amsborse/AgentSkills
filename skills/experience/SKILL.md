@@ -51,7 +51,7 @@ stay: run `polish`, or `experiment` to show what a change could look like withou
 6. **Plan** in a few lines with explicit budgets (frame pacing, layout shift, page weight) and
    any trade-off stated before it is made.
 7. **Explore** only when the mode is `transform` or `experiment`, or the diagnosis shows the
-   direction itself is the problem: `improve-visuals` → `workflows/explore.md`.
+   direction itself is the problem: the three-direction explore workflow of `improve-visuals`.
 8. **Prototype before large changes.** Anything that touches more than one page or adds a
    signature effect is first built on one screen and captured; widen only once that holds up.
 9. **Implement** through the selected skill, on a branch or worktree. Larger isolated slices go

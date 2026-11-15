@@ -78,6 +78,10 @@ Step types: `wait`, `scroll`, `move`, `hover`, `click`, `press`, `type`, `drag`,
 ## Exit codes and output
 
 0 measured within budget, 3 over budget or regressed against the baseline, 2 incomplete
-(Playwright missing, page did not load, too few runs completed), 1 usage error. Incomplete is
+(Playwright missing, page did not load, too few runs completed, or a metric in the project's
+own `--budget` file could not be measured, for example INP without an interaction script),
+1 usage error. The built-in budget is indicative: its unmeasured metrics are listed as "not
+measured, so not checked" and do not fail the run. Page weight is unknown, not a partial sum,
+when any request could not be sized. Incomplete is
 reported as incomplete and is never saved as a baseline. Output: `perf-report.json` (schema
 `experience-bench/1`) and `perf-report.md` in `--out`; `--json` prints the report to stdout.

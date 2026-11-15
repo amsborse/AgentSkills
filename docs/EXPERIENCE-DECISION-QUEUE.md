@@ -27,7 +27,10 @@ Anything that needs the owner stays **pending** and never blocks other work.
 - **Risk and impact:** Low; touches only the installation section of `scripts/validate.mjs`.
 - **Approval required:** No, unless the fix turns out to need unrelated changes.
 - **Independent work:** Everything else.
-- **Status:** Open, scheduled for Stage 5. Until then validation is not reported as clean.
+- **Status:** Resolved (option 1) in Stage 5. `installFindings` in `scripts/lib/agents.mjs`
+  compares the links with the primary checkout when validate runs from a linked worktree, warns
+  that skills that exist only on the branch cannot be installed until merged, and still fails a
+  missing or wrong link (test in `tests/install.test.mjs`). No unrelated changes were needed.
 
 ## D-003 Default performance budget
 
@@ -52,7 +55,11 @@ Anything that needs the owner stays **pending** and never blocks other work.
 - **Risk and impact:** The `web-vitals` path is written but has not been run here; the report
   names which source produced its numbers.
 - **Approval required:** No. Owner may want it verified in a project that has the package.
-- **Status:** Resolved (option 1). The `web-vitals` path is **unverified**.
+- **Status:** Resolved (option 1) and verified in Stage 5 against `web-vitals` 6.2.3 installed
+  in a scratch project (nothing global). Verification found the path could never activate: the
+  package's exports map hides `package.json` from `require.resolve`. Fixed with `findVitalsLib`
+  and a regression test. Lantern, low tier, 3 runs: LCP 176 ms from `web-vitals` against 184 ms
+  built-in, CLS 0 from both, INP unknown from both (no interaction script).
 
 ## D-005 Framework adapters for recipes
 
@@ -78,4 +85,18 @@ Anything that needs the owner stays **pending** and never blocks other work.
   measured case.
 - **Risk and impact:** Reversible; a project can pin a tier or pass its own start tier.
 - **Approval required:** No. Owner may prefer option 2 for a mobile-first product.
+- **Status:** Resolved (option 1).
+
+## D-007 Unmeasured metrics in a budget
+
+- **Question:** What a bench run reports when a budgeted metric could not be measured.
+- **Context:** Codex review (P1): such a run exited 0 and could be saved as a baseline. The
+  built-in budget includes INP, which is never measured without an interaction script.
+- **Options:** (1) a project's own budget file with an unmeasured metric is incomplete (exit 2,
+  no baseline); the built-in indicative budget only lists the gap; (2) every unmeasured budgeted
+  metric is incomplete, which makes every run without a script exit 2; (3) keep exit 0.
+- **Recommended:** 1 (implemented).
+- **Risk and impact:** A project with `inp` or `heapGrowth` in its budget must now pass
+  `--script` (and `--repeats 4` for heap growth) or its bench run is incomplete. Reversible.
+- **Approval required:** No. Owner may prefer option 2 for stricter CI.
 - **Status:** Resolved (option 1).

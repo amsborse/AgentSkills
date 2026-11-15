@@ -6,6 +6,62 @@ import { fileURLToPath } from 'node:url';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
+/**
+ * The checkout that owns the git directory. For a linked worktree (`.git` is a file) that is
+ * the primary checkout, which is the one the installer links agents to; otherwise `root`.
+ */
+export function primaryCheckout(root = REPO_ROOT) {
+  try {
+    const dotGit = path.join(root, '.git');
+    if (!fs.statSync(dotGit).isFile()) return root;
+    const gitDir = path.resolve(root, fs.readFileSync(dotGit, 'utf8').match(/^gitdir:\s*(.+)$/m)[1].trim());
+    const common = path.resolve(gitDir, fs.readFileSync(path.join(gitDir, 'commondir'), 'utf8').trim());
+    const primary = path.dirname(common);
+    return path.basename(common) === '.git' && fs.existsSync(path.join(primary, 'skills')) ? primary : root;
+  } catch {
+    return root;
+  }
+}
+
+/**
+ * Installation findings for `validate.mjs`: `[level, message]` pairs. Links are compared with
+ * `installRoot` (the checkout the installer linked). When validating a linked worktree that
+ * is the primary checkout, and a skill that exists only in the worktree is reported as a
+ * warning, because it cannot be installed until the branch reaches that checkout.
+ */
+export function installFindings(agents, { root = REPO_ROOT, installRoot = primaryCheckout(root) } = {}) {
+  const out = [];
+  const linked = skillDirs(installRoot);
+  const names = new Set(linked.map((s) => path.posix.basename(s)));
+  const pending = skillDirs(root).map((s) => path.posix.basename(s)).filter((n) => !names.has(n));
+  const source = (s) => path.join(installRoot, ...s.split('/'));
+  if (comparable(installRoot) !== comparable(root)) out.push(['warn', `linked worktree: installation is checked against the primary checkout ${installRoot}`]);
+  if (pending.length) out.push(['warn', `not installable from a worktree until merged: ${pending.join(', ')}`]);
+  for (const agent of agents) {
+    for (const dir of [...agent.targets, ...(agent.migrated || [])]) {
+      let entries = [];
+      try { entries = fs.readdirSync(dir); } catch {}
+      const stale = entries.filter((name) => ownedRepoLink(path.join(dir, name), installRoot) && !(agent.targets.includes(dir) && names.has(name)));
+      if (stale.length) out.push(['warn', `${agent.name}: stale repo links in ${dir}: ${stale.join(', ')}`]);
+    }
+    if (agent.coveredBy) {
+      const allOk = linked.every((s) => linkState(path.join(agent.coveredBy, path.basename(s)), source(s)) === 'ok');
+      out.push([allOk ? 'ok' : 'bad', `${agent.name}: discovers skills via ${agent.coveredBy}`]);
+      continue;
+    }
+    for (const dir of agent.targets) {
+      for (const s of linked) {
+        const link = path.join(dir, path.basename(s));
+        const state = linkState(link, source(s));
+        if (state === 'ok' && fs.existsSync(path.join(link, 'SKILL.md'))) out.push(['ok', `${agent.name}: ${link}`]);
+        else if (state === 'missing') out.push(['bad', `${agent.name}: ${link} not installed (run scripts/install.sh)`]);
+        else out.push(['warn', `${agent.name}: ${link} is ${state}; installer leaves it untouched`]);
+      }
+    }
+  }
+  return out;
+}
+
 // Skills that stay at the repository root because scripts outside this repository
 // (night loops) call them by path; they are installed under the same names.
 export const ROOT_SKILLS = ['nightly-evolution', 'history-learning'];

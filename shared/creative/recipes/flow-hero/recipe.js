@@ -99,6 +99,7 @@
         el.setAttribute('data-flow', 'still');
         if (global.console) global.console.warn('flow-hero: staying on the still gradient: ' + e.message);
         teardown();
+        if (loop) loop.stop(); // nothing will ever be drawn: do not keep a frame loop alive for it
       }
     }
 
@@ -153,6 +154,7 @@
       dispose: function () { teardown(); if (!failed) el.setAttribute('data-flow', 'still'); },
       still: function () { el.setAttribute('data-flow', 'still'); }
     });
+    if (failed) loop.stop(); // set-up ran, and failed, before the handle existed
     if (!el.hasAttribute('data-flow')) el.setAttribute('data-flow', 'still');
 
     var offTier = quality.on(function () { needSize = true; }); // resolution and octaves follow the tier

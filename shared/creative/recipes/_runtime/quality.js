@@ -69,6 +69,7 @@
     var buf = [];
     var bufMs = 0;
     var stalls = 0;
+    var longs = 0; // long gaps in the current window, in a row or not
     var destroyed = false;
 
     function now() { return w.performance && w.performance.now ? w.performance.now() : Date.now(); }
@@ -121,6 +122,7 @@
       buf = [];
       bufMs = 0;
       stalls = 0;
+      longs = 0;
       good = 0;
       bad = 0;
       skip = 1;
@@ -136,11 +138,18 @@
       if (dt > PAUSE_MS) {
         // One long gap is a pause. Several in a row, with the loop running, is a frame rate
         // too low to measure in windows: treat it as a severe window of its own.
-        if (++stalls < STALL_GAPS) return;
-        buf = []; bufMs = 0;
-        for (var g = 0; g < WINDOW_MIN; g++) buf.push(dt);
-        bufMs = WINDOW_MS;
-        skip = 0;
+        longs++;
+        if (++stalls < STALL_GAPS) {
+          // Not in a row, but back again inside one window: its time counts, and at the
+          // judgement below a window with STALL_GAPS of them counts them as slow frames.
+          if (longs > 1) bufMs += dt;
+          if (!(bufMs >= WINDOW_MS && buf.length >= WINDOW_MIN)) return;
+        } else {
+          buf = []; bufMs = 0; longs = 0;
+          for (var g = 0; g < WINDOW_MIN; g++) buf.push(dt);
+          bufMs = WINDOW_MS;
+          skip = 0;
+        }
       } else {
         stalls = 0;
         buf.push(dt);
@@ -149,14 +158,17 @@
       if (buf.length < WINDOW && !(bufMs >= WINDOW_MS && buf.length >= WINDOW_MIN)) return;
       bufMs = 0;
       stalls = 0;
+      var hitches = longs >= STALL_GAPS ? longs : 0; // fewer than that were pauses
+      longs = 0;
       var sorted = buf.slice().sort(function (a, b) { return a - b; });
       buf = [];
       if (skip > 0) { skip--; return; } // the first window after a change includes set-up cost
-      var slow = 0;
+      var slow = hitches;
       for (var k = 0; k < sorted.length; k++) if (sorted[k] > slowMs) slow++;
-      slow /= sorted.length;
-      var p50 = sorted[sorted.length >> 1];
-      if (slow > DOWN_SHARE) { bad++; good = 0; } else if (slow <= UP_SHARE) { good++; bad = 0; } else { good = 0; bad = 0; }
+      slow /= sorted.length + hitches;
+      var p50 = sorted[sorted.length >> 1]; // of the frames that were drawn: hitches do not earn a still
+      if (hitches && slow <= DOWN_SHARE) { good = 0; bad = 0; } // hitching is never headroom
+      else if (slow > DOWN_SHARE) { bad++; good = 0; } else if (slow <= UP_SHARE) { good++; bad = 0; } else { good = 0; bad = 0; }
       var i = idx(tier);
       if (bad >= DOWN_WINDOWS || slow > SEVERE_SHARE) {
         bad = 0;
@@ -246,7 +258,7 @@
         var active = !stopped && tier !== 'static' && inView && (!doc || doc.visibilityState !== 'hidden');
         if (active) {
           if (idleTimer) { w.clearTimeout(idleTimer); idleTimer = 0; }
-          if (!ready) { ready = true; if (o.setup) o.setup(api); }
+          if (!ready) { ready = true; if (o.setup) o.setup(api); if (stopped) return; } // set-up may stop its own loop
           if (!raf) { last = null; lastRender = null; raf = w.requestAnimationFrame(tick); }
           return;
         }

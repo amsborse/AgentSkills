@@ -2,6 +2,9 @@
 // unit-tested in tests/perf-bench.test.mjs. Numbers the bench cannot measure stay null; null is
 // never treated as 0, as a pass, or as "no change".
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 export const SCHEMA = 'experience-bench/1';
 export const TIERS = ['ultra', 'high', 'balanced', 'low', 'static'];
 export const MOTIONS = ['no-preference', 'reduce'];
@@ -161,13 +164,29 @@ export function frameStats(timestamps) {
   };
 }
 
-// INP for a short lab session: the worst interaction (the 98th percentile only differs past 50
-// interactions). Null when nothing was interacted with, never 0.
-export function inpFrom(durations) {
-  const v = (durations || []).filter(num);
+// INP for a short lab session: the worst interaction, skipping one outlier per 50 interactions.
+// `count` is the page's own interaction count: only interactions of 16 ms or more are observed,
+// so the rank is taken against all of them. Null when nothing was interacted with, or when the
+// ranked interaction was too fast to be observed (below 16 ms, exact value unknown). Never 0.
+export function inpFrom(durations, count) {
+  const v = (durations || []).filter(num).sort((a, b) => b - a);
   if (!v.length) return null;
-  if (v.length < 50) return Math.max(...v);
-  return v.sort((a, b) => b - a)[Math.floor(v.length / 50)];
+  const rank = Math.floor(Math.max(v.length, num(count) ? count : 0) / 50);
+  return rank < v.length ? v[rank] : null;
+}
+
+// Page weight from the requests seen. One request of unknown size makes the total unknown: a
+// partial sum would read as a lighter page than it is.
+export function tallyBytes(requests) {
+  const byType = {};
+  let total = 0;
+  let unsized = 0;
+  for (const r of requests) {
+    if (!num(r.bytes)) { unsized++; continue; }
+    byType[r.type] = (byType[r.type] || 0) + r.bytes;
+    total += r.bytes;
+  }
+  return { total: requests.length && !unsized ? total : null, byType, unsized };
 }
 
 // Least-squares slope of heap size over repeats of the same scenario, ignoring the first sample
@@ -276,7 +295,7 @@ export function checkBudget(conditions, budget, { isDefault = false } = {}) {
       if (value > limit) breaches.push({ condition: c.id, metric, value, limit, ...(t ? { tradeoff: t.reason } : {}) });
     }
   }
-  return { source: isDefault ? 'default (Core Web Vitals "good" thresholds, indicative for lab data)' : 'project budget file', budgets: budget.budgets, tradeoffs: budget.tradeoffs || [], breaches, unmeasured };
+  return { source: isDefault ? 'default (Core Web Vitals "good" thresholds, indicative for lab data)' : 'project budget file', budgets: budget.budgets, tradeoffs: budget.tradeoffs || [], breaches, unmeasured, isDefault };
 }
 
 // ---- Report ---------------------------------------------------------------------------------
@@ -358,9 +377,31 @@ export function renderBenchMarkdown(report) {
 }
 
 // Exit code: 2 incomplete beats 3 (breach or regression) because an incomplete run proves nothing.
+// A project's own budget that could not be evaluated is incomplete too: the project asked for
+// that metric to be checked. The built-in budget is indicative, so its gaps are only reported.
 export function benchStatus(report) {
   if (!report.conditions.length || report.conditions.some((c) => !c.complete)) return { status: 'incomplete', code: 2 };
+  const b = report.budget;
+  if (b && b.isDefault === false && b.unmeasured?.length) {
+    return { status: `incomplete: budgeted metrics not measured (${[...new Set(b.unmeasured.map((u) => METRICS[u.metric]?.label || u.metric))].join(', ')})`, code: 2 };
+  }
   if (report.budget?.breaches.length) return { status: 'over budget', code: 3 };
   if (report.comparison?.verdict === 'regressed') return { status: 'regressed against the baseline', code: 3 };
   return { status: 'measured', code: 0 };
+}
+
+/**
+ * Finds the optional web-vitals package from a project folder: `{ file, version }` or null.
+ * Walks node_modules directly because the package's `exports` map hides `package.json`, so
+ * `require.resolve('web-vitals/package.json')` throws even when it is installed.
+ */
+export function findVitalsLib(project) {
+  for (let dir = path.resolve(project); ; dir = path.dirname(dir)) {
+    const pkg = path.join(dir, 'node_modules', 'web-vitals', 'package.json');
+    const file = path.join(dir, 'node_modules', 'web-vitals', 'dist', 'web-vitals.iife.js');
+    if (fs.existsSync(pkg) && fs.existsSync(file)) {
+      try { return { file, version: JSON.parse(fs.readFileSync(pkg, 'utf8')).version || 'unknown' }; } catch { return null; }
+    }
+    if (path.dirname(dir) === dir) return null;
+  }
 }
