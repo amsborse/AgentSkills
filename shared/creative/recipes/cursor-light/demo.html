@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cursor light · recipe demo</title>
+<link rel="stylesheet" href="../_runtime/demo.css">
+<link rel="stylesheet" href="recipe.css">
+<style>
+  .cursor-light { --light-color: color-mix(in srgb, var(--accent) 22%, transparent); --light-size: 320px; }
+  a.demo-card { display: block; text-decoration: none; color: inherit; min-height: 180px; }
+  a.demo-card h2 { color: var(--ink); }
+  a.demo-card p { margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <div class="demo-bar">
+    <span>Recipe · <strong>Cursor light</strong></span>
+    <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+    <output data-quality-out></output>
+  </div>
+  <h1>Surfaces that notice the pointer.</h1>
+  <p>Move across the cards. Tab through them and each one lights from above instead, so the keyboard gets the same acknowledgement.</p>
+  <div class="demo-grid">
+    <a class="demo-card cursor-light" href="#one" id="one"><h2>One listener</h2><p>A single passive handler serves every surface on the page.</p></a>
+    <a class="demo-card cursor-light" href="#two" id="two"><h2>One write per frame</h2><p>Pointer events are coalesced; nothing runs while the pointer rests.</p></a>
+    <a class="demo-card cursor-light" href="#three" id="three"><h2>Decoration only</h2><p>The light sits behind the text and never changes its contrast.</p></a>
+    <a class="demo-card cursor-light" href="#four" id="four"><h2>Touch stays calm</h2><p>No pointer to follow means no light chasing a finger.</p></a>
+  </div>
+</main>
+<script src="../_runtime/quality.js"></script>
+<script src="../_runtime/demo.js"></script>
+<script src="recipe.js"></script>
+<script>ExperienceCursorLight.init();</script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+/* Scroll progress and reveal. Native scroll-driven animations where they exist (they run off
+ * the main thread); recipe.js is a small fallback for browsers without them.
+ *
+ * Content is visible by default: nothing here hides an element unless the mechanism that
+ * will reveal it is known to be running. */
+
+/* Reading progress: <div class="scroll-progress" aria-hidden="true"></div> */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  block-size: var(--scroll-progress-size, 3px);
+  background: var(--scroll-progress-color, currentColor);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--scroll-progress, 0)); /* the fallback script writes this */
+  z-index: 10;
+  pointer-events: none;
+}
+:dir(rtl) .scroll-progress { transform-origin: 100% 50%; }
+
+@keyframes scroll-progress-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes scroll-reveal-in { from { opacity: 0; transform: translateY(var(--reveal-distance, 24px)); } }
+
+@supports (animation-timeline: view()) {
+  .scroll-progress {
+    animation: scroll-progress-grow linear both;
+    animation-timeline: scroll(root block);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-quality="static"]) .reveal {
+      animation: scroll-reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 25%;
+    }
+  }
+}
+
+/* Fallback path: recipe.js adds .reveal-js to <html> and .is-in as each element arrives. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-js:not([data-quality="static"]) .reveal {
+    animation: none;
+    opacity: 0;
+    transform: translateY(var(--reveal-distance, 24px));
+  }
+  /* The transition lives on the arrived state only, so hiding at start-up is instant and
+   * content never visibly fades out before it fades in. */
+  .reveal-js:not([data-quality="static"]) .reveal.is-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity 500ms ease-out, transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+/* Low tier: fade only, no travel. Static tier and reduced motion: content is simply there;
+ * the progress bar stays because it follows the reader's own scrolling. */
+:root[data-quality="low"] { --reveal-distance: 0px; }

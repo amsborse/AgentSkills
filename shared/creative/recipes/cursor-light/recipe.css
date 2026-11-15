@@ -1,0 +1,34 @@
+/* Cursor light: a soft light that follows the pointer across a surface.
+ * The light is a decoration on ::before; it never carries information. */
+.cursor-light {
+  position: relative;
+  isolation: isolate; /* keeps the light above the surface's background and below its content */
+}
+.cursor-light::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    var(--light-size, 280px) circle at var(--lx, 50%) var(--ly, 0%),
+    var(--light-color, color-mix(in srgb, currentColor 14%, transparent)),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+/* Keyboard parity: focus lights the surface from the top centre (the --lx/--ly defaults). */
+.cursor-light:focus-visible::before,
+.cursor-light:focus-within::before { opacity: 1; }
+@media (hover: hover) {
+  .cursor-light:hover::before { opacity: 1; }
+}
+
+/* Static tier and reduced motion: recipe.js stops tracking, so the light stays where it
+ * is and only marks the hovered or focused surface. */
+:root[data-quality="static"] .cursor-light::before { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .cursor-light::before { transition: none; }
+}

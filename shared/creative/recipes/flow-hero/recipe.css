@@ -1,0 +1,27 @@
+/* Flow hero: a slow, living colour field behind a hero.
+ * Still first: this gradient is the whole effect until, and unless, the shader starts.
+ * Set the three colours per theme:  --flow-a (base)  --flow-b  --flow-c
+ * <section class="flow-hero">…content…</section> */
+.flow-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 12% 8%, var(--flow-b, #2b6f5c) 0%, transparent 62%),
+    radial-gradient(95% 85% at 88% 92%, var(--flow-c, #c98a4b) 0%, transparent 66%),
+    var(--flow-a, #10201c);
+}
+.flow-hero__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  inline-size: 100%;
+  block-size: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 700ms ease; /* the shader fades in over the still, never pops */
+}
+.flow-hero.is-live .flow-hero__canvas { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .flow-hero__canvas { display: none; }
+}

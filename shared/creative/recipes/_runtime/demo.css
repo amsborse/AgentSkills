@@ -1,0 +1,26 @@
+/* Shared chrome for the recipe demo pages only. Recipes never depend on this file. */
+:root {
+  color-scheme: light;
+  --bg: #f6f3ec; --card: #fffdf8; --ink: #1d2726; --muted: #4c5a56; --line: #cdd1c8; --accent: #1f6352; --on: #fff;
+  --shadow: 0 1px 2px #1d272614, 0 10px 30px #1d272610;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #101b1a; --card: #182825; --ink: #edf1ea; --muted: #b5c5bc; --line: #3d544b; --accent: #9fd6bb; --on: #10201c; --shadow: 0 1px 2px #0006, 0 14px 34px #0005; }
+}
+:root[data-theme="dark"] { color-scheme: dark; --bg: #101b1a; --card: #182825; --ink: #edf1ea; --muted: #b5c5bc; --line: #3d544b; --accent: #9fd6bb; --on: #10201c; --shadow: 0 1px 2px #0006, 0 14px 34px #0005; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, sans-serif; }
+main { max-width: 880px; margin: 0 auto; padding: 40px 24px 96px; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; letter-spacing: -0.035em; font-weight: 600; margin: 0 0 12px; }
+h2 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 0 0 8px; }
+p { margin: 0 0 16px; color: var(--muted); max-width: 62ch; }
+a { color: var(--accent); text-underline-offset: 4px; }
+code { font-size: 0.9em; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.demo-bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 16px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+.demo-bar output { font-variant-numeric: tabular-nums; }
+.demo-bar select, .demo-btn { font: 600 14px/1.4 system-ui, sans-serif; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); cursor: pointer; }
+.demo-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on); }
+.demo-card { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+.demo-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.demo-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }

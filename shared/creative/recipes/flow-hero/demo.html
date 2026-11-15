@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow hero · recipe demo</title>
+<link rel="stylesheet" href="../_runtime/demo.css">
+<link rel="stylesheet" href="recipe.css">
+<style>
+  main { max-width: none; padding: 0 0 96px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  .demo-bar { margin: 0 auto; padding: 24px 24px 16px; max-width: 880px; }
+  .flow-hero { --flow-a: #0d1d1a; --flow-b: #1f6b58; --flow-c: #b9763a; min-height: 78vh; display: grid; align-items: end; color: #f4f1e8; }
+  @media (prefers-color-scheme: light) { .flow-hero { --flow-a: #17332d; --flow-b: #2f8a70; --flow-c: #d6934f; } }
+  .flow-hero .wrap { width: 100%; padding-block: 56px; }
+  .flow-hero h1 { font-size: clamp(2.4rem, 7vw, 4.6rem); max-width: 14ch; text-shadow: 0 1px 24px #0006; }
+  .flow-hero p { color: #f4f1e8; max-width: 46ch; text-shadow: 0 1px 12px #0008; }
+  .below { padding-top: 56px; display: grid; gap: 16px; }
+  .spacer { height: 120vh; }
+</style>
+</head>
+<body>
+<main>
+  <div class="demo-bar">
+    <span>Recipe · <strong>Flow hero</strong></span>
+    <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+    <output data-quality-out></output>
+  </div>
+  <section class="flow-hero" id="hero">
+    <div class="wrap">
+      <h1>Slow weather behind the words.</h1>
+      <p>A shader field in three brand colours. It starts as a still gradient and only comes alive when the device can afford it.</p>
+    </div>
+  </section>
+  <div class="wrap below">
+    <h2>What the tier changes</h2>
+    <p>Resolution, noise detail and frame rate follow the tier. On the static tier, with reduced motion, or without WebGL, the gradient is the whole effect and no canvas exists. Scroll past the hero and the loop stops; stay away and the GPU memory is handed back.</p>
+    <p>State: <output id="state">…</output></p>
+    <div class="spacer" aria-hidden="true"></div>
+    <p>End of page. Scroll back up and the field resumes.</p>
+  </div>
+</main>
+<script src="../_runtime/quality.js"></script>
+<script src="../_runtime/demo.js"></script>
+<script src="recipe.js"></script>
+<script>
+  var hero = document.getElementById('hero');
+  var flow = ExperienceFlow.mount(hero);
+  var state = document.getElementById('state');
+  function show() { state.textContent = hero.dataset.flow + (flow.loop.running ? ', rendering' : ', not rendering') + (hero.querySelector('canvas') ? ', canvas present' : ', no canvas'); }
+  setInterval(show, 500); // demo readout only
+  show();
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+/* Route and shared-element transitions with the View Transitions API.
+ * Unsupported browsers get an instant, correct page change: nothing here is required. */
+
+/* Cross-document (multi-page) navigations opt in with this one rule. Remove it for a
+ * single-page app that only uses ExperienceRoute.transition(). */
+@view-transition { navigation: auto; }
+
+/* Shared elements travel on a spring; pairs with spring-states when it is loaded. */
+::view-transition-group(*) {
+  animation-duration: var(--spring-smooth-duration, 450ms);
+  animation-timing-function: var(--spring-smooth, cubic-bezier(0.25, 0.8, 0.3, 1));
+}
+/* The page itself only cross-fades, briefly, so text never slides under the reader. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: ease;
+}
+/* Keep a morphing element's content crisp instead of stretching the old snapshot. */
+::view-transition-old(*):not(::view-transition-old(root)),
+::view-transition-new(*):not(::view-transition-new(root)) {
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* Low tier: shorter. Static tier and reduced motion: the change is instant. */
+:root[data-quality="low"]::view-transition-group(*) { animation-duration: 240ms; animation-timing-function: ease-out; }
+:root[data-quality="static"]::view-transition-group(*),
+:root[data-quality="static"]::view-transition-old(*),
+:root[data-quality="static"]::view-transition-new(*) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}

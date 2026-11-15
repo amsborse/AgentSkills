@@ -1,0 +1,89 @@
+/* Spring states: physical press, toggle and disclosure feedback in CSS only.
+ * Easings come from ../_runtime/spring.mjs (a real damped spring written as linear()). */
+:root {
+  /* Fallbacks for browsers without linear(): close in feel, no overshoot detail. */
+  --spring-snappy: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --spring-snappy-duration: 300ms;
+  --spring-smooth: cubic-bezier(0.25, 0.8, 0.3, 1);
+  --spring-smooth-duration: 450ms;
+  --spring-bouncy: cubic-bezier(0.3, 1.5, 0.5, 1);
+  --spring-bouncy-duration: 500ms;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    /* stiffness 400, damping 32 */
+    --spring-snappy: linear(0, 0.003 0.9%, 0.025 2.8%, 0.043 3.7%, 0.088 5.6%, 0.144 7.4%, 0.206 9.3%, 0.439 15.7%, 0.534 18.5%, 0.647 22.2%, 0.721 25%, 0.784 27.8%, 0.854 31.5%, 0.895 34.3%, 0.937 38%, 0.968 41.7%, 0.989 45.4%, 1.004 50%, 1.012 54.6%, 1.015 63.9%, 1);
+    --spring-snappy-duration: 430ms;
+    /* stiffness 170, damping 26 */
+    --spring-smooth: linear(0, 0.005 1.1%, 0.019 2.2%, 0.04 3.4%, 0.081 5.1%, 0.166 7.9%, 0.374 14%, 0.463 16.9%, 0.559 20.2%, 0.643 23.6%, 0.713 27%, 0.772 30.3%, 0.819 33.7%, 0.864 37.6%, 0.902 42.1%, 0.93 46.6%, 0.955 52.2%, 0.972 58.4%, 0.984 65.2%, 0.992 73.6%, 1);
+    --spring-smooth-duration: 710ms;
+    /* stiffness 260, damping 16 */
+    --spring-bouncy: linear(0, 0.008 1%, 0.03 2%, 0.065 3%, 0.136 4.5%, 0.193 5.6%, 0.289 7.1%, 0.601 11.6%, 0.733 13.6%, 0.85 15.7%, 0.949 17.7%, 1.011 19.2%, 1.076 21.2%, 1.122 23.2%, 1.151 25.3%, 1.162 26.8%, 1.166 28.3%, 1.164 29.8%, 1.156 31.3%, 1.13 34.3%, 1.051 41.4%, 1.017 44.9%, 0.99 49%, 0.976 53%, 0.973 56.1%, 0.974 59.6%, 0.996 72.7%, 1.003 79.8%, 1);
+    --spring-bouncy-duration: 790ms;
+  }
+}
+
+/* Press: sinks fast under the finger, springs back on release. */
+.spring-press {
+  transition: transform var(--spring-bouncy-duration) var(--spring-bouncy);
+  touch-action: manipulation;
+}
+.spring-press:active {
+  transform: scale(var(--spring-press-scale, 0.96));
+  transition: transform 90ms ease-out;
+}
+
+/* Toggle: a native checkbox restyled as a switch, so keyboard and forms work unchanged.
+ * <input type="checkbox" role="switch" class="spring-toggle"> */
+.spring-toggle {
+  appearance: none;
+  inline-size: 52px;
+  block-size: 32px;
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid var(--spring-toggle-line, currentColor);
+  background: var(--spring-toggle-off, transparent);
+  position: relative;
+  cursor: pointer;
+  flex: none;
+  transition: background-color 200ms ease;
+}
+.spring-toggle::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 3px;
+  inset-inline-start: 3px;
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: 50%;
+  background: var(--spring-toggle-thumb, currentColor);
+  transition: transform var(--spring-bouncy-duration) var(--spring-bouncy);
+}
+.spring-toggle:checked { background: var(--spring-toggle-on, currentColor); }
+.spring-toggle:checked::before { transform: translateX(20px); background: var(--spring-toggle-thumb-on, Canvas); }
+:dir(rtl) .spring-toggle:checked::before { transform: translateX(-20px); }
+
+/* Disclosure: height animates through grid rows, so content is never measured in JS.
+ * <div class="spring-disclose" data-open="true|false"><div>…</div></div> */
+.spring-disclose {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--spring-smooth-duration) var(--spring-smooth);
+}
+.spring-disclose > * { overflow: hidden; min-block-size: 0; visibility: hidden; transition: visibility 0s var(--spring-smooth-duration); }
+.spring-disclose[data-open="true"] { grid-template-rows: 1fr; }
+.spring-disclose[data-open="true"] > * { visibility: visible; transition-delay: 0s; }
+
+/* Low tier: keep the feedback, drop the overshoot. */
+:root[data-quality="low"] {
+  --spring-bouncy: var(--spring-snappy);
+  --spring-bouncy-duration: var(--spring-snappy-duration);
+}
+
+/* Static tier and reduced motion: the state still changes, nothing travels. */
+:root[data-quality="static"] :is(.spring-press, .spring-toggle, .spring-toggle::before, .spring-disclose, .spring-disclose > *) { transition: none; }
+:root[data-quality="static"] .spring-press:active { transform: none; opacity: 0.8; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.spring-press, .spring-toggle, .spring-toggle::before, .spring-disclose, .spring-disclose > *) { transition: none; }
+  .spring-press:active { transform: none; opacity: 0.8; }
+}

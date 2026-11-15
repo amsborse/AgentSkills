@@ -1,0 +1,31 @@
+/* Magnetic target: the visible part of a control leans toward the pointer, then springs back.
+ * <button class="magnetic"><span class="magnetic__inner">Label</span></button>
+ * The control itself (the hit area) never moves, so the target cannot slide out from
+ * under the pointer; only the inner part travels. */
+.magnetic {
+  display: inline-grid;
+  padding: var(--magnetic-field, 12px); /* the field around the visible part */
+  margin: calc(var(--magnetic-field, 12px) * -1);
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.magnetic__inner {
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  /* Release: spring home. Pairs with spring-states when it is loaded. */
+  transition: transform var(--spring-bouncy-duration, 500ms) var(--spring-bouncy, cubic-bezier(0.3, 1.5, 0.5, 1));
+}
+/* While pulled: a short ease smooths pointer steps without lagging behind the hand. */
+.magnetic.is-pulled .magnetic__inner { transition: transform 120ms ease-out; }
+/* The focus ring belongs to the part people see. */
+.magnetic:focus-visible { outline: none; }
+.magnetic:focus-visible .magnetic__inner { outline: 3px solid var(--magnetic-focus, currentColor); outline-offset: 3px; }
+
+/* Low and static tiers, reduced motion, touch: recipe.js does not pull; this keeps any
+ * value already set from showing. */
+:root:is([data-quality="static"], [data-quality="low"]) .magnetic__inner { transform: none; transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .magnetic__inner { transform: none; transition: none; }
+}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magnetic target · recipe demo</title>
+<link rel="stylesheet" href="../_runtime/demo.css">
+<link rel="stylesheet" href="../spring-states/recipe.css">
+<link rel="stylesheet" href="recipe.css">
+<style>
+  .magnetic { --magnetic-field: 16px; --magnetic-focus: var(--accent); margin: 0; }
+  .magnetic__inner { display: inline-flex; align-items: center; }
+  .stage { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; min-height: 240px; }
+  .magnetic[disabled] { cursor: not-allowed; }
+  .magnetic[disabled] .magnetic__inner { opacity: 0.55; }
+</style>
+</head>
+<body>
+<main>
+  <div class="demo-bar">
+    <span>Recipe · <strong>Magnetic target</strong></span>
+    <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+    <output data-quality-out></output>
+  </div>
+  <h1>A primary action that leans in.</h1>
+  <p>Approach a button and its face leans toward the pointer, then springs home when you leave. The clickable area itself never moves. Use it on one or two primary actions, not on every control.</p>
+  <div class="demo-card stage">
+    <button class="magnetic" id="primary"><span class="magnetic__inner demo-btn primary">Start a project</span></button>
+    <button class="magnetic" id="secondary"><span class="magnetic__inner demo-btn">See the work</span></button>
+    <button class="magnetic" id="disabled" disabled><span class="magnetic__inner demo-btn">Unavailable</span></button>
+  </div>
+</main>
+<script src="../_runtime/quality.js"></script>
+<script src="../_runtime/demo.js"></script>
+<script src="recipe.js"></script>
+<script>ExperienceMagnetic.init();</script>
+</body>
+</html>

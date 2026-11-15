@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Route transition · recipe demo</title>
+<link rel="stylesheet" href="../_runtime/demo.css">
+<link rel="stylesheet" href="../spring-states/recipe.css">
+<link rel="stylesheet" href="recipe.css">
+<style>
+  .tile { all: unset; box-sizing: border-box; display: grid; gap: 12px; cursor: pointer; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .tile:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .swatch { aspect-ratio: 4 / 3; border-radius: 8px; background: var(--c); }
+  .tile strong { font-size: 1.05rem; }
+  .detail .swatch { aspect-ratio: 16 / 7; border-radius: 12px; margin-bottom: 24px; }
+  .detail h2 { font-size: 2rem; letter-spacing: -0.03em; }
+  .detail h2:focus { outline: none; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="demo-bar">
+    <span>Recipe · <strong>Route transition</strong></span>
+    <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+    <output data-quality-out></output>
+  </div>
+  <h1>The thing you chose is the thing that opens.</h1>
+  <p>Pick a study. Its colour field and title travel to their place on the next view, then travel back. Escape or the back button returns.</p>
+
+  <section id="list" class="demo-grid" aria-label="Studies"></section>
+  <section id="detail" class="detail" hidden aria-live="polite">
+    <button class="demo-btn spring-press" id="back">← All studies</button>
+    <div style="height:24px"></div>
+    <div class="swatch" id="d-swatch"></div>
+    <h2 id="d-title" tabindex="-1"></h2>
+    <p id="d-text"></p>
+  </section>
+</main>
+<script src="../_runtime/quality.js"></script>
+<script src="../_runtime/demo.js"></script>
+<script src="recipe.js"></script>
+<script>
+  var studies = [
+    { id: 'moss', name: 'Moss', c: 'linear-gradient(135deg,#1f6352,#9fd6bb)', text: 'Deep green into mint. Calm, steady, the colour of things that grow slowly.' },
+    { id: 'ember', name: 'Ember', c: 'linear-gradient(135deg,#8a3b12,#f0b45c)', text: 'Burnt umber into amber. Warm without shouting.' },
+    { id: 'tide', name: 'Tide', c: 'linear-gradient(135deg,#17406b,#8fc3e8)', text: 'Harbour blue into morning sky. Wide and unhurried.' },
+    { id: 'plum', name: 'Plum', c: 'linear-gradient(135deg,#4a2358,#d7a6dc)', text: 'Dusk violet into soft lilac. The quiet end of the day.' }
+  ];
+  var list = document.getElementById('list');
+  var detail = document.getElementById('detail');
+  var current = null;
+
+  studies.forEach(function (s) {
+    var b = document.createElement('button');
+    b.className = 'tile';
+    b.dataset.id = s.id;
+    b.innerHTML = '<span class="swatch" style="--c:' + s.c + '"></span><strong>' + s.name + '</strong>';
+    b.addEventListener('click', function () { open(s, b); });
+    list.appendChild(b);
+  });
+
+  function open(s, tile) {
+    current = tile;
+    ExperienceRoute.transition(function () {
+      document.getElementById('d-swatch').style.setProperty('--c', s.c);
+      document.getElementById('d-title').textContent = s.name;
+      document.getElementById('d-text').textContent = s.text;
+      list.hidden = true;
+      detail.hidden = false;
+      document.getElementById('d-title').focus();
+    }, { shared: [
+      { from: tile.querySelector('.swatch'), to: '#d-swatch', name: 'study-swatch' },
+      { from: tile.querySelector('strong'), to: '#d-title', name: 'study-title' }
+    ] });
+  }
+  function close() {
+    if (!current) return;
+    var tile = current;
+    current = null;
+    ExperienceRoute.transition(function () {
+      detail.hidden = true;
+      list.hidden = false;
+      tile.focus();
+    }, { shared: [
+      { from: '#d-swatch', to: tile.querySelector('.swatch'), name: 'study-swatch' },
+      { from: '#d-title', to: tile.querySelector('strong'), name: 'study-title' }
+    ] });
+  }
+  document.getElementById('back').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+</script>
+</body>
+</html>

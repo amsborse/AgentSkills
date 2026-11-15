@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring states · recipe demo</title>
+<link rel="stylesheet" href="../_runtime/demo.css">
+<link rel="stylesheet" href="recipe.css">
+<style>
+  .spring-toggle { --spring-toggle-line: var(--line); --spring-toggle-thumb: var(--muted); --spring-toggle-on: var(--accent); --spring-toggle-thumb-on: var(--on); }
+  label.demo-row { justify-content: space-between; min-height: 44px; }
+  .faq button { all: unset; box-sizing: border-box; display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 600; }
+  .faq button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  .faq p { padding-top: 8px; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <div class="demo-bar">
+    <span>Recipe · <strong>Spring states</strong></span>
+    <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+    <output data-quality-out></output>
+  </div>
+  <h1>Feedback with weight.</h1>
+  <p>Press, toggle and disclose. Each one is a damped spring written as a CSS <code>linear()</code> easing: no script runs while it moves.</p>
+
+  <div class="demo-grid">
+    <section class="demo-card">
+      <h2>Press</h2>
+      <p>Sinks under the pointer, springs back on release.</p>
+      <div class="demo-row">
+        <button class="demo-btn primary spring-press" id="press">Save changes</button>
+        <button class="demo-btn spring-press">Cancel</button>
+      </div>
+    </section>
+    <section class="demo-card">
+      <h2>Toggle</h2>
+      <p>A native checkbox, so Space and forms just work.</p>
+      <label class="demo-row">Weekly summary <input type="checkbox" role="switch" class="spring-toggle" id="toggle" checked></label>
+      <label class="demo-row">Mentions only <input type="checkbox" role="switch" class="spring-toggle"></label>
+    </section>
+    <section class="demo-card faq">
+      <h2>Disclose</h2>
+      <button aria-expanded="false" aria-controls="answer" id="disclose">How is height animated? <span aria-hidden="true">+</span></button>
+      <div class="spring-disclose" id="answer" data-open="false"><div><p>Through <code>grid-template-rows</code>, from <code>0fr</code> to <code>1fr</code>. Nothing is measured, and closed content leaves the tab order.</p></div></div>
+    </section>
+  </div>
+</main>
+<script src="../_runtime/quality.js"></script>
+<script src="../_runtime/demo.js"></script>
+<script>
+  var btn = document.getElementById('disclose');
+  var panel = document.getElementById('answer');
+  btn.addEventListener('click', function () {
+    var open = btn.getAttribute('aria-expanded') !== 'true';
+    btn.setAttribute('aria-expanded', String(open));
+    panel.dataset.open = String(open);
+    btn.lastElementChild.textContent = open ? '−' : '+';
+  });
+</script>
+</body>
+</html>

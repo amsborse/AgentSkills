@@ -53,3 +53,29 @@ Anything that needs the owner stays **pending** and never blocks other work.
   names which source produced its numbers.
 - **Approval required:** No. Owner may want it verified in a project that has the package.
 - **Status:** Resolved (option 1). The `web-vitals` path is **unverified**.
+
+## D-005 Framework adapters for recipes
+
+- **Question:** One adapter per recipe per framework, or one shared guide.
+- **Context:** The recipes are plain CSS and script with an init and a clean-up function. Per
+  framework wrappers would be 24 or more small files that cannot be tested here without
+  installing each framework.
+- **Options:** (1) one `recipes/adapters.md` showing the mount and clean-up pattern for React,
+  Vue, Svelte and Astro; (2) tested wrapper packages per framework.
+- **Recommended:** 1.
+- **Risk and impact:** The wrappers are untested patterns and say so. Reversible.
+- **Approval required:** No.
+- **Status:** Resolved (option 1).
+
+## D-006 Starting tier in automatic mode
+
+- **Question:** Which tier a page starts on before any frames are measured.
+- **Context:** Starting high looks best on good hardware but a weak device pays for a few
+  seconds; starting low is safe but good hardware visibly steps up.
+- **Options:** (1) start from device hints (memory, cores, pointer type), then measure;
+  (2) always start low and step up; (3) always start high.
+- **Recommended:** 1 (implemented). A weak device reaches low within about 8.5 s in the worst
+  measured case.
+- **Risk and impact:** Reversible; a project can pin a tier or pass its own start tier.
+- **Approval required:** No. Owner may prefer option 2 for a mobile-first product.
+- **Status:** Resolved (option 1).

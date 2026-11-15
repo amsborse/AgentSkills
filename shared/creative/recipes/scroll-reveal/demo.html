@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scroll progress and reveal · recipe demo</title>
+<link rel="stylesheet" href="../_runtime/demo.css">
+<link rel="stylesheet" href="recipe.css">
+<style>
+  .scroll-progress { --scroll-progress-color: var(--accent); }
+  article { display: grid; gap: 28px; }
+  article section { min-height: 46vh; display: grid; align-content: center; }
+  .num { font: 600 13px/1 system-ui, sans-serif; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="scroll-progress" aria-hidden="true"></div>
+<main>
+  <div class="demo-bar">
+    <span>Recipe · <strong>Scroll progress and reveal</strong></span>
+    <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+    <output data-quality-out></output>
+  </div>
+  <h1>The page keeps pace with the reader.</h1>
+  <p>The line at the top tracks reading progress. Sections arrive as they enter the viewport. Add <code>?fallback=1</code> to run the script path instead of native scroll timelines.</p>
+  <article>
+    <section class="demo-card reveal"><div class="num">01</div><h2>Driven by scroll position, not by time</h2><p>Scroll back up and the motion reverses with you. There is no timer to fall out of step with.</p></section>
+    <section class="demo-card reveal"><div class="num">02</div><h2>Off the main thread</h2><p>Native scroll timelines run in the compositor, so a busy page does not stutter them.</p></section>
+    <section class="demo-card reveal"><div class="num">03</div><h2>Visible unless proven otherwise</h2><p>Nothing is hidden until the mechanism that reveals it is known to be running.</p></section>
+    <section class="demo-card reveal"><div class="num">04</div><h2>Quiet when asked</h2><p>With reduced motion, or on the static tier, every section is simply there.</p></section>
+    <section class="demo-card reveal"><div class="num">05</div><h2>Lighter on small devices</h2><p>The low tier keeps the fade and drops the travel.</p></section>
+  </article>
+</main>
+<script src="../_runtime/quality.js"></script>
+<script src="../_runtime/demo.js"></script>
+<script src="recipe.js"></script>
+<script>ExperienceScroll.init({ force: new URLSearchParams(location.search).has('fallback') });</script>
+</body>
+</html>
