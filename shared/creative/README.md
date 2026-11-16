@@ -9,6 +9,14 @@ component. The project's own design system and the owner's UI taste section in
 **Load lazily.** Read only the file the current step needs. Never read the whole technique
 folder; pick techniques from the table below and open those files only.
 
+**Voice matches the visual direction.** When choosing a direction, choose its vocabulary and
+sentence rhythm too, then apply them to every headline, label, action, tooltip, empty state
+and footer. An instrument desk speaks precisely; an editorial page has room for full
+sentences. For example: “Unlock your workflow” → “Review 3 held requests” on a dispatch desk;
+“Explore more” → “Return to the opening” in an essay; “Get started” → “Find a room for the
+night” on an evening retreat page. Keep fictional examples explicitly fictional. Write from
+the page's purpose, rather than adding a themed headline above generic component copy.
+
 | File | Read it when |
 |---|---|
 | `adaptation.md` | Choosing a design direction (before any visual work) |
