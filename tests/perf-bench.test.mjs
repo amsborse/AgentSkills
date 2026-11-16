@@ -161,6 +161,21 @@ test('reports compare condition by condition and flag unlike environments', () =
   assert.throws(() => compareReports({ schema: 'x' }, base), /schema/);
 });
 
+test('network presets are part of the comparison environment, including legacy unthrottled reports', () => {
+  const conds = [condition('a', [run(), run(), run()])];
+  const base = rep(conds, { network: null });
+  const slow = rep([condition('a', [run({ lcp: 1500 }), run({ lcp: 1500 }), run({ lcp: 1500 })])], { network: 'slow-4g' });
+  const different = compareReports(base, slow);
+  assert.equal(different.comparable, false);
+  assert.match(different.warning, /different environments.*network/);
+  assert.match(renderBenchMarkdown({ ...slow, status: 'measured', comparison: different }), /Warning:.*network/);
+  assert.equal(compareReports(slow, base).comparable, false, 'shaped to unthrottled also differs');
+  assert.equal(compareReports(slow, rep(conds, { network: 'fast-4g' })).comparable, false, 'different presets differ');
+  assert.equal(compareReports(slow, rep(conds, { network: 'slow-4g' })).comparable, true);
+  assert.equal(compareReports(base, rep(conds)).comparable, true, 'missing network in older reports means unthrottled');
+  assert.equal(compareReports(rep(conds), slow).comparable, false, 'legacy reports must still differ from shaped runs');
+});
+
 test('budgets fail on a breach, an accepted trade-off needs a reason, and unmeasured is not a pass', () => {
   const conds = [condition('a', [run({ lcp: 3000, inp: null })])];
   const def = checkBudget(conds, { budgets: DEFAULT_BUDGET, tradeoffs: [] }, { isDefault: true });
@@ -367,6 +382,14 @@ test('a page that cannot load is incomplete, exits 2 and never becomes a baselin
   assert.equal(fs.existsSync(saved), false);
 });
 
+test('a script that leaves the page fails the run instead of reporting no interaction', { skip }, async () => {
+  const { code, report } = await exec(bench, ['--url', fixture('leaves.html'), '--project', pw, '--runs', '2', '--settle', '0', '--script', fx('leave.json'), '--json', '--out', tmp('leave')]);
+  assert.equal(code, 2);
+  assert.equal(report.status, 'incomplete');
+  assert.equal(report.conditions[0].completed, 0);
+  assert.match(report.conditions[0].errors[0], /left the page at step 3 \(click #out\).*clean\.html/);
+});
+
 test('report: names what shifted, how far and in how many runs, and says when the network was shaped', () => {
   const shifted = run({ cls: 0.345, shifts: [{ at: 506, value: 0.345, moved: ['main', 'a.card'], by: [[0, 212], [0, 212]] }] });
   const c = { ...condition('a', [run(), shifted, run()]), runs: [run(), shifted, run()] };
@@ -378,7 +401,7 @@ test('report: names what shifted, how far and in how many runs, and says when th
   assert.match(quiet, /CPU throttle: not available in this engine; network: unthrottled/);
 });
 
-test('a screen that changes its refresh rate part-way is reported, not read as a slow page', () => {
+test('observed frame timing drift is reported across runs without inferring a display change', () => {
   const at = (interval) => run({ frames: { p50: interval, p95: interval, worst: interval, droppedPct: 0, interval } });
   const steady = [{ id: 'a', runs: [at(3.2), at(3.3), { error: 'x' }] }, { id: 'b', runs: [at(3.2)] }];
   assert.deepEqual(frameRateDrift(steady), []);
@@ -386,4 +409,30 @@ test('a screen that changes its refresh rate part-way is reported, not read as a
   assert.match(note, /from 3\.2 ms to 33\.2 ms \(313 to 30 frames a second\)/);
   assert.match(note, /Slower in: static\./);
   assert.deepEqual(frameRateDrift([{ id: 'a', runs: [run({ frames: { interval: null } })] }]), [], 'no frame data is not a drift');
+});
+
+test('sustained page overload can cause timing drift without making measured INP incomparable', () => {
+  const at = (interval, inp) => run({ inp, frames: frameStats(Array.from({ length: 120 }, (_, i) => i * interval)) });
+  const runs = [at(16.7, 32), at(16.7, 32), at(16.7, 32)];
+  const overloaded = [at(50, 240), at(50, 240), at(50, 240)];
+  const conditions = [{ ...condition('static', runs), runs }, { ...condition('ultra', overloaded), runs: overloaded }];
+  const notes = frameRateDrift(conditions);
+  assert.equal(notes.length, 1);
+  assert.match(notes[0], /observed frame timing drift/i);
+  assert.match(notes[0], /cause.*unknown/i);
+  assert.match(notes[0], /page (load|workload)/i);
+  assert.doesNotMatch(notes[0], /refresh interval changed|screen.*changed|INP.*not comparable/i);
+  assert.equal(conditions[1].summary.inp.median, 240, 'measured INP stays measured');
+  const md = renderBenchMarkdown({ ...rep(conditions), status: 'measured', notes });
+  assert.match(md, /cause.*unknown/i);
+  assert.doesNotMatch(md, /INP.*not comparable/i);
+});
+
+test('Lantern tier evidence states unknown included run counts when raw reports are unavailable', () => {
+  const readme = fs.readFileSync(path.join(root, 'demos/experience/README.md'), 'utf8');
+  const caveat = readme.match(/Lantern `high` and `balanced`[\s\S]*?(?=\n\nWeight)/)?.[0];
+  assert.ok(caveat, 'the measured tier caveat must be present');
+  assert.match(caveat, /included run counts are unknown/i);
+  assert.match(caveat, /raw.*reports.*(missing|unavailable|not present)/i);
+  assert.doesNotMatch(caveat, /are [34] of 5 runs/);
 });

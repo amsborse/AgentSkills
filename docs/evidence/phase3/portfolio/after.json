@@ -1,0 +1,109 @@
+{
+ "name": "after",
+ "url": "http://127.0.0.1:4793/index.html",
+ "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 Super with Max-Q Design (0x00001ED1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "arrival": {
+  "tag": "ARTICLE",
+  "lit": "arrive",
+  "glowOpacity": "0.924119",
+  "transform": "",
+  "top": 68
+ },
+ "afterArrival": {
+  "tag": "ARTICLE",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "",
+  "top": 68
+ },
+ "hover": {
+  "tag": "ARTICLE",
+  "lit": null,
+  "glowOpacity": "1",
+  "transform": "perspective(1200px) rotateX(1.79492deg) rotateY(2.2508deg) translateZ(10px)",
+  "top": 93
+ },
+ "afterHover": {
+  "tag": "ARTICLE",
+  "lit": null,
+  "glowOpacity": "0.0023751",
+  "transform": "",
+  "top": 95
+ },
+ "tabStops": [
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Writing",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Systems",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Writing",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Systems",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Writing",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Systems",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  }
+ ],
+ "errors": [],
+ "reducedHover": {
+  "tag": "ARTICLE",
+  "lit": null,
+  "glowOpacity": "0.999939",
+  "transform": "",
+  "top": 394
+ },
+ "reducedComputedTransform": "none",
+ "mobileOverflow": 0,
+ "touchBefore": {
+  "tag": "ARTICLE",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "",
+  "top": 629
+ },
+ "touchDuring": {
+  "tag": "ARTICLE",
+  "lit": "true",
+  "glowOpacity": "0.325503",
+  "transform": "",
+  "top": 317
+ },
+ "touchAfter": {
+  "tag": "ARTICLE",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "",
+  "top": 96
+ },
+ "deepLink": {
+  "tag": "ARTICLE",
+  "lit": "arrive",
+  "glowOpacity": "0.994363",
+  "transform": "",
+  "top": 96
+ }
+}

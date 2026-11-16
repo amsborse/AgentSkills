@@ -1,0 +1,109 @@
+{
+ "name": "base",
+ "url": "http://127.0.0.1:4792/index.html",
+ "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 Super with Max-Q Design (0x00001ED1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "arrival": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0px)",
+  "top": -28
+ },
+ "afterArrival": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0px)",
+  "top": -28
+ },
+ "hover": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0.999975",
+  "transform": "perspective(1200px) rotateX(1.83485deg) rotateY(2.24851deg) translateZ(10px)",
+  "top": -3
+ },
+ "afterHover": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0.00523772",
+  "transform": "perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0px)",
+  "top": -1
+ },
+ "tabStops": [
+  {
+   "tag": "BUTTON",
+   "cls": "pillar-card pillar-card--cyan",
+   "text": "Systems That Don't Fail ",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Writing",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Systems",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "BUTTON",
+   "cls": "pillar-card pillar-card--violet",
+   "text": "Invisible Thinking Loops",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "BUTTON",
+   "cls": "pillar-card pillar-card--cyan",
+   "text": "Systems That Don't Fail ",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  },
+  {
+   "tag": "A",
+   "cls": "btn btn--primary",
+   "text": "Explore Writing",
+   "outline": "solid 1.6px rgb(34, 211, 238)"
+  }
+ ],
+ "errors": [],
+ "reducedHover": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0.999956",
+  "transform": "",
+  "top": 346
+ },
+ "reducedComputedTransform": "none",
+ "mobileOverflow": 0,
+ "touchBefore": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0px)",
+  "top": 628
+ },
+ "touchDuring": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "perspective(1200px) rotateX(0.0555477deg) rotateY(-0.00507893deg) translateZ(10px)",
+  "top": 305
+ },
+ "touchAfter": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "perspective(1200px) rotateX(0.0555477deg) rotateY(-0.00507893deg) translateZ(10px)",
+  "top": 0
+ },
+ "deepLink": {
+  "tag": "BUTTON",
+  "lit": null,
+  "glowOpacity": "0",
+  "transform": "perspective(1200px) rotateX(0.0555477deg) rotateY(-0.00507893deg) translateZ(10px)",
+  "top": 0
+ }
+}

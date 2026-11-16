@@ -84,11 +84,15 @@ Quality tiers, desktop dark, held with `?quality=`:
 | Lantern LCP ms | 216 (188–328) | 198 (156–240) | 210 (156–224) | 236 (184–276) | 216 (192–392) |
 | Lantern INP ms | 32 (32–40) | 40 | 32 (24–32) | 40 (32–56) | 48 (32–56) |
 
-Lantern `high` and `balanced` are 4 of 5 runs: in each, one run lost its page, and one `high`
-run stalled at about one frame a second while other programs had taken the machine's free
-memory down to about 470 MB. Those runs are reported here, not hidden, and are not in the
-medians. An earlier pass of the Lantern tiers was thrown away and repeated because the display
-dropped to 30 Hz part-way; the bench now says so when the refresh rate changes during a run.
+Lantern `high` and `balanced`: included run counts are unknown. The original notes describe
+one lost-page run in each tier and a `high` run stalled at about one frame a second while other
+programs had taken free memory down to about 470 MB, but the raw Lantern reports are not present
+in `docs/evidence/` (which contains portfolio evidence only). The notes do not establish which
+runs contributed to the medians or whether the stalled run was separate from the lost-page run.
+The figures above are preserved as recorded; their included run counts cannot be verified.
+An earlier tier pass was discarded and repeated after timing slowed to about 30 frames a second.
+The original notes attributed this to the display; frame intervals alone cannot establish that
+cause. The bench now reports observed timing drift with cause unknown.
 
 Weight (Chromium, transferred): Signal 43.6 KB in total, 17.1 KB of it script; Field Notes
 43.5 KB, 19.3 KB; Lantern 57.7 KB, 31.8 KB. JavaScript heap after the session: 1.7–1.9 MB for

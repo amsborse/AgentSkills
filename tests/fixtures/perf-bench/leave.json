@@ -1,0 +1,1 @@
+{ "name": "leave the page", "steps": [ { "type": "click", "selector": "#go" }, { "type": "wait", "ms": 100 }, { "type": "click", "selector": "#out" }, { "type": "wait", "ms": 400 } ] }

@@ -147,14 +147,17 @@ real device. Full figures: `demos/experience/README.md`, "Measured".
   than run-to-run spread. Field Notes' scroll effects cost a few late frames at 300 Hz. INP under
   a 4× slowed processor is 72–120 ms on Signal, the tightest cell.
 - Bench work this stage needed: `--browser`, `--network`, a `tap` step, sizes without the
-  DevTools protocol, layout-shift sources in the report, and a note when the display's refresh
-  rate changes part-way (`frameRateDrift`). Each has a test.
+  DevTools protocol, layout-shift sources in the report, and an observed frame timing drift
+  note (`frameRateDrift`). Frame intervals alone cannot establish a display-rate change. Each
+  has a test.
 - Incidents, all reported rather than smoothed over:
   - The first matrix run was killed for low memory; it was restarted once memory was free.
-  - The display dropped to 30 Hz during the Lantern tier cells. Those cells were discarded and
-    re-measured; the drift note above exists because of this.
+  - Timing slowed to about 30 frames a second during the Lantern tier cells. Those cells were
+    discarded and re-measured. The original session attributed this to the display, but frame
+    intervals alone cannot establish that cause; the drift note above records the observation.
   - During the re-measure other programs took free memory to about 470 MB: two Lantern runs lost
-    their page and one stalled at about 1 fps. Reported as 4 of 5 runs.
+    their page and one stalled at about 1 fps. The original "4 of 5" included-run claim cannot
+    be verified without the raw Lantern reports; included counts for high and balanced are unknown.
   - Firefox headed stalled or crashed in about one run in four. Cause unknown.
   - Playwright WebKit crashes on Signal when a real key press or click goes back through the
     view transition. Seven probes: not reproducible from script, on `static`, on the forward
@@ -169,6 +172,33 @@ real device. Full figures: `demos/experience/README.md`, "Measured".
 - Open, measured but not acted on: after a lost context the shader never restarts. That is the
   conservative choice and is left as is.
 - Not done: a real phone, Safari, a low-end GPU, a 60 Hz display.
+
+## Phase 3, stage 2: review fix round (2026-11-15)
+
+- Interrupted work: a browser regression and `leave.json` / `leaves.html` fixtures for scripts
+  that navigate away and lose earlier interactions. Preserved all three and added the missing
+  runner guard: a changed document time origin fails the run at the script step; same-document
+  routes remain allowed. The retained browser regression still needs the orchestrator's run.
+- Preserved `docs/evidence/phase3/portfolio/` untouched (two JSON reports and three PNGs).
+  They record portfolio arrival, hover, keyboard, reduced-motion and touch behavior before and
+  after a change; the JSON shows BUTTON becoming ARTICLE and touch/arrival lighting added.
+  No portfolio implementation changes were left in this worktree, and no ledger or decision-queue
+  entry explains its remaining work. Further portfolio work is outside this fix round and left intact.
+- P2-1: network presets now participate in comparison identity and the environment warning;
+  absent/null network fields remain equivalent for older unthrottled reports.
+- P2-2: timing drift reports an observation with cause unknown, including page workload as a
+  possibility; it no longer asserts a display-rate change or declares INP incomparable.
+  Reference and measurement caveats now use the same wording.
+- P3: no raw Lantern reports exist in the evidence folder. The README now states unknown
+  included run counts for high and balanced; all recorded measurement values are unchanged.
+- Regression evidence: three new tests (network identity, sustained-overload drift wording,
+  unknown Lantern counts) each failed before the fix and pass afterwards. Existing assertions
+  were retained. `node --test --test-isolation=none tests/perf-bench.test.mjs`: 21 pass,
+  2 fail with `spawn EPERM` (subprocess tests), 6 browser tests skipped (no Playwright project).
+  With `--test-skip-pattern='usage errors|without Playwright'`: 21 pass, 0 fail, 6 browser skips.
+  Both changed scripts pass `node --check`; `git diff --check` passes.
+- Unverified: browser navigation regression, full suite and real-browser measurements; the
+  orchestrator must run them outside this subprocess-restricted sandbox. No commit or release.
 
 ## Commits
 

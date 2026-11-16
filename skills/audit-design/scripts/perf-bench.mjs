@@ -255,6 +255,12 @@ async function oneRun(browser, cell) {
 
     await page.goto(withTier(o.url, cell.tier, o['tier-param']), { waitUntil: 'load', timeout: 45000 });
     await sleep(page, SETTLE);
+    // A new document resets the observers and loses earlier interactions. Hash navigation and
+    // client-side routing keep the same time origin and are safe to measure in this session.
+    const documentStart = await page.evaluate(() => performance.timeOrigin);
+    const checkDocument = async (where) => {
+      if (await page.evaluate(() => performance.timeOrigin) !== documentStart) throw new Error(`script left the page ${where}: ${page.url()}`);
+    };
 
     const heapSeries = [];
     const heap = async () => {
@@ -268,13 +274,17 @@ async function oneRun(browser, cell) {
       await page.evaluate(() => window.__bench.startFrames());
       if (script) {
         for (let r = 0; r < REPEATS; r++) {
-          for (const step of script.steps) await playStep(page, step, cell.viewport);
+          for (const [i, step] of script.steps.entries()) {
+            await playStep(page, step, cell.viewport);
+            await checkDocument(`at step ${i + 1} (${step.type}${step.selector ? ` ${step.selector}` : ''})`);
+          }
           if (REPEATS > 1) heapSeries.push(await heap());
         }
       } else await sleep(page, FRAMES);
       frames = await page.evaluate(() => window.__bench.stopFrames());
     }
     await sleep(page, 150); // let the last event-timing and long-frame entries be delivered
+    await checkDocument('before collecting metrics');
     const used = heapSeries.length ? heapSeries[heapSeries.length - 1] : await heap();
     const m = await page.evaluate(COLLECT);
     await Promise.all(pending);

@@ -46,6 +46,12 @@ the request gets a note instead of numbers silently attributed to the wrong tier
 runs `--runs` times in a fresh browser context; the report gives the median and the observed
 range.
 
+Frame timing drift notes describe differences in observed callback intervals across runs or
+conditions. Their cause is unknown: page workload, browser scheduling and display changes can
+all produce them. The bench does not measure the display's refresh rate independently, and
+the note alone does not make frame pacing or INP incomparable. The estimated reference interval
+can also rise under sustained overload, so dropped-frame share is relative to observed timing.
+
 ## Interaction scripts
 
 JSON, validated before the browser starts. Coordinates are fractions of the viewport; `scroll.by`
@@ -63,6 +69,8 @@ is in pixels.
 
 Step types: `wait`, `scroll`, `move`, `hover`, `click`, `tap`, `press`, `type`, `drag`, `tab`.
 `tap` is a real touch on a mobile viewport and a click elsewhere, so one script serves both.
+Steps that load a new document make the run incomplete: the previous document's observers and
+interaction history were lost. Same-document navigation (hashes or client-side routes) is allowed.
 
 INP stays unknown when every interaction finishes in under 16 ms: the browser does not report
 events that short, so a fast machine gets "below 16 ms", not a number.
@@ -85,8 +93,8 @@ cause instead of only a number.
 
 - A difference counts only when it clears the metric's noise floor (absolute and relative) and
   the observed range of both sides. Otherwise the verdict is `no measurable change`. A missing
-  side is `unknown`. Reports from different browsers, renderers or CPUs are flagged as not
-  comparable.
+  side is `unknown`. Reports from different browsers, renderers, CPUs or network presets are
+  flagged as not comparable. A missing network field in an older report means unthrottled.
 - Default budget: the Core Web Vitals "good" thresholds (LCP 2500 ms, INP 200 ms, CLS 0.1),
   applied to lab numbers as an indication only. A project budget is a JSON file passed with
   `--budget`: `{ "budgets": { "lcp": 1800 }, "tradeoffs": [{ "metric": "lcp", "limit": 2200,

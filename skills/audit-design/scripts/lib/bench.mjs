@@ -152,8 +152,9 @@ export function stat(values) {
   return { median: median(v), min: Math.min(...v), max: Math.max(...v), n: v.length };
 }
 
-// Frame pacing from requestAnimationFrame timestamps. The refresh interval is estimated from
-// the fastest gaps instead of assumed, so a 120 Hz display is not reported as half dropped.
+// Frame pacing from requestAnimationFrame timestamps. The reference interval is estimated from
+// the fastest gaps instead of assumed, so steady 120 Hz timing is not reported as half dropped.
+// This observes callback timing, not the display rate; sustained overload can raise the estimate.
 export function frameStats(timestamps) {
   if (!Array.isArray(timestamps) || timestamps.length < 10) return { frames: timestamps?.length ?? 0, p50: null, p95: null, worst: null, interval: null, droppedPct: null, fps: null };
   const gaps = [];
@@ -173,10 +174,9 @@ export function frameStats(timestamps) {
   };
 }
 
-// The shortest common gap between frames is the screen's refresh interval. When it differs
-// between runs, the screen or the browser changed its rate part-way (power saving, a display
-// that went to sleep, a window that was covered): frame pacing and INP from the two halves cannot
-// be compared, and a slow half must not be read as a slow page. Returns notes, empty when steady.
+// Flag differences in observed callback timing across runs or conditions. Without independent
+// display data, page workload, browser scheduling and display changes cannot be distinguished.
+// The observation alone does not invalidate measured frame pacing or INP.
 export function frameRateDrift(conditions) {
   const seen = [];
   for (const c of conditions || []) for (const r of c.runs || []) if (!r.error && r.frames?.interval) seen.push({ id: c.id, interval: r.frames.interval });
@@ -184,7 +184,7 @@ export function frameRateDrift(conditions) {
   const lo = Math.min(...seen.map((x) => x.interval)), hi = Math.max(...seen.map((x) => x.interval));
   if (hi / lo < 1.5) return [];
   const slow = [...new Set(seen.filter((x) => x.interval / lo >= 1.5).map((x) => x.id))];
-  return [`The refresh interval changed during the measurement, from ${lo.toFixed(1)} ms to ${hi.toFixed(1)} ms (${Math.round(1000 / lo)} to ${Math.round(1000 / hi)} frames a second). Frame pacing and INP are not comparable across these runs; keep the screen awake and the window uncovered, then measure again. Slower in: ${slow.join(', ')}.`];
+  return [`Observed frame timing drift across runs or conditions, from ${lo.toFixed(1)} ms to ${hi.toFixed(1)} ms (${Math.round(1000 / lo)} to ${Math.round(1000 / hi)} frames a second). Cause unknown: page workload, browser scheduling or display changes can produce these gaps; no independent display rate was measured. Investigate the conditions before attributing the drift to a cause. Slower in: ${slow.join(', ')}.`];
 }
 
 // INP for a short lab session: the worst interaction, skipping one outlier per 50 interactions.
@@ -283,13 +283,13 @@ export function compareReports(baseline, candidate) {
   return {
     verdict: any('regressed') ? 'regressed' : any('unknown') || missing.length ? (any('improved') ? 'improved, with unknowns' : 'unknown') : any('improved') ? 'improved' : 'no measurable change',
     comparable: sameEnv,
-    ...(sameEnv ? {} : { warning: 'baseline and candidate were measured in different environments (browser, renderer, headed mode or machine); the comparison is not like for like' }),
+    ...(sameEnv ? {} : { warning: 'baseline and candidate were measured in different environments (browser, renderer, headed mode, machine or network preset); the comparison is not like for like' }),
     missingConditions: missing,
     conditions,
   };
 }
 
-export const envKey = (e) => [e?.browserVersion, e?.renderer, e?.headed, e?.cpuModel, e?.platform].join('|');
+export const envKey = (e) => [e?.browserVersion, e?.renderer, e?.headed, e?.cpuModel, e?.platform, e?.network ?? null].join('|');
 
 // ---- Budgets --------------------------------------------------------------------------------
 // budget file: { "budgets": { "lcp": 2500, ... }, "tradeoffs": [{ "metric", "condition"?, "limit", "reason", "date" }] }
