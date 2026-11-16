@@ -22,12 +22,39 @@
 :root[data-quality=static] :is(.score-left,.score-right,.rest-mark){transition:none}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media(max-width:1100px){.article-head{grid-template-columns:130px minmax(0,1fr);gap:34px}.reading{grid-template-columns:130px minmax(0,660px);gap:34px}.aside-note{grid-column:1;grid-row:2}.prose{grid-column:2;grid-row:1/3}.colophon{grid-column:2}.mast-note{display:none}.edition b{margin-bottom:32px}}
 @media(max-width:720px){.article-head{grid-template-columns:1fr;padding-top:32px;gap:28px}.edition{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline}.edition b{margin:0}.edition span{display:inline}.edition .edition-extra{display:none}.kicker{margin-bottom:20px}h1{font-size:clamp(3.8rem,12.7vw,6rem)}.dek{font-size:20px}.reading{grid-template-columns:1fr;gap:30px;padding:34px 0 60px}.contents{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--rule);padding-bottom:18px}.contents p{width:100%;margin:0}.contents a{border:0;padding:6px 0;min-height:32px}.contents a span{margin-right:6px}.prose{grid-column:1;grid-row:auto}.aside-note{grid-column:1;grid-row:auto;max-width:52ch}.colophon{grid-column:1;flex-direction:column;gap:12px}.score-figure{margin-top:22px;margin-inline:-12px}.score-art{min-height:150px}.score-caption{margin-inline:12px;align-items:flex-start;flex-direction:column;gap:16px}.score-caption button{width:100%}.score-caption p{max-width:46ch}.mast-tools>a{display:none}.mast{padding-block:22px}.prose{font-size:19px;line-height:1.85}.prose .lead{font-size:23px}.section-head{margin-top:44px}h2{font-size:26px}.measure{padding:22px 18px}.rhythm{gap:6px}.rhythm .quiet{margin-inline:8px}.pullquote{font-size:2.5rem}footer{flex-direction:column;gap:10px}}
+/* A held beat on a small staff. The new paper follows a single travelling bar. */
+html{scrollbar-gutter:stable}
+#theme{display:flex;align-items:center;gap:10px;min-height:48px;padding:7px 12px;text-align:left;white-space:nowrap}
+#theme svg{width:38px;height:30px;flex:none;overflow:visible}
+.fermata-staff{fill:none;stroke:var(--rule);stroke-width:1}
+.fermata-arch{fill:none;stroke:var(--accent);stroke-width:2;transform:translateY(0)}
+.fermata-beat{fill:var(--accent);transform:translate(0,0)}
+#theme[aria-pressed=true] .fermata-arch{transform:translateY(4px)}
+#theme[aria-pressed=true] .fermata-beat{transform:translate(8px,4px)}
+.reading-copy{display:grid;font:12px/1.35 var(--mono)}.reading-copy small{font:10px/1.3 var(--mono);letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+.theme-bar{position:fixed;inset:0 auto 0 0;width:4px;border-inline:1px solid var(--accent);pointer-events:none;visibility:hidden}
+html[data-theme-motion] #theme{view-transition-name:interval-fermata}
+html[data-theme-motion] .theme-bar{visibility:visible;view-transition-name:interval-bar}
+::view-transition{pointer-events:none}
+html[data-theme-motion]::view-transition-group(*){animation:none}
+html[data-theme-motion]::view-transition-image-pair(*){isolation:isolate}
+html[data-theme-motion]::view-transition-old(root){animation:none;mix-blend-mode:normal}
+html[data-theme-motion]::view-transition-new(root){mix-blend-mode:normal;animation:turn-the-score 1600ms cubic-bezier(.45,.05,.25,1) both}
+html[data-theme-motion]::view-transition-old(interval-fermata),html[data-theme-motion]::view-transition-old(interval-bar){display:none}
+html[data-theme-motion]::view-transition-new(interval-fermata){animation:none;mix-blend-mode:normal}
+html[data-theme-motion]::view-transition-group(interval-bar){z-index:2}
+html[data-theme-motion]::view-transition-group(interval-fermata){z-index:3}
+html[data-theme-motion]::view-transition-new(interval-bar){mix-blend-mode:normal;animation:carry-the-bar 1600ms cubic-bezier(.45,.05,.25,1) both}
+@keyframes turn-the-score{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
+@keyframes carry-the-bar{from{transform:translateX(-4px)}to{transform:translateX(var(--bar-end))}}
+@media(max-width:720px){.mast{gap:12px}#theme{gap:7px;padding-inline:8px}#theme svg{width:32px}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to essay</a>
 <div id="progress" class="scroll-progress" aria-hidden="true"></div>
-<header class="mast"><a class="wordmark" href="index.html">inter<span>val</span> /</a><span class="mast-note">A journal of close listening.<br>A fictional editorial study.</span><div class="mast-tools"><a href="index.html">Creative studies ↗</a><button class="spring-press" id="theme" aria-label="Dark theme" aria-pressed="false">Dark theme</button></div></header>
+<header class="mast"><a class="wordmark" href="index.html">inter<span>val</span> /</a><span class="mast-note">A journal of close listening.<br>A fictional editorial study.</span><div class="mast-tools"><a href="index.html">Creative studies ↗</a><button id="theme" type="button" aria-label="Read in the hush" aria-pressed="false"><svg viewBox="0 0 38 30" aria-hidden="true"><path class="fermata-staff" d="M0 22h38M0 27h38"/><path class="fermata-arch" d="M5 17a14 14 0 0 1 28 0"/><circle class="fermata-beat" cx="15" cy="17" r="3"/></svg><span class="reading-copy"><small>Read</small><span id="theme-label">in the hush</span></span></button></div></header>
+<div class="theme-bar" aria-hidden="true"></div>
 <main id="main"><article aria-labelledby="essay-title">
 <div class="article-head"><div class="edition"><b>ESSAY / 02</b><span>On listening</span><span>November 2026</span><span class="edition-extra">Read at your<br>own tempo.</span></div><div><p class="kicker">Sound / Silence / Attention</p><h1 id="essay-title"><span>The shape</span><span>of a <em>pause.</em></span></h1><p class="dek">A rest is written into the music. What happens when we give it the same attention as a note?</p><p class="byline">An imagined rehearsal, in three movements.<br>Original demo essay / No audio plays.</p></div></div>
 <figure class="score-figure" data-open="false" aria-labelledby="score-caption"><div class="score-art"><svg viewBox="0 0 1200 250" role="img" aria-labelledby="bench-title score-desc"><title id="bench-title">A phrase making room for silence</title><desc id="score-desc">Two groups of marks surround a blue rest. Use the button to open the interval between them. This is a conceptual score, not a recording.</desc><path class="staff" d="M0 85H1200M0 105H1200M0 125H1200M0 145H1200M0 165H1200"/><g class="notation score-left"><rect x="65" y="87" width="5" height="58"/><rect x="97" y="65" width="7" height="100"/><rect x="134" y="96" width="4" height="49"/><rect x="161" y="85" width="10" height="78"/><rect x="203" y="58" width="5" height="118"/><rect x="236" y="72" width="6" height="93"/><rect x="275" y="105" width="8" height="40"/><rect x="310" y="86" width="5" height="80"/><rect x="347" y="48" width="7" height="128"/><rect x="381" y="70" width="4" height="95"/><rect x="413" y="95" width="9" height="50"/><rect x="457" y="80" width="5" height="87"/><rect class="long" x="495" y="65" width="10" height="110"/></g><path class="rest-mark" d="M577 105h46v12h-46zM596 117h8v28h-8z"/><g class="notation score-right"><rect class="long" x="695" y="65" width="10" height="110"/><rect x="739" y="83" width="6" height="83"/><rect x="778" y="98" width="9" height="48"/><rect x="814" y="71" width="5" height="95"/><rect x="850" y="50" width="8" height="126"/><rect x="889" y="87" width="5" height="79"/><rect x="925" y="105" width="8" height="40"/><rect x="965" y="73" width="6" height="93"/><rect x="1000" y="60" width="5" height="116"/><rect x="1030" y="85" width="10" height="78"/><rect x="1072" y="96" width="4" height="49"/><rect x="1106" y="67" width="7" height="98"/><rect x="1143" y="87" width="5" height="58"/></g></svg></div><figcaption class="score-caption" id="score-caption"><p><b>01 / An interval, drawn.</b><br>The marks hold their place. The space between them can change. A conceptual illustration, not measured sound.</p><button class="spring-press" id="space" aria-pressed="false">Give the pause room <span aria-hidden="true">↔</span></button></figcaption></figure>
@@ -55,8 +82,94 @@
 <script>
 (()=>{'use strict';
 const quality=ExperienceQuality.shared(),removeScroll=ExperienceScroll.init(),root=document.documentElement,theme=document.getElementById('theme'),system=matchMedia('(prefers-color-scheme:dark)');
-function themeState(){theme.setAttribute('aria-pressed',String((root.dataset.theme||(system.matches?'dark':'light'))==='dark'))}
-theme.onclick=()=>{root.dataset.theme=theme.getAttribute('aria-pressed')==='true'?'light':'dark';themeState()};system.addEventListener('change',themeState);themeState();
+// Keep the original data-theme / system preference contract (no theme storage).
+const reducedThemeMotion=matchMedia('(prefers-reduced-motion:reduce)'),themeLabel=document.getElementById('theme-label');
+const themeTiming={duration:1600,easing:'cubic-bezier(.45,.05,.25,1)',fill:'both'};
+let themeIntent=0,desiredTheme=null,themeRun=null;
+function currentTheme(){return root.dataset.theme||(system.matches?'dark':'light')}
+function themeState(){
+  const dark=currentTheme()==='dark';
+  theme.setAttribute('aria-pressed',String(dark));
+  theme.setAttribute('aria-label',dark?'Read by daylight':'Read in the hush');
+  themeLabel.textContent=dark?'by daylight':'in the hush';
+}
+function canRevealTheme(){return typeof document.startViewTransition==='function'&&quality.tier!=='static'&&!reducedThemeMotion.matches&&!document.hidden}
+function themeError(error){console.error('Interval theme transition failed:',error)}
+function finishTheme(run){
+  run.animations.forEach(animation=>animation.cancel());
+  if(themeRun!==run)return;
+  themeRun=null;
+  delete root.dataset.themeMotion;
+}
+function skipTheme(){
+  const run=themeRun;
+  if(!run)return null;
+  run.skipped=true;
+  run.transition.skipTransition();
+  finishTheme(run);
+  return run.transition.finished;
+}
+// Only painted marks interpolate; text and node labels stay sharp in the page wipe.
+function captureThemeMarks(){
+  return [...document.querySelectorAll('.score-art .staff,.score-art .notation rect,.score-art .rest-mark,#theme .fermata-staff,#theme .fermata-arch,#theme .fermata-beat')].map(element=>{
+    const style=getComputedStyle(element),from={fill:style.fill,stroke:style.stroke};
+    if(element.matches('#theme .fermata-arch,#theme .fermata-beat'))from.transform=style.transform;
+    return {element,from};
+  });
+}
+async function changeTheme(){
+  desiredTheme=(desiredTheme||currentTheme())==='dark'?'light':'dark';
+  const next=desiredTheme,intent=++themeIntent,previous=skipTheme();
+  const apply=()=>{if(intent===themeIntent){root.dataset.theme=next;themeState()}};
+  // Skipped update callbacks can still run: the intent guard keeps the latest click in charge.
+  if(!canRevealTheme()){apply();return}
+  if(previous){try{await previous}catch(error){themeError(error)}}
+  if(intent!==themeIntent)return;
+  if(!canRevealTheme()){apply();return}
+  const marks=captureThemeMarks();
+  root.style.setProperty('--bar-end',(root.clientWidth-4)+'px');
+  root.dataset.themeMotion='interval';
+  let run;
+  try{
+    const transition=document.startViewTransition(apply);
+    run={transition,animations:[]};themeRun=run;
+    transition.ready.then(()=>{
+      if(themeRun!==run||intent!==themeIntent)return;
+      const reveal=document.getAnimations().find(animation=>animation.animationName==='turn-the-score');
+      marks.forEach(({element,from})=>{
+        const style=getComputedStyle(element),to={fill:style.fill,stroke:style.stroke};
+        if('transform' in from)to.transform=style.transform;
+        const animation=element.animate([from,to],themeTiming);
+        if(reveal&&reveal.startTime!==null)animation.startTime=reveal.startTime;
+        run.animations.push(animation);
+      });
+    }).catch(error=>{
+      // A requested skip rejects ready with AbortError; it is an expected cancellation.
+      if(run.skipped&&error.name==='AbortError')return;
+      themeError(error);
+      if(themeRun===run){run.transition.skipTransition();apply();finishTheme(run)}
+    });
+    transition.updateCallbackDone.catch(error=>{themeError(error);apply()});
+    transition.finished.then(()=>finishTheme(run),error=>{themeError(error);apply();finishTheme(run)});
+  }catch(error){
+    themeError(error);
+    if(run)finishTheme(run);else delete root.dataset.themeMotion;
+    apply();
+  }
+}
+function settleTheme(){
+  if(canRevealTheme())return;
+  skipTheme();
+  if(desiredTheme){root.dataset.theme=desiredTheme;themeState()}
+}
+function systemTheme(){themeState()}
+theme.onclick=()=>{changeTheme().catch(error=>{themeError(error);skipTheme();if(desiredTheme){root.dataset.theme=desiredTheme;themeState()}})};
+system.addEventListener('change',systemTheme);
+reducedThemeMotion.addEventListener('change',settleTheme);
+document.addEventListener('visibilitychange',settleTheme);
+const offThemeQuality=quality.on(settleTheme);
+addEventListener('pagehide',()=>{skipTheme();offThemeQuality();system.removeEventListener('change',systemTheme);reducedThemeMotion.removeEventListener('change',settleTheme);document.removeEventListener('visibilitychange',settleTheme)},{once:true});
+themeState();
 const score=document.querySelector('.score-figure'),space=document.getElementById('space');
 space.onclick=()=>{const open=score.dataset.open!=='true';score.dataset.open=String(open);space.setAttribute('aria-pressed',String(open));space.innerHTML=open?'Bring the phrase closer <span aria-hidden="true">↔</span>':'Give the pause room <span aria-hidden="true">↔</span>'};
 const note=document.querySelector('.note-toggle');note.onclick=()=>{const open=note.getAttribute('aria-expanded')!=='true';note.setAttribute('aria-expanded',String(open));note.setAttribute('aria-label',open?'Close note 1':'Open note 1');document.getElementById('reading-note').dataset.open=String(open)};

@@ -28,11 +28,37 @@ main{padding-block:38px 48px}.eyebrow,.caption{font:12px/1.6 var(--mono);letter-
 @media(max-width:1100px){.node text{font-size:20px}.node .node-small{font-size:16px}.node .stage-no{font-size:13px}.desk{grid-template-columns:1fr}.circuit{padding-right:0}.docket{border-left:0;border-top:1px solid var(--rule);padding:24px;background:var(--surface);display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}.docket .eyebrow{margin:0;grid-column:1/-1}.docket h2{max-width:none;font-size:24px}.docket p{margin:0}.docket #node-detail{grid-column:1/-1;min-height:0;margin:0}.docket #dispatch-status{align-self:center}.queue-labels,.request{grid-template-columns:100px minmax(0,1fr) 140px}.request .route,.queue-labels span:last-child{display:none}.back{display:none}.metrics{justify-content:space-between}.topline{align-items:flex-start}.dispatch-control .caption{max-width:170px}}
 @media(max-width:620px){.track{max-width:340px;margin:0 auto}}
 @media(max-width:520px){header{padding-block:18px}.identity{gap:12px}.identity strong{font-size:21px}.identity small{font-size:10px}.topline{display:block}main{padding-top:28px}.dispatch-control{text-align:left;margin-top:22px;display:flex;gap:14px;align-items:center}.dispatch-control .caption{margin:0}.desk{margin-top:24px}.desk-title .caption{max-width:16ch;text-align:right}.metric strong{font-size:34px}.metric small{font-size:12px}.metric span{font-size:10px}.metrics{gap:12px}.track{max-width:340px;margin:0 auto}.track-key{align-items:flex-start;font-size:11px}.docket{padding:22px 18px;grid-template-columns:1fr}.docket .eyebrow,.docket #node-detail{grid-column:auto}.queue-head{display:block}.queue-head .caption{margin-top:6px;display:block}.queue-labels{display:none}.request{grid-template-columns:1fr auto;gap:6px 14px}.request strong{font-size:12px}.request .subject{grid-row:2;grid-column:1/-1}.request .state{grid-row:1;grid-column:2;font-size:12px}footer{flex-direction:column;gap:8px}h1{font-size:3rem}}
+/* The watch changes hands along the dispatch path's slanted brass edge. */
+html{scrollbar-gutter:stable}
+#theme{display:flex;align-items:center;gap:10px;min-height:48px;padding:7px 11px;text-align:left;white-space:nowrap;line-height:1.35}
+#theme svg{width:42px;height:26px;flex:none;overflow:visible}
+#theme .watch-rail{fill:var(--recess);stroke:var(--muted);stroke-width:1}
+#theme .watch-contact{stroke:var(--accent);stroke-width:2}
+#theme .watch-thumb{fill:var(--accent);stroke:var(--on);stroke-width:1;transform:translateX(0)}
+#theme[aria-pressed=true] .watch-thumb{transform:translateX(18px)}
+#theme .watch-copy{display:grid}#theme .watch-copy small{font:10px/1.3 var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.theme-handover{position:fixed;inset:0 0 auto;width:100vw;height:1px;background:var(--accent);pointer-events:none;visibility:hidden}
+html[data-theme-motion] #theme{view-transition-name:relay-watch}
+html[data-theme-motion] .theme-handover{visibility:visible;view-transition-name:relay-line}
+::view-transition{pointer-events:none}
+html[data-theme-motion]::view-transition-group(*){animation:none}
+html[data-theme-motion]::view-transition-image-pair(*){isolation:isolate}
+html[data-theme-motion]::view-transition-old(root){animation:none;mix-blend-mode:normal}
+html[data-theme-motion]::view-transition-new(root){mix-blend-mode:normal;animation:watch-handover 1600ms cubic-bezier(.45,.05,.25,1) both}
+html[data-theme-motion]::view-transition-old(relay-watch),html[data-theme-motion]::view-transition-old(relay-line){display:none}
+html[data-theme-motion]::view-transition-new(relay-watch){animation:none;mix-blend-mode:normal}
+html[data-theme-motion]::view-transition-group(relay-line){z-index:2}
+html[data-theme-motion]::view-transition-group(relay-watch){z-index:3}
+html[data-theme-motion]::view-transition-new(relay-line){mix-blend-mode:normal;transform-origin:0 0;animation:watch-line 1600ms cubic-bezier(.45,.05,.25,1) both}
+@keyframes watch-handover{from{clip-path:polygon(0 calc(0px - var(--handover-rise)),100vw calc(0px - var(--handover-rise)),100vw calc(var(--handover-y) + var(--handover-rise)),0 var(--handover-y))}to{clip-path:polygon(0 calc(0px - var(--handover-rise)),100vw calc(0px - var(--handover-rise)),100vw calc(var(--handover-end) + var(--handover-rise)),0 var(--handover-end))}}
+@keyframes watch-line{from{transform:translateY(var(--handover-y)) rotate(var(--handover-angle)) scaleX(var(--handover-scale)) translateY(-.5px)}to{transform:translateY(var(--handover-end)) rotate(var(--handover-angle)) scaleX(var(--handover-scale)) translateY(-.5px)}}
+@media(max-width:520px){header{gap:10px}#theme{gap:7px;padding-inline:8px}#theme svg{width:36px}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to dispatch desk</a>
-<header><a class="identity" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>RELAY</strong><small>DISPATCH DESK / STUDY 01</small></span></a><div class="header-tools"><a class="back" href="index.html">Creative studies ↗</a><button class="spring-press" id="theme" aria-label="Dark theme" aria-pressed="false">Dark theme</button></div></header>
+<header><a class="identity" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>RELAY</strong><small>DISPATCH DESK / STUDY 01</small></span></a><div class="header-tools"><a class="back" href="index.html">Creative studies ↗</a><button id="theme" type="button" aria-label="Take night watch" aria-pressed="false"><svg viewBox="0 0 44 26" aria-hidden="true"><rect class="watch-rail" x="1" y="5" width="42" height="16" rx="2"/><path class="watch-contact" d="M6 1v3m32-3v3M6 22v3m32-3v3"/><rect class="watch-thumb" x="4" y="8" width="18" height="10" rx="1"/></svg><span class="watch-copy"><small>Take</small><span id="theme-label">night watch</span></span></button></div></header>
+<div class="theme-handover" aria-hidden="true"></div>
 <main id="main">
 <div class="topline"><div><p class="eyebrow">Operate / Fictional queue / Local simulation</p><h1>Hold the line.</h1><p class="intro">Three requests need a destination check. Review them before the next release.</p></div><div class="dispatch-control"><button class="primary spring-press" id="dispatch" aria-pressed="false">Pause dispatch</button><span class="caption" id="run-label"><span class="status-dot" aria-hidden="true"></span>Signal running</span></div></div>
 <div class="desk">
@@ -58,8 +84,101 @@ main{padding-block:38px 48px}.eyebrow,.caption{font:12px/1.6 var(--mono);letter-
 (()=>{'use strict';
 const quality=ExperienceQuality.shared(),removeScroll=ExperienceScroll.init(),root=document.documentElement;
 const system=matchMedia('(prefers-color-scheme:dark)'),fine=matchMedia('(hover:hover) and (pointer:fine)'),theme=document.getElementById('theme');
-function themeState(){theme.setAttribute('aria-pressed',String((root.dataset.theme|| (system.matches?'dark':'light'))==='dark'))}
-theme.onclick=()=>{root.dataset.theme=theme.getAttribute('aria-pressed')==='true'?'light':'dark';themeState()};system.addEventListener('change',themeState);themeState();
+// Keep the original data-theme / system preference contract (no theme storage).
+const reducedThemeMotion=matchMedia('(prefers-reduced-motion:reduce)'),themeLabel=document.getElementById('theme-label');
+const themeTiming={duration:1600,easing:'cubic-bezier(.45,.05,.25,1)',fill:'both'};
+let themeIntent=0,desiredTheme=null,themeRun=null;
+function currentTheme(){return root.dataset.theme||(system.matches?'dark':'light')}
+function themeState(){
+  const dark=currentTheme()==='dark';
+  theme.setAttribute('aria-pressed',String(dark));
+  theme.setAttribute('aria-label',dark?'Take day watch':'Take night watch');
+  themeLabel.textContent=dark?'day watch':'night watch';
+}
+function canRevealTheme(){return typeof document.startViewTransition==='function'&&quality.tier!=='static'&&!reducedThemeMotion.matches&&!document.hidden}
+function themeError(error){console.error('Relay theme transition failed:',error)}
+function finishTheme(run){
+  run.animations.forEach(animation=>animation.cancel());
+  if(themeRun!==run)return;
+  themeRun=null;
+  delete root.dataset.themeMotion;
+}
+function skipTheme(){
+  const run=themeRun;
+  if(!run)return null;
+  run.skipped=true;
+  run.transition.skipTransition();
+  finishTheme(run);
+  return run.transition.finished;
+}
+// Only painted marks interpolate; text and node labels stay sharp in the page wipe.
+function captureThemeMarks(){
+  return [...document.querySelectorAll('.track .wire,.track .packet,.track .traveler,#theme .watch-rail,#theme .watch-contact,#theme .watch-thumb')].map(element=>{
+    const style=getComputedStyle(element),from={fill:style.fill,stroke:style.stroke};
+    if(element.matches('#theme .watch-thumb'))from.transform=style.transform;
+    return {element,from};
+  });
+}
+async function changeTheme(){
+  desiredTheme=(desiredTheme||currentTheme())==='dark'?'light':'dark';
+  const next=desiredTheme,intent=++themeIntent,previous=skipTheme();
+  const apply=()=>{if(intent===themeIntent){root.dataset.theme=next;themeState()}};
+  // Skipped update callbacks can still run: the intent guard keeps the latest click in charge.
+  if(!canRevealTheme()){apply();return}
+  if(previous){try{await previous}catch(error){themeError(error)}}
+  if(intent!==themeIntent)return;
+  if(!canRevealTheme()){apply();return}
+  const marks=captureThemeMarks();
+  const bounds=theme.getBoundingClientRect();
+  // Match the path's 45:70 chamfers; both snapshots share y = slope*x + offset.
+  const slope=45/70,rise=innerWidth*slope;
+  root.style.setProperty('--handover-y',(Math.max(0,Math.min(innerHeight,bounds.top+bounds.height/2))-slope*(bounds.left+bounds.width/2))+'px');
+  root.style.setProperty('--handover-rise',rise+'px');
+  root.style.setProperty('--handover-angle',Math.atan(slope)+'rad');
+  root.style.setProperty('--handover-scale',Math.hypot(innerWidth,rise)/innerWidth);
+  root.style.setProperty('--handover-end',(innerHeight+1)+'px');
+  root.dataset.themeMotion='relay';
+  let run;
+  try{
+    const transition=document.startViewTransition(apply);
+    run={transition,animations:[]};themeRun=run;
+    transition.ready.then(()=>{
+      if(themeRun!==run||intent!==themeIntent)return;
+      const reveal=document.getAnimations().find(animation=>animation.animationName==='watch-handover');
+      marks.forEach(({element,from})=>{
+        const style=getComputedStyle(element),to={fill:style.fill,stroke:style.stroke};
+        if('transform' in from)to.transform=style.transform;
+        const animation=element.animate([from,to],themeTiming);
+        if(reveal&&reveal.startTime!==null)animation.startTime=reveal.startTime;
+        run.animations.push(animation);
+      });
+    }).catch(error=>{
+      // A requested skip rejects ready with AbortError; it is an expected cancellation.
+      if(run.skipped&&error.name==='AbortError')return;
+      themeError(error);
+      if(themeRun===run){run.transition.skipTransition();apply();finishTheme(run)}
+    });
+    transition.updateCallbackDone.catch(error=>{themeError(error);apply()});
+    transition.finished.then(()=>finishTheme(run),error=>{themeError(error);apply();finishTheme(run)});
+  }catch(error){
+    themeError(error);
+    if(run)finishTheme(run);else delete root.dataset.themeMotion;
+    apply();
+  }
+}
+function settleTheme(){
+  if(canRevealTheme())return;
+  skipTheme();
+  if(desiredTheme){root.dataset.theme=desiredTheme;themeState()}
+}
+function systemTheme(){themeState()}
+theme.onclick=()=>{changeTheme().catch(error=>{themeError(error);skipTheme();if(desiredTheme){root.dataset.theme=desiredTheme;themeState()}})};
+system.addEventListener('change',systemTheme);
+reducedThemeMotion.addEventListener('change',settleTheme);
+document.addEventListener('visibilitychange',settleTheme);
+const offThemeQuality=quality.on(settleTheme);
+addEventListener('pagehide',()=>{skipTheme();offThemeQuality();system.removeEventListener('change',systemTheme);reducedThemeMotion.removeEventListener('change',settleTheme);document.removeEventListener('visibilitychange',settleTheme)},{once:true});
+themeState();
 const nodes=[...document.querySelectorAll('.node')],diagram=document.querySelector('.track'),phone=matchMedia('(max-width:620px)'),marker=document.getElementById('stage-marker');let selected=0;
 function positionMarker(){marker.style.transform=phone.matches?`translate(270px,${68+selected*154}px)`:`translate(${160+selected*290}px,222px)`}
 function flowLayout(){const fade=document.getElementById('circuit-fade');fade.setAttribute('x2',phone.matches?'0%':'100%');fade.setAttribute('y2',phone.matches?'100%':'0%');diagram.setAttribute('viewBox',phone.matches?'0 0 340 530':'0 0 900 300');nodes.forEach((n,i)=>n.setAttribute('transform',phone.matches?`translate(65 ${20+i*154})`:`translate(${65+i*290} 95)`));diagram.querySelector('.trunk').setAttribute('d',phone.matches?'M35 0V530':'M0 150H900');diagram.querySelector('.secondary').setAttribute('d',phone.matches?'M12 0V150L35 180V350L12 380V530M320 0V150L290 180V350L320 380V530':'M0 70H180L250 115H650L720 70H900M0 230H180L250 185H650L720 230H900');positionMarker();drawPackets()}
