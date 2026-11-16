@@ -3,165 +3,251 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark light">
-<title>Lantern · light that follows the evening (demo)</title>
+<meta name="color-scheme" content="light dark">
+<title>Lantern · an evening, in a different light</title>
 <link rel="stylesheet" href="../../shared/creative/recipes/spring-states/recipe.css">
 <link rel="stylesheet" href="../../shared/creative/recipes/scroll-reveal/recipe.css">
 <link rel="stylesheet" href="../../shared/creative/recipes/cursor-light/recipe.css">
 <link rel="stylesheet" href="../../shared/creative/recipes/magnetic-target/recipe.css">
 <link rel="stylesheet" href="../../shared/creative/recipes/flow-hero/recipe.css">
 <style>
-  /* Lantern: a Persuade surface. Dark-first, condensed display type, light and glow for depth.
-     Intensity 3: one living signature (the sky in the hero) on the quality runtime; the rest is calm. */
+  /* An architectural light study: the shader lives inside a pendant's beam.
+     Warm mineral surfaces in daylight; aubergine plaster after dark. */
   :root {
-    --bg: #0b0918; --bg-2: #120e26; --surface: #17122e; --line: #2c2450; --ink: #f4f0ff; --muted: #b9b0d6;
-    --accent: #ff9a52; --accent-ink: #1c0d02; --glow: #7a4fd033;
-    --flow-a: #0c0a1a; --flow-b: #4b2a8f; --flow-c: #ff8a3d;
-    --display: Bahnschrift, "DIN Alternate", "Avenir Next Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
-    --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-    --card-shadow: none;
+    color-scheme: light;
+    --bg: #f1e9dc; --bg-2: #e5d9c7; --surface: #fff8ed; --ink: #35291f; --muted: #685747;
+    --line: #c7b8a3; --accent: #9a482b; --accent-ink: #fff8ed;
+    --shade: #85513c; --shade-edge: #573828; --wire: #8d7c66; --furniture: #6b5542;
+    --scene-line: #a7957c; --shadow: 0 14px 40px -26px #6c4c2b70;
+    --display: "Trebuchet MS", "Avenir Next", Avenir, sans-serif;
+    --serif: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    --mono: "Courier New", ui-monospace, monospace;
+    --flow-a: #dbc4a4; --flow-b: #e4ac6e; --flow-c: #ffdf9e;
+    --beam-opacity: .65;
   }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #f4f0f8; --bg-2: #ebe5f3; --surface: #fffdfb; --line: #dcd3ea; --ink: #1b1430; --muted: #51486b;
-      --accent: #b3480a; --accent-ink: #fff8f2; --glow: #7a4fd01f;
-      --card-shadow: 0 1px 2px #2b1b5514, 0 14px 32px -16px #2b1b5540;
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #251d21; --bg-2: #37292b; --surface: #3c2d2e; --ink: #f6eadb; --muted: #cbb9aa;
+      --line: #66504b; --accent: #ffb57f; --accent-ink: #352317;
+      --shade: #a86b4b; --shade-edge: #dfac82; --wire: #a38b79; --furniture: #b2987e;
+      --scene-line: #806b5b; --shadow: 0 20px 50px -24px #100d10;
+      --flow-a: #38252b; --flow-b: #966547; --flow-c: #ffd693;
+      --beam-opacity: .85;
     }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #251d21; --bg-2: #37292b; --surface: #3c2d2e; --ink: #f6eadb; --muted: #cbb9aa;
+    --line: #66504b; --accent: #ffb57f; --accent-ink: #352317;
+    --shade: #a86b4b; --shade-edge: #dfac82; --wire: #a38b79; --furniture: #b2987e;
+    --scene-line: #806b5b; --shadow: 0 20px 50px -24px #100d10;
+    --flow-a: #38252b; --flow-b: #966547; --flow-c: #ffd693;
+    --beam-opacity: .85;
   }
   * { box-sizing: border-box; }
   html { background: var(--bg); }
-  body {
-    margin: 0; color: var(--ink); font: 1.0625rem/1.6 var(--sans);
-    background: radial-gradient(900px 480px at 85% 110vh, var(--glow), transparent 70%), radial-gradient(700px 420px at 5% 170vh, var(--glow), transparent 70%), var(--bg);
-  }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
-  .display { font-family: var(--display); font-stretch: 75%; font-weight: 600; text-transform: uppercase; letter-spacing: .01em; line-height: .92; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 24px; }
-
-  /* Hero: always night, in both themes. The sky is the product. */
-  .flow-hero { min-height: min(100svh, 860px); display: grid; grid-template-rows: auto 1fr auto; color: #fbf8ff; --magnetic-focus: #fff; }
-  .flow-hero::after { /* scrim: text contrast against the brightest colour the field reaches */
-    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-    background: linear-gradient(180deg, #06051099 0%, #0605104d 30%, #06051080 62%, #060510e6 100%);
-  }
-  .nav { display: flex; align-items: center; gap: 20px; padding-block: 20px; }
-  .logo { display: inline-flex; align-items: center; gap: 10px; font: 600 1.375rem/1 var(--display); font-stretch: 75%; letter-spacing: .14em; text-transform: uppercase; }
-  .logo i { width: 12px; height: 18px; border-radius: 6px 6px 3px 3px; background: var(--hero-accent, #ff9a52); box-shadow: 0 0 18px 2px var(--hero-accent, #ff9a52); }
+  body { margin: 0; color: var(--ink); background: linear-gradient(160deg, var(--bg-2), transparent 45%), var(--bg); font: 18px/1.6 var(--serif); }
+  button, input, select { font: inherit; color: inherit; }
+  button, a, input, select { touch-action: manipulation; }
+  button { cursor: pointer; }
+  a { color: inherit; text-underline-offset: 5px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+  .wrap { width: min(100%, 1320px); padding-inline: clamp(22px, 4vw, 64px); margin-inline: auto; }
+  .nav { display: flex; align-items: center; gap: 28px; min-height: 100px; font: 14px var(--display); }
+  .logo { display: inline-flex; gap: 12px; align-items: center; font: 500 28px/1 var(--display); letter-spacing: -.06em; }
+  .logo svg { color: var(--accent); width: 24px; height: 32px; }
   .nav .sp { flex: 1; }
-  .nav a { color: #e9e2fb; text-decoration: none; font-size: .9375rem; } .nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
-  .hero-body { align-self: center; padding-block: 4vh; }
-  .eyebrow { font: 600 .8125rem/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; color: #ffd9bd; }
-  h1 { font-size: clamp(3rem, min(11vw, 13svh), 8rem); margin: 18px 0 20px; max-width: 12ch; text-shadow: 0 2px 40px #0009; text-wrap: balance; }
-  h1 span { color: var(--hero-accent, #ffb27a); }
-  .lede { max-width: 34em; font-size: 1.25rem; line-height: 1.5; color: #f1ebff; text-shadow: 0 1px 14px #000a; margin: 0 0 30px; }
-  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; }
-  .magnetic__inner.btn { display: inline-block; padding: 16px 28px; border-radius: 999px; background: #fff7ef; color: #1c0d02; font-weight: 650; font-size: 1.0625rem; box-shadow: 0 10px 40px -8px #ff9a5299; }
-  .ghost { color: #fbf8ff; text-underline-offset: 5px; }
-  /* The one interactive idea: move the evening. */
-  .dial { padding-block: 22px 26px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px 18px; align-items: center; }
-  .dial label { font: 600 .8125rem/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: #e9e2fb; }
-  .dial output { font: 600 1.5rem/1 var(--display); font-stretch: 75%; letter-spacing: .06em; min-width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
-  .dial input { width: 100%; height: 28px; margin: 0; background: none; accent-color: var(--hero-accent, #ff9a52); cursor: pointer; }
-  .dial .ticks { grid-column: 2; display: flex; justify-content: space-between; font-size: .8125rem; color: #d9d0f0; }
-
-  section.block { padding-block: clamp(64px, 11vh, 120px); }
-  h2 { font-size: clamp(2.2rem, 6.4vw, 4.5rem); margin: 0 0 18px; max-width: 14ch; }
-  .sub { color: var(--muted); max-width: 36em; margin: 0 0 40px; font-size: 1.125rem; }
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .card { padding: 26px 24px 28px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--card-shadow); --light-color: color-mix(in srgb, var(--accent) 22%, transparent); --light-size: 360px; }
-  .card svg { display: block; margin-bottom: 22px; color: var(--accent); }
-  .card h3 { font: 600 1.625rem/1.05 var(--display); font-stretch: 75%; text-transform: uppercase; letter-spacing: .03em; margin: 0 0 10px; }
-  .card p { margin: 0; color: var(--muted); font-size: 1rem; }
-  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); margin: 0; padding: 0; list-style: none; counter-reset: s; }
-  .steps li { padding: 22px 20px 0 0; counter-increment: s; }
-  .steps li::before { content: counter(s, decimal-leading-zero); display: block; font: 600 2.75rem/1 var(--display); font-stretch: 75%; color: var(--accent); margin-bottom: 12px; }
-  .steps b { display: block; margin-bottom: 4px; } .steps span { color: var(--muted); font-size: .9375rem; }
-  .close { text-align: center; } .close h2 { margin-inline: auto; } .close .sub { margin-inline: auto; }
-  .close .magnetic__inner.btn { background: var(--accent); color: var(--accent-ink); box-shadow: 0 12px 40px -12px var(--accent); }
-  .close .magnetic { --magnetic-focus: var(--accent); }
-  /* Quality: visible, because the tiers are part of what this demo shows. */
-  .quality { border-top: 1px solid var(--line); padding-block: 22px 40px; display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; color: var(--muted); font-size: .9375rem; }
-  .quality select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 40px; }
-  .quality output { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .875rem; }
-  .quality a { color: inherit; margin-left: auto; }
-  @media (max-width: 860px) {
-    .cards { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr 1fr; row-gap: 12px; }
-    .nav a:not(.keep) { display: none; }
-    .dial { grid-template-columns: 1fr auto; } .dial input { grid-column: 1 / -1; height: 44px; } .dial .ticks { grid-column: 1 / -1; }
-    .lede { font-size: 1.125rem; }
-    .quality a { margin-left: 0; }
+  .nav a { text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+  .nav a:hover { text-decoration: underline; }
+  .theme { color: var(--ink); border: 1px solid var(--line); border-radius: 50%; width: 44px; height: 44px; background: var(--surface); display: grid; place-items: center; box-shadow: var(--shadow); }
+  .theme:hover { border-color: var(--accent); }
+  .theme svg { width: 18px; height: 18px; }
+  /* The lamp, floor and light share one coordinate space. Nothing is boxed. */
+  #hero { --magnetic-focus: var(--accent); min-height: 650px; background: transparent; isolation: isolate; overflow: hidden; }
+  #hero::before, #hero .flow-hero__canvas {
+    content: ""; position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
+    clip-path: polygon(69% 36%, 83% 36%, 100% 92%, 48% 92%);
+    mask-image: radial-gradient(ellipse 34% 65% at 77% 52%, #000 15%, transparent 80%);
   }
+  #hero::before { background: linear-gradient(180deg, var(--flow-c), var(--flow-b) 65%, var(--flow-a)); opacity: var(--beam-opacity); }
+  #hero.is-live .flow-hero__canvas { opacity: var(--beam-opacity); }
+  .hero-grid { position: relative; min-height: 650px; display: grid; grid-template-columns: 48% 52%; align-items: center; }
+  .hero-copy { position: relative; z-index: 2; padding: 42px 0 80px; }
+  .eyebrow { margin: 0 0 26px; color: var(--accent); font: 12px/1.5 var(--display); letter-spacing: .16em; text-transform: uppercase; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 400; }
+  h1 { font-size: clamp(54px, 6.1vw, 88px); line-height: 1.04; letter-spacing: -.065em; margin: 0 0 28px; }
+  h1 span { display: block; }
+  h1 .last { padding-left: .8em; }
+  .lede { max-width: 29ch; font-size: 21px; line-height: 1.55; margin: 0 0 28px; }
+  .magnetic__inner.btn { display: inline-flex; align-items: center; gap: 32px; padding: 14px 20px; background: var(--accent); color: var(--accent-ink); font: 600 14px/1.5 var(--display); border-radius: 3px; }
+  .magnetic__inner.btn::after { content: "↗"; font-size: 21px; font-weight: 400; }
+  .hero-note { color: var(--muted); font: 12px/1.5 var(--display); margin-top: 24px; }
+  .room-art { position: absolute; z-index: 0; width: 64%; height: 100%; right: -5%; top: 0; overflow: visible; }
+  .room-art .construction { fill: none; stroke: var(--scene-line); stroke-width: 1; }
+  .room-art .cord { stroke: var(--wire); stroke-width: 1.3; }
+  .room-art .shade { fill: var(--shade); stroke: var(--shade-edge); stroke-width: 1; }
+  .room-art .rim { fill: var(--flow-c); }
+  .room-art .furniture { fill: var(--bg-2); stroke: var(--furniture); stroke-width: 1.4; }
+  .room-art .book { fill: var(--surface); stroke: var(--furniture); stroke-width: 1; }
+  .room-art .seam { stroke: var(--shade-edge); stroke-width: 1; fill: none; opacity: .65; }
+  .scene-label { position: absolute; right: 32px; bottom: 20px; color: var(--muted); background: var(--bg); padding: 8px 12px; font: 11px/1.6 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+  @keyframes room-arrival { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  :root[data-quality]:not([data-quality="static"]) .hero-copy > * { animation: room-arrival 700ms ease both; }
+  :root[data-quality]:not([data-quality="static"]) .hero-copy > :nth-child(2) { animation-delay: 70ms; }
+  :root[data-quality]:not([data-quality="static"]) .hero-copy > :nth-child(n+3) { animation-delay: 140ms; }
+  :root[data-quality="low"] .hero-copy > * { animation-name: room-arrival-low; }
+  @keyframes room-arrival-low { from { opacity: 0; } to { opacity: 1; } }
+  /* A deliberately small control table under a life-size light study. */
+  .evening { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .dial { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.4fr) auto; align-items: center; gap: 8px 36px; padding-block: 26px; }
+  .dial label { font: 14px var(--display); }
+  .dial label span { display: block; margin-top: 6px; color: var(--muted); font: 15px var(--serif); }
+  .dial output { font: 13px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .dial input { width: 100%; min-width: 0; height: 44px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+  .ticks { display: flex; justify-content: space-between; color: var(--muted); font: 11px/1.5 var(--display); grid-column: 2; }
+  .section-tag { font: 12px/1.5 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .section-tag span { color: var(--accent); margin-right: 28px; }
+  .rooms { padding-block: 90px 96px; display: grid; grid-template-columns: .9fr 1.1fr; gap: 28px 80px; }
+  .rooms > .section-tag { grid-column: 1 / -1; margin-bottom: 14px; }
+  h2 { font-size: clamp(36px, 4.2vw, 58px); line-height: 1.12; letter-spacing: -.05em; margin: 0 0 26px; }
+  .rooms-intro p { max-width: 31ch; color: var(--muted); }
+  .floorplan { display: block; width: 100%; max-width: 380px; margin-top: 42px; color: var(--scene-line); }
+  .floorplan .room-fill { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .floorplan .plan-light { fill: var(--accent); opacity: .14; }
+  .floorplan .plan-label { fill: var(--ink); font: 12px var(--display); }
+  .floorplan .plan-line { fill: none; stroke: currentColor; stroke-width: 1; }
+  .room-list { margin-top: 6px; border-bottom: 1px solid var(--line); }
+  .room-entry { display: grid; grid-template-columns: 46px 1fr; column-gap: 12px; padding: 26px 0; border-top: 1px solid var(--line); --light-color: color-mix(in srgb, var(--accent) 8%, transparent); --light-size: 300px; }
+  .room-entry .index { font: 13px var(--mono); color: var(--accent); padding-top: 6px; }
+  .room-entry h3 { font-size: 26px; line-height: 1.3; letter-spacing: -.035em; margin: 0 0 8px; }
+  .room-entry p { margin: 0; color: var(--muted); font-size: 17px; max-width: 40ch; }
+  .room-entry .setting { display: block; margin-top: 16px; font: 11px var(--mono); color: var(--accent); letter-spacing: .02em; }
+  .how { background: var(--surface); box-shadow: var(--shadow); border-block: 1px solid var(--line); }
+  .how-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; padding-block: 64px 72px; }
+  .how h2 { margin-top: 28px; max-width: 10ch; }
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  .steps li { counter-increment: step; padding: 20px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 44px 1fr; gap: 4px 16px; }
+  .steps li::before { content: counter(step, decimal-leading-zero); grid-row: 1 / 3; color: var(--accent); font: 13px var(--mono); padding-top: 4px; }
+  .steps b { font: 500 18px var(--display); }
+  .steps span { grid-column: 2; color: var(--muted); font-size: 16px; }
+  .close { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: end; padding-block: 84px; }
+  .close h2 { max-width: 14ch; margin-bottom: 16px; }
+  .close p { color: var(--muted); max-width: 42ch; margin-bottom: 0; }
+  footer { border-top: 1px solid var(--line); padding-block: 24px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; color: var(--muted); font: 12px/1.6 var(--display); }
+  footer .mark { color: var(--ink); margin-right: auto; }
+  .demo-settings { margin-left: auto; }
+  .demo-settings summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; text-decoration: underline; text-underline-offset: 4px; }
+  .quality { padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; max-width: 450px; }
+  .quality select { padding: 8px; min-height: 44px; font: 13px var(--display); color: var(--ink); border: 1px solid var(--line); background: var(--bg); }
+  .quality output { font: 12px var(--mono); }
+  .scroll-progress { --scroll-progress-color: var(--accent); --scroll-progress-size: 2px; }
+  @media (max-width: 800px) {
+    .nav { min-height: 80px; gap: 18px; } .nav a:not(.keep) { display: none; }
+    #hero { min-height: 880px; }
+    .hero-grid { min-height: 880px; display: block; }
+    .hero-copy { padding: 30px 0 0; max-width: 460px; }
+    h1 { font-size: clamp(54px, 10vw, 76px); max-width: 9ch; } .eyebrow { margin-bottom: 22px; }
+    .lede { font-size: 19px; max-width: 28ch; }
+    .room-art { width: 100%; height: 400px; top: auto; bottom: 0; right: 0; }
+    #hero::before, #hero .flow-hero__canvas { clip-path: polygon(44% 76%, 70% 76%, 100% 98%, 10% 98%); mask-image: radial-gradient(ellipse 54% 21% at 58% 86%, #000 20%, transparent 86%); }
+    .scene-label { bottom: 16px; right: 22px; }
+    .dial { grid-template-columns: 1fr auto; gap: 4px 20px; padding-block: 22px; }
+    .dial input { grid-column: 1 / -1; grid-row: 2; margin-top: 12px; }
+    .dial .ticks { grid-column: 1 / -1; }
+    .rooms { grid-template-columns: 1fr; padding-block: 60px; gap: 16px; }
+    .rooms-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+    .rooms-intro h2, .rooms-intro p { grid-column: 1 / -1; }
+    .floorplan { grid-column: 1 / -1; max-width: 280px; margin: 12px 0 32px; }
+    .how-grid { grid-template-columns: 1fr; padding-block: 44px 52px; gap: 14px; }
+    .how h2 { max-width: 14ch; }
+    .close { grid-template-columns: 1fr; padding-block: 60px; } .close > .magnetic { justify-self: start; margin-top: 12px; }
+    footer { gap: 8px 20px; } footer .mark { width: 100%; } .demo-settings { margin-left: 0; width: 100%; }
+  }
+  @media (max-width: 420px) { .dial label { font-size: 13px; } .dial label span { font-size: 14px; } .dial output { font-size: 12px; } }
+  :root[data-quality="static"] *, :root[data-quality="static"] *::before, :root[data-quality="static"] *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
 <body>
-<div class="scroll-progress" aria-hidden="true" style="--scroll-progress-color: var(--accent)"></div>
-
-<section class="flow-hero" id="hero">
-  <div class="wrap nav">
-    <span class="logo"><i aria-hidden="true"></i>Lantern</span>
-    <span class="sp"></span>
-    <a href="#how">How it works</a><a href="#rooms">Rooms</a><a class="keep" href="index.html">All demos</a>
-  </div>
-  <div class="wrap hero-body">
-    <div class="eyebrow">Home lighting · sample product</div>
-    <h1 class="display">Light that follows the <span>evening</span></h1>
-    <p class="lede">Lantern shifts every lamp in the house from daylight to ember as the sun goes down, so the rooms wind down when you do.</p>
-    <div class="cta">
-      <a class="magnetic" href="#rooms"><span class="magnetic__inner btn">See it in a room</span></a>
-      <a class="ghost" href="#how">How it works</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+<header class="wrap nav">
+  <span class="logo"><svg viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 0v8M8 8h8l6 13H2L8 8ZM4 25h16M8 29h8"/></svg>lantern</span>
+  <span class="sp"></span><a href="#rooms">The rooms</a><a href="#how">The ritual</a><a class="keep" href="index.html">Demos</a>
+  <button class="theme spring-press" id="theme" type="button" aria-label="Switch to the dark colour theme" title="Change colour theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg></button>
+</header>
+<main>
+<section class="flow-hero" id="hero" aria-labelledby="title">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Light for the hours in between</p>
+      <h1 id="title"><span>Let the</span><span>day go</span><span class="last">gently.</span></h1>
+      <p class="lede">The dishes can wait. The light has already softened. Lantern brings the evening into your rooms, one quiet shade at a time.</p>
+      <a class="magnetic" href="#rooms"><span class="magnetic__inner btn">Find your evening</span></a>
+      <p class="hero-note">An imagined lighting system. A real moment to slow down.</p>
     </div>
+    <svg class="room-art" viewBox="0 0 760 650" preserveAspectRatio="xMidYMax meet" role="img" aria-labelledby="room-title room-desc">
+      <title id="room-title">A pendant above a quiet table</title><desc id="room-desc">A sculpted shade casts a warm cone of light onto a table, a book and a small bowl. Move the evening slider below to change the light.</desc>
+      <path class="construction" d="M42 0v515l600 70M42 515l-70 43M42 515h700M650 0v585"/>
+      <path class="construction" d="M90 100h105v250H90zM142 100v250M90 225h105"/>
+      <path class="cord" d="M430 0v155"/>
+      <path class="shade" d="M409 153Q430 143 451 153L526 232Q430 254 334 232Z"/>
+      <path class="seam" d="M417 153l-27 88M430 149v96M443 153l27 88"/>
+      <ellipse class="rim" cx="430" cy="233" rx="94" ry="9"/>
+      <path class="furniture" d="M220 438l360-10 106 34-365 16Z"/>
+      <path class="furniture" d="M321 478v116h12l4-115M650 464v116h10l7-117M239 444v118h10l5-116M568 433v115h10l4-111"/>
+      <path class="book" d="M369 441l51-13 47 10-49 15Z"/><path class="seam" d="M420 428l-2 25M371 445l47 12 48-15"/>
+      <path class="furniture" d="M520 424q0 18 24 18t24-18Z"/><ellipse class="book" cx="544" cy="424" rx="24" ry="5"/>
+      <path class="construction" d="M430 285v60M424 315h12"/>
+    </svg>
+    <span class="scene-label">Study 01 / the dining room<br><span id="scene-time">A little after sunset</span></span>
   </div>
+</section>
+<div class="evening">
   <div class="wrap dial">
-    <label for="hour">Move the evening</label>
+    <label for="hour">Borrow a different hour.<span>Move the light. Notice the room.</span></label>
     <input id="hour" type="range" min="0" max="100" value="18" step="1" aria-describedby="hour-out">
-    <output id="hour-out" for="hour">Dusk · 18:30</output>
-    <div class="ticks" aria-hidden="true"><span>Dusk</span><span>Midnight</span><span>Dawn</span></div>
+    <output id="hour-out" for="hour">Dusk · 20:10</output>
+    <div class="ticks" aria-hidden="true"><span>18:00 / dusk</span><span>00:00 / midnight</span><span>06:00 / dawn</span></div>
   </div>
-</section>
-
-<section class="block wrap" id="rooms">
-  <h2 class="display reveal">Three rooms, one sky</h2>
-  <p class="sub reveal">Each room keeps its own job. The colour of the light is what they share.</p>
-  <div class="cards">
-    <article class="card cursor-light reveal" tabindex="0">
-      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 34h28M12 34V20a10 10 0 0 1 20 0v14M22 4v3M6 12l2 2M38 12l-2 2"/></svg>
-      <h3>Kitchen</h3><p>Bright and neutral while you cook, then down to a warm counter glow once the plates are cleared.</p>
-    </article>
-    <article class="card cursor-light reveal" tabindex="0">
-      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 30v-8a4 4 0 0 1 8 0v4h16v-4a4 4 0 0 1 8 0v8zM10 30v4M34 30v4M14 20v-4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v4"/></svg>
-      <h3>Living room</h3><p>Follows the window. When the sky turns amber, so do the lamps, a few minutes behind it.</p>
-    </article>
-    <article class="card cursor-light reveal" tabindex="0">
-      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M30 26A13 13 0 0 1 18 8a13 13 0 1 0 12 18zM31 8v6M28 11h6"/></svg>
-      <h3>Bedroom</h3><p>No blue after ten. A low ember by the bed, and a slow sunrise in the half hour before the alarm.</p>
-    </article>
-  </div>
-</section>
-
-<section class="block wrap" id="how">
-  <h2 class="display reveal">Set once, then forget it</h2>
-  <p class="sub reveal">Nothing to schedule. Lantern reads sunset for where you live and does the rest.</p>
-  <ol class="steps">
-    <li class="reveal"><b>Plug in the bridge</b><span>It finds the lamps already in the house.</span></li>
-    <li class="reveal"><b>Name the rooms</b><span>Kitchen, bedroom, the stairs.</span></li>
-    <li class="reveal"><b>Pick a bedtime</b><span>The evening is paced back from it.</span></li>
-    <li class="reveal"><b>Leave it alone</b><span>A switch still works like a switch.</span></li>
-  </ol>
-</section>
-
-<section class="block wrap close">
-  <h2 class="display reveal">Tonight, a little warmer</h2>
-  <p class="sub reveal">Lantern is a sample product made for this demo. The button goes back to the top.</p>
-  <a class="magnetic" href="#hero"><span class="magnetic__inner btn">Back to the sky</span></a>
-</section>
-
-<div class="wrap quality">
-  <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
-  <output data-quality-out></output>
-  <span id="flow-state"></span>
-  <a href="index.html">All demos</a>
 </div>
-
+<section class="wrap rooms" id="rooms" aria-labelledby="rooms-title">
+  <p class="section-tag reveal"><span>01</span>A house, after hours</p>
+  <div class="rooms-intro">
+    <h2 class="reveal" id="rooms-title">One evening.<br>Room to be yourself.</h2>
+    <p class="reveal">The kitchen still has a job to do. The bedroom is already letting go. Give each room its own pace, and let the light connect them.</p>
+    <svg class="floorplan reveal" viewBox="0 0 380 230" role="img" aria-label="An illustrative floor plan: kitchen, living room and bedroom, each with its own pool of light.">
+      <path class="room-fill" d="M20 20h340v190H20Z"/><path class="plan-line" d="M180 20v74m0 30v86M180 124h60m30 0h90"/>
+      <ellipse class="plan-light" cx="95" cy="115" rx="56" ry="58"/><ellipse class="plan-light" cx="273" cy="70" rx="48" ry="35"/><ellipse class="plan-light" cx="275" cy="171" rx="35" ry="22"/>
+      <path class="plan-line" d="M32 32h50v42H32ZM32 85h20v88H32ZM216 33h99v30h-99ZM218 140h45v48h-45ZM286 140h50v48h-50Z"/>
+      <text class="plan-label" x="70" y="194">Kitchen</text><text class="plan-label" x="220" y="109">Living room</text><text class="plan-label" x="274" y="202">Bedroom</text>
+    </svg>
+  </div>
+  <div class="room-list">
+    <article class="room-entry cursor-light reveal" tabindex="0"><span class="index">a.</span><div><h3>One more story at the table.</h3><p>Clear light for the chopping board. A softer circle for the conversation that carries on after dinner.</p><span class="setting">KITCHEN / BRIGHT → WARM</span></div></article>
+    <article class="room-entry cursor-light reveal" tabindex="0"><span class="index">b.</span><div><h3>The book stays open.</h3><p>The lamps settle with the window. Enough light for another chapter, without lighting up the whole night.</p><span class="setting">LIVING ROOM / WARM → LOW</span></div></article>
+    <article class="room-entry cursor-light reveal" tabindex="0"><span class="index">c.</span><div><h3>Nothing more to finish.</h3><p>A low bedside glow. Then darkness, until a gradual morning light is welcome again.</p><span class="setting">BEDROOM / LOW → REST</span></div></article>
+  </div>
+</section>
+<section class="how" id="how" aria-labelledby="how-title">
+  <div class="wrap how-grid">
+    <div><p class="section-tag reveal"><span>02</span>A small beginning</p><h2 class="reveal" id="how-title">Less arranging.<br>More evening.</h2></div>
+    <ol class="steps">
+      <li class="reveal"><b>Bring the lamps together.</b><span>In this imagined system, one bridge connects the lights you already have.</span></li>
+      <li class="reveal"><b>Tell each room its rhythm.</b><span>A later kitchen. An earlier bedroom. Start with the way you live.</span></li>
+      <li class="reveal"><b>Keep the switch.</b><span>Some nights are different. Turn a lamp up, or turn it off. You have the last word.</span></li>
+    </ol>
+  </div>
+</section>
+<section class="wrap close" aria-labelledby="close-title">
+  <div><p class="section-tag reveal"><span>03</span>Stay a moment</p><h2 class="reveal" id="close-title">There is still a little light.</h2><p class="reveal">Lantern is a fictional product study. Nothing to buy, nothing to sign up for. Just an evening you can move through.</p></div>
+  <a class="magnetic" href="#hero"><span class="magnetic__inner btn">Another hour, perhaps</span></a>
+</section>
+</main>
+<footer class="wrap">
+  <span class="mark">lantern / an evening study</span><a href="index.html">Back to the demos</a>
+  <details class="demo-settings"><summary>About this moving light</summary><div class="quality"><label>Rendering <select data-quality-pick aria-label="Quality tier"></select></label><output data-quality-out></output><span id="flow-state"></span></div></details>
+</footer>
 <script src="../../shared/creative/recipes/_runtime/quality.js"></script>
 <script src="../../shared/creative/recipes/_runtime/demo.js"></script>
 <script src="../../shared/creative/recipes/scroll-reveal/recipe.js"></script>
@@ -175,23 +261,32 @@
   ExperienceScroll.init();
   ExperienceCursorLight.init();
   ExperienceMagnetic.init();
-  var flow = ExperienceFlow.mount(hero, { speed: 0.8 });
+  var flow = ExperienceFlow.mount(hero, { speed: 0.45 });
 
   // The evening: three skies, blended by the slider. Colours go to the CSS variables first,
   // so the still gradient (static tier, reduced motion, no WebGL) changes exactly like the shader.
-  var SKIES = [
-    { at: 0,   name: 'Dusk',     a: [12, 10, 26], b: [75, 42, 143],  c: [255, 138, 61],  hi: [255, 178, 122] },
-    { at: 50,  name: 'Midnight', a: [5, 6, 15],   b: [27, 42, 107],  c: [106, 75, 208],  hi: [176, 160, 255] },
-    { at: 100, name: 'Dawn',     a: [26, 16, 36], b: [176, 72, 106], c: [255, 194, 122], hi: [255, 214, 160] }
+  // Each theme has its own plaster and lamp palette; the slider colours only the beam.
+  var DARK_SKIES = [
+    { at: 0, name: 'Dusk', a: [56, 37, 43], b: [150, 101, 71], c: [255, 214, 147] },
+    { at: 50, name: 'Midnight', a: [43, 30, 37], b: [108, 63, 47], c: [222, 144, 89] },
+    { at: 100, name: 'Dawn', a: [65, 48, 46], b: [184, 142, 105], c: [255, 233, 186] }
   ];
+  var LIGHT_SKIES = [
+    { at: 0, name: 'Dusk', a: [219, 196, 164], b: [228, 172, 110], c: [255, 223, 158] },
+    { at: 50, name: 'Midnight', a: [197, 168, 138], b: [196, 139, 96], c: [240, 185, 123] },
+    { at: 100, name: 'Dawn', a: [231, 218, 196], b: [241, 209, 161], c: [255, 241, 207] }
+  ];
+  var scheme = matchMedia('(prefers-color-scheme: dark)'), theme = document.getElementById('theme');
+  function isDark() { return document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : scheme.matches; }
   function mix(x, y, t) { return 'rgb(' + x.map(function (v, i) { return Math.round(v + (y[i] - v) * t); }).join(' ') + ')'; }
   function apply() {
     queued = false;
-    var v = +hour.value, i = v < 50 ? 0 : 1, lo = SKIES[i], hi = SKIES[i + 1], t = (v - lo.at) / (hi.at - lo.at);
+    var skies = isDark() ? DARK_SKIES : LIGHT_SKIES;
+    var v = +hour.value, i = v < 50 ? 0 : 1, lo = skies[i], hi = skies[i + 1], t = (v - lo.at) / (hi.at - lo.at);
     hero.style.setProperty('--flow-a', mix(lo.a, hi.a, t));
     hero.style.setProperty('--flow-b', mix(lo.b, hi.b, t));
     hero.style.setProperty('--flow-c', mix(lo.c, hi.c, t));
-    hero.style.setProperty('--hero-accent', mix(lo.hi, hi.hi, t));
+    document.getElementById('scene-time').textContent = v < 25 ? 'A little after sunset' : v < 75 ? 'The house is quiet now' : 'Morning, at your own pace';
     // 0..100 maps 18:00 → 06:00
     var mins = 18 * 60 + Math.round(v / 100 * 720 / 5) * 5, h = Math.floor(mins / 60) % 24, m = mins % 60;
     var name = v < 25 ? 'Dusk' : v < 75 ? 'Midnight' : 'Dawn';
@@ -201,10 +296,16 @@
   }
   var queued = false;
   hour.addEventListener('input', function () { if (!queued) { queued = true; requestAnimationFrame(apply); } }); // one update per frame
-  apply();
+  theme.addEventListener('click', function () {
+    document.documentElement.dataset.theme = isDark() ? 'light' : 'dark';
+    apply(); themeLabel();
+  });
+  function themeLabel() { var label = 'Switch to the ' + (isDark() ? 'light' : 'dark') + ' colour theme'; theme.setAttribute('aria-label', label); theme.title = label; }
+  scheme.addEventListener('change', function () { apply(); themeLabel(); });
+  themeLabel(); apply();
 
   var state = document.getElementById('flow-state');
-  function report() { state.textContent = 'Hero: ' + (hero.dataset.flow === 'live' ? 'live shader' : 'still gradient'); }
+  function report() { state.textContent = hero.dataset.flow === 'live' ? 'A slow current of light, paused when out of view.' : 'A still light, with the same evening colours.'; }
   new MutationObserver(report).observe(hero, { attributes: true, attributeFilter: ['data-flow'] });
   report();
 })();
