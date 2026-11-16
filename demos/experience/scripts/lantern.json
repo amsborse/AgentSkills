@@ -1,5 +1,5 @@
 {
-  "name": "lantern: look around the sky, move the evening, follow the calls to action",
+  "name": "lantern: look around the sky, move the evening, switch the light and back, follow the calls to action",
   "steps": [
     { "type": "move", "path": [[0.2, 0.3], [0.7, 0.4], [0.5, 0.7], [0.3, 0.5]], "duration": 1200 },
     { "type": "tap", "selector": "#hour" },
@@ -12,8 +12,10 @@
     { "type": "wait", "ms": 500 },
     { "type": "hover", "selector": "a.magnetic" },
     { "type": "wait", "ms": 300 },
-    { "type": "tap", "selector": "a.ghost" },
-    { "type": "wait", "ms": 700 },
+    { "type": "tap", "selector": "#theme" },
+    { "type": "wait", "ms": 1900 },
+    { "type": "tap", "selector": "#theme" },
+    { "type": "wait", "ms": 1900 },
     { "type": "scroll", "by": 1600, "duration": 1200 },
     { "type": "tap", "selector": ".close a.magnetic" },
     { "type": "wait", "ms": 900 }

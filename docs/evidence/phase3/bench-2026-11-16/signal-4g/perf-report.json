@@ -1,0 +1,325 @@
+{
+  "schema": "experience-bench/1",
+  "kind": "lab",
+  "url": "http://127.0.0.1:8765/demos/experience/signal.html",
+  "date": "2026-11-16T15:40:51.332Z",
+  "environment": {
+    "browser": "chromium",
+    "browserVersion": "153.0.8010.12",
+    "headed": true,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 Super with Max-Q Design (0x00001ED1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "network": "slow-4g",
+    "platform": "win32 10.0.26300 x64",
+    "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "cpuCount": 12,
+    "memoryGb": 16,
+    "node": "v24.19.0"
+  },
+  "runsPerCondition": 3,
+  "repeats": 1,
+  "settleMs": 1500,
+  "script": {
+    "name": "signal: scan, open a service, go back, filter, legend, keyboard",
+    "steps": 19
+  },
+  "vitalsSource": "built-in PerformanceObserver (web-vitals not installed in --project)",
+  "bytesKind": "transfer",
+  "conditions": [
+    {
+      "id": "mobile.dark.cpu1x.motion",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "mobile": true
+      },
+      "theme": "dark",
+      "cpu": 1,
+      "motion": "no-preference",
+      "tier": "default",
+      "tierObserved": "high",
+      "completed": 3,
+      "complete": true,
+      "errors": [],
+      "summary": {
+        "lcp": {
+          "median": 1312,
+          "min": 1308,
+          "max": 1388,
+          "n": 3
+        },
+        "fcp": {
+          "median": 1312,
+          "min": 1308,
+          "max": 1388,
+          "n": 3
+        },
+        "ttfb": {
+          "median": 3.5,
+          "min": 2.7999999970197678,
+          "max": 3.5999999940395355,
+          "n": 3
+        },
+        "load": {
+          "median": 1523,
+          "min": 1519.0999999940395,
+          "max": 1526.0999999940395,
+          "n": 3
+        },
+        "cls": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 3
+        },
+        "inp": {
+          "median": 32,
+          "min": 24,
+          "max": 56,
+          "n": 3
+        },
+        "longTaskTotal": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 3
+        },
+        "longTaskCount": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 3
+        },
+        "loafWorst": {
+          "median": 702.7999999970198,
+          "min": 695.3000000119209,
+          "max": 706.5,
+          "n": 3
+        },
+        "frameP50": {
+          "median": 3.300000000000182,
+          "min": 3.300000000000182,
+          "max": 3.300000000000182,
+          "n": 3
+        },
+        "frameP95": {
+          "median": 3.5,
+          "min": 3.400000000001455,
+          "max": 3.5,
+          "n": 3
+        },
+        "frameWorst": {
+          "median": 30,
+          "min": 29.90000000000009,
+          "max": 43.100000000000364,
+          "n": 3
+        },
+        "droppedPct": {
+          "median": 2.7039848197343455,
+          "min": 2.0676691729323307,
+          "max": 2.9661016949152543,
+          "n": 3
+        },
+        "heapUsed": {
+          "median": 1850704,
+          "min": 1848144,
+          "max": 1855232,
+          "n": 3
+        },
+        "heapGrowth": {
+          "median": null,
+          "min": null,
+          "max": null,
+          "n": 0
+        },
+        "bytesTotal": {
+          "median": 71298,
+          "min": 71298,
+          "max": 71818,
+          "n": 3
+        },
+        "bytesScript": {
+          "median": 17081,
+          "min": 17081,
+          "max": 17081,
+          "n": 3
+        },
+        "bytesImage": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 3
+        },
+        "requests": {
+          "median": 5,
+          "min": 5,
+          "max": 6,
+          "n": 3
+        }
+      },
+      "runs": [
+        {
+          "lcp": 1388,
+          "fcp": 1388,
+          "ttfb": 3.5999999940395355,
+          "load": 1526.0999999940395,
+          "cls": 0,
+          "inp": 56,
+          "interactions": 11,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 702.7999999970198
+          },
+          "frames": {
+            "frames": 2062,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 43.100000000000364,
+            "interval": 3.2999999999992724,
+            "droppedPct": 2.9661016949152543,
+            "fps": 291.1880642563472
+          },
+          "heap": {
+            "used": 1848144,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 71818,
+            "byType": {
+              "document": 47785,
+              "style": 6432,
+              "script": 17081,
+              "other": 520
+            },
+            "unsized": 0,
+            "requests": 6,
+            "kind": "transfer"
+          },
+          "tierObserved": "high",
+          "pageErrors": []
+        },
+        {
+          "lcp": 1308,
+          "fcp": 1308,
+          "ttfb": 3.5,
+          "load": 1519.0999999940395,
+          "cls": 0,
+          "inp": 32,
+          "interactions": 11,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 695.3000000119209
+          },
+          "frames": {
+            "frames": 2052,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 30,
+            "interval": 3.2999999999992724,
+            "droppedPct": 2.7039848197343455,
+            "fps": 291.99054696620254
+          },
+          "heap": {
+            "used": 1855232,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 71298,
+            "byType": {
+              "document": 47785,
+              "style": 6432,
+              "script": 17081
+            },
+            "unsized": 0,
+            "requests": 5,
+            "kind": "transfer"
+          },
+          "tierObserved": "high",
+          "pageErrors": []
+        },
+        {
+          "lcp": 1312,
+          "fcp": 1312,
+          "ttfb": 2.7999999970197678,
+          "load": 1523,
+          "cls": 0,
+          "inp": 24,
+          "interactions": 11,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 706.5
+          },
+          "frames": {
+            "frames": 2085,
+            "p50": 3.300000000000182,
+            "p95": 3.400000000001455,
+            "worst": 29.90000000000009,
+            "interval": 3.2999999999992724,
+            "droppedPct": 2.0676691729323307,
+            "fps": 293.93511988716506
+          },
+          "heap": {
+            "used": 1850704,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 71298,
+            "byType": {
+              "document": 47785,
+              "style": 6432,
+              "script": 17081
+            },
+            "unsized": 0,
+            "requests": 5,
+            "kind": "transfer"
+          },
+          "tierObserved": "high",
+          "pageErrors": []
+        }
+      ]
+    }
+  ],
+  "notes": [],
+  "budget": {
+    "source": "default (Core Web Vitals \"good\" thresholds, indicative for lab data)",
+    "budgets": {
+      "lcp": 2500,
+      "inp": 200,
+      "cls": 0.1
+    },
+    "tradeoffs": [],
+    "breaches": [],
+    "unmeasured": [],
+    "isDefault": true
+  },
+  "notValidated": [
+    "Field performance: these are lab numbers from one machine, not the 75th percentile of real users.",
+    "Real mobile hardware, GPU thermals and battery: CPU throttling slows JavaScript only, it does not emulate a phone GPU.",
+    "Energy use and GPU memory: no scriptable measurement exists.",
+    "Safari and Firefox: this run measured Chromium only. Re-run with --browser firefox or webkit for those engines.",
+    "Network: shaped to the slow-4g preset in the browser, which is not a real radio link.",
+    "Memory growth: needs --repeats 4 or more with an interaction script; not measured."
+  ],
+  "status": "measured"
+}

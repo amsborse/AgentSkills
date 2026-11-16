@@ -428,11 +428,22 @@ test('sustained page overload can cause timing drift without making measured INP
   assert.doesNotMatch(md, /INP.*not comparable/i);
 });
 
-test('Lantern tier evidence states unknown included run counts when raw reports are unavailable', () => {
+test('Signal and Lantern tier figures are backed by raw reports with every run counted', () => {
   const readme = fs.readFileSync(path.join(root, 'demos/experience/README.md'), 'utf8');
-  const caveat = readme.match(/Lantern `high` and `balanced`[\s\S]*?(?=\n\nWeight)/)?.[0];
-  assert.ok(caveat, 'the measured tier caveat must be present');
-  assert.match(caveat, /included run counts are unknown/i);
-  assert.match(caveat, /raw.*reports.*(missing|unavailable|not present)/i);
-  assert.doesNotMatch(caveat, /are [34] of 5 runs/);
+  const caveat = readme.match(/Every Signal and Lantern tier above[\s\S]*?(?=\n\nWeight)/)?.[0];
+  assert.ok(caveat, 'the measured tier note must be present');
+  assert.match(caveat, /completed 5 of 5 runs/);
+  assert.match(caveat, /cause is\s+unknown/i, 'the unexplained slow interaction stays reported as unknown');
+  assert.match(caveat, /docs\/evidence\/phase3\/bench-2026-11-16/);
+  for (const demo of ['signal', 'lantern']) {
+    const file = path.join(root, 'docs/evidence/phase3/bench-2026-11-16', demo + '-tiers', 'perf-report.json');
+    assert.ok(fs.existsSync(file), 'raw tier report must be in the repository: ' + file);
+    const report = JSON.parse(fs.readFileSync(file, 'utf8'));
+    assert.equal(report.runsPerCondition, 5);
+    assert.deepEqual(report.conditions.map((c) => c.tier), ['ultra', 'high', 'balanced', 'low', 'static']);
+    for (const c of report.conditions) {
+      assert.equal(c.completed, 5, demo + ' ' + c.tier + ' must have 5 completed runs');
+      assert.equal(c.tierObserved, c.tier, demo + ' must actually run the requested tier');
+    }
+  }
 });

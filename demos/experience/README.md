@@ -49,19 +49,21 @@ shown as median (lowest–highest). INP comes from a scripted session per demo
 (`scripts/<demo>.json`: open and close a row with mouse and keyboard, filter, scroll, open
 footnotes, drag the slider, tap on the phone viewport). "Phone viewport" is a 390×844 touch
 viewport in the same desktop browser: it checks layout and touch handling and says nothing
-about a phone's processor or GPU. CLS was 0 in every cell except one run noted below. Measured
-2026-11-15.
+about a phone's processor or GPU. CLS was 0 in every cell except one run noted below. Signal and
+Lantern were measured again on 2026-11-16 after their redesign (Lantern's session now also
+switches the light and back); Field Notes was measured 2026-11-15. The reduced-motion and
+slowed-processor rows for Signal and Lantern are on the dark theme.
 
 | Demo | Condition | LCP ms | INP ms |
 |---|---|---|---|
-| Signal | desktop light | 136 (108–168) | 16 (16–16) |
-| Signal | desktop dark | 140 (104–160) | 16 (16–32) |
-| Signal | phone viewport light | 120 | 24 (16–24) |
-| Signal | phone viewport dark | 120 | 16 (16–24) |
-| Signal | reduced motion (runs as `static`) | 140 (132–148) | 24 (24–56) |
-| Signal | processor slowed 4×, desktop | 516 (460–604) | 72 (64–80) |
-| Signal | processor slowed 4×, phone viewport | 1052 (504–1256) | 120 (104–136) |
-| Signal | slow 4G, phone viewport (3 runs) | 1460 (1348–1532) | 56 (40–56) |
+| Signal | desktop light | 172 (164–324) | 32 (24–56) |
+| Signal | desktop dark | 172 (144–192) | 24 (24–32) |
+| Signal | phone viewport light | 156 (148–172) | 32 (32–40) |
+| Signal | phone viewport dark | 168 (160–168) | 32 (24–40) |
+| Signal | reduced motion (runs as `static`) | 188 (148–308) | 32 (24–48) |
+| Signal | processor slowed 4×, desktop | 760 (676–812) | 104 (96–120) |
+| Signal | processor slowed 4×, phone viewport | 608 (596–716) | 96 (88–128) |
+| Signal | slow 4G, phone viewport (3 runs) | 1312 (1308–1388) | 32 (24–56) |
 | Field Notes | desktop light | 168 (128–252) | 16 (16–16) |
 | Field Notes | desktop dark | 160 (148–188) | 16 (16–24) |
 | Field Notes | phone viewport light | 172 (144–264) | 32 (24–56) |
@@ -70,42 +72,42 @@ about a phone's processor or GPU. CLS was 0 in every cell except one run noted b
 | Field Notes | processor slowed 4×, desktop | 768 (652–868) | 32 (32–48) |
 | Field Notes | processor slowed 4×, phone viewport | 648 (524–800) | 48 (40–72) |
 | Field Notes | slow 4G, phone viewport (3 runs) | 1424 (1320–1492) | 40 |
-| Lantern | desktop light | 252 (204–328) | 40 (40–72) |
-| Lantern | desktop dark | 236 (208–248) | 56 (40–88) |
-| Lantern | phone viewport light | 216 (188–236) | 32 (24–40) |
-| Lantern | phone viewport dark | 256 (224–360) | 32 (24–40) |
-| Lantern | reduced motion (runs as `static`) | 296 (268–428) | 48 (40–64) |
-| Lantern | processor slowed 4×, desktop | 1352 (1076–1596) | 88 (64–104) |
-| Lantern | processor slowed 4×, phone viewport | 1260 (936–1528) | 88 (56–88) |
-| Lantern | slow 4G, phone viewport (3 runs) | 1464 (1428–1492) | 32 (24–40) |
+| Lantern | desktop light | 144 (136–324) | 32 (24–56) |
+| Lantern | desktop dark | 148 (128–156) | 24 (24–32) |
+| Lantern | phone viewport light | 132 (128–212) | 24 (24–32) |
+| Lantern | phone viewport dark | 144 (120–168) | 32 |
+| Lantern | reduced motion (runs as `static`) | 140 (128–456) | 16 |
+| Lantern | processor slowed 4×, desktop | 532 (512–764) | 64 (64–96) |
+| Lantern | processor slowed 4×, phone viewport | 544 (468–612) | 72 (64–112) |
+| Lantern | slow 4G, phone viewport (3 runs) | 1340 (1332–1496) | 32 (32–64) |
 
-Frame pacing, unthrottled desktop: Signal and Lantern hold the display's rate (95th-percentile
-frame 3.5 ms, 1–3% of frames late). Field Notes on its animated tiers shows 6.6 ms and 7–11%
-of frames late while scrolling, against 3.5 ms and 0.2% on `static`. With the processor slowed
-4×, 14–23% of frames are late on the desktop viewport (Signal 23%, Field Notes 23%, Lantern
-14%) and 41% on Signal's phone viewport.
+Frame pacing, unthrottled desktop: Signal holds the display's rate (95th-percentile frame
+3.5 ms, 3–4% of frames late, under 1% on `static`). Lantern, whose session now includes two
+theme reveals, shows 6.6 ms and 6–11% of frames late on `ultra`, `high` and `balanced`, 3.5 ms
+and 4% on `low`, and 0.1% on `static`. Field Notes on its animated tiers shows 6.6 ms and
+7–11% of frames late while scrolling, against 3.5 ms and 0.2% on `static`. With the processor
+slowed 4×, Signal has 42% of frames late on the desktop viewport and 39% on the phone viewport,
+Lantern 34% on both, Field Notes 23% on desktop.
 
 Quality tiers, desktop dark, held with `?quality=`:
 
 | Demo | ultra | high | balanced | low | static |
 |---|---|---|---|---|---|
-| Signal LCP / INP ms | 124 / 16 | 116 / 16 | 112 / 16 | 112 / 16 | 108 / 24 |
+| Signal LCP / INP ms | 168 / 24 | 168 / 24 | 180 / 24 | 172 / 24 | 164 / 24 |
 | Field Notes LCP / INP ms | 148 / 16 | 136 / 16 | 132 / 16 | 120 / 16 | 124 / 16 |
-| Lantern LCP ms | 216 (188–328) | 198 (156–240) | 210 (156–224) | 236 (184–276) | 216 (192–392) |
-| Lantern INP ms | 32 (32–40) | 40 | 32 (24–32) | 40 (32–56) | 48 (32–56) |
+| Lantern LCP ms | 152 (144–468) | 148 (140–172) | 160 (116–176) | 164 (144–180) | 152 (140–164) |
+| Lantern INP ms | 32 (24–80) | 24 | 24 (24–32) | 24 (24–32) | 16 (16–528) |
 
-Lantern `high` and `balanced`: included run counts are unknown. The original notes describe
-one lost-page run in each tier and a `high` run stalled at about one frame a second while other
-programs had taken free memory down to about 470 MB, but the raw Lantern reports are not present
-in `docs/evidence/` (which contains portfolio evidence only). The notes do not establish which
-runs contributed to the medians or whether the stalled run was separate from the lost-page run.
-The figures above are preserved as recorded; their included run counts cannot be verified.
-An earlier tier pass was discarded and repeated after timing slowed to about 30 frames a second.
-The original notes attributed this to the display; frame intervals alone cannot establish that
-cause. The bench now reports observed timing drift with cause unknown.
+Every Signal and Lantern tier above completed 5 of 5 runs; the raw reports for all the Signal and
+Lantern figures are in `docs/evidence/phase3/bench-2026-11-16/`. One Lantern `static` run recorded an
+INP of 528 ms against 16 ms in the other four. The same thing happened in 3 of 5 runs of an
+earlier reduced-motion pass (which also runs as `static`) and in none of the 10 runs of the
+repeat pass shown in the table (the repeat overwrote the earlier pass's report, so that one is
+not kept). The interaction responsible was not identified, so the cause is
+unknown and it is not counted as fixed.
 
-Weight (Chromium, transferred): Signal 43.6 KB in total, 17.1 KB of it script; Field Notes
-43.5 KB, 19.3 KB; Lantern 57.7 KB, 31.8 KB. JavaScript heap after the session: 1.7–1.9 MB for
+Weight (Chromium, transferred): Signal 69.6 KB in total, 16.7 KB of it script; Field Notes
+43.5 KB, 19.3 KB; Lantern 73.4 KB, 31.0 KB. JavaScript heap after the session: 1.7–1.9 MB for
 all three.
 
 What the numbers say:
@@ -117,17 +119,19 @@ What the numbers say:
   unproven on a real low-end GPU.
 - Field Notes' scroll effects have a small real cost (the frame figures above). At 60 Hz it is
   invisible; on this 300 Hz display it is a few late frames while scrolling.
-- With the processor slowed 4× the pages stay inside the budgets, with INP rising to 72–120 ms
-  on Signal and 88 ms on Lantern. That is the cell to watch on a slow device.
-- On slow 4G all three paint in about 1.4–1.5 s; the pages are small enough that latency, not
+- With the processor slowed 4× the pages stay inside the budgets, with INP rising to 96–104 ms
+  on Signal and 64–72 ms on Lantern. That is the cell to watch on a slow device.
+- On slow 4G all three paint in about 1.3–1.5 s; the pages are small enough that latency, not
   weight, sets that.
-- One layout shift is unexplained. In the first 5 runs of Signal with the processor slowed 4×
+- One layout shift is unexplained, on the previous Signal design (the redesigned page recorded
+  CLS 0 in every run). In the first 5 runs of Signal with the processor slowed 4×
   (desktop, dark), one run recorded CLS 0.345: the main column and a link moved 506 ms in, about
   when the page first painted. Twenty further runs of the same cell recorded CLS 0 every time
   (LCP 612 ms (480–956), INP 64 ms (56–144)). So it happened once in 25 runs and the cause is
   not known; it is not counted as fixed.
 
-Other engines (headed, Playwright's builds, 3 runs each; processor and network cannot be
+Other engines (measured 2026-11-15, so the Signal and Lantern rows describe their previous
+designs, now under `v1/`, and have not been repeated; headed, Playwright's builds, 3 runs each; processor and network cannot be
 slowed there):
 
 | Demo | Firefox 155 | WebKit 26.6 (Playwright's Windows build, not Safari) |

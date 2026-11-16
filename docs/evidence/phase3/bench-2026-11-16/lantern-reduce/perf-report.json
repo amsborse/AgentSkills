@@ -1,0 +1,782 @@
+{
+  "schema": "experience-bench/1",
+  "kind": "lab",
+  "url": "http://127.0.0.1:8765/demos/experience/lantern.html",
+  "date": "2026-11-16T15:52:26.414Z",
+  "environment": {
+    "browser": "chromium",
+    "browserVersion": "153.0.8010.12",
+    "headed": true,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 Super with Max-Q Design (0x00001ED1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "network": null,
+    "platform": "win32 10.0.26300 x64",
+    "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "cpuCount": 12,
+    "memoryGb": 16,
+    "node": "v24.19.0"
+  },
+  "runsPerCondition": 5,
+  "repeats": 1,
+  "settleMs": 1500,
+  "script": {
+    "name": "lantern: look around the sky, move the evening, switch the light and back, follow the calls to action",
+    "steps": 18
+  },
+  "vitalsSource": "built-in PerformanceObserver (web-vitals not installed in --project)",
+  "bytesKind": "transfer",
+  "conditions": [
+    {
+      "id": "desktop.dark.cpu1x.reduced-motion",
+      "viewport": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900,
+        "mobile": false
+      },
+      "theme": "dark",
+      "cpu": 1,
+      "motion": "reduce",
+      "tier": "default",
+      "tierObserved": "static",
+      "completed": 5,
+      "complete": true,
+      "errors": [],
+      "summary": {
+        "lcp": {
+          "median": 140,
+          "min": 128,
+          "max": 456,
+          "n": 5
+        },
+        "fcp": {
+          "median": 140,
+          "min": 128,
+          "max": 456,
+          "n": 5
+        },
+        "ttfb": {
+          "median": 3.4000000059604645,
+          "min": 3,
+          "max": 3.7999999970197678,
+          "n": 5
+        },
+        "load": {
+          "median": 145.1000000089407,
+          "min": 135.6000000089407,
+          "max": 252.79999999701977,
+          "n": 5
+        },
+        "cls": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 5
+        },
+        "inp": {
+          "median": 16,
+          "min": 16,
+          "max": 16,
+          "n": 5
+        },
+        "longTaskTotal": {
+          "median": 90,
+          "min": 0,
+          "max": 94,
+          "n": 5
+        },
+        "longTaskCount": {
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "n": 5
+        },
+        "loafWorst": {
+          "median": 89.3999999910593,
+          "min": 83.6000000089407,
+          "max": 192,
+          "n": 5
+        },
+        "frameP50": {
+          "median": 3.300000000000182,
+          "min": 3.300000000000182,
+          "max": 3.300000000000182,
+          "n": 5
+        },
+        "frameP95": {
+          "median": 3.5,
+          "min": 3.400000000001455,
+          "max": 3.5,
+          "n": 5
+        },
+        "frameWorst": {
+          "median": 6.699999999999818,
+          "min": 6.599999999999909,
+          "max": 116.5,
+          "n": 5
+        },
+        "droppedPct": {
+          "median": 0.03454231433506045,
+          "min": 0.03408316291751875,
+          "max": 1.282051282051282,
+          "n": 5
+        },
+        "heapUsed": {
+          "median": 1716336,
+          "min": 1715300,
+          "max": 1719288,
+          "n": 5
+        },
+        "heapGrowth": {
+          "median": null,
+          "min": null,
+          "max": null,
+          "n": 0
+        },
+        "bytesTotal": {
+          "median": 75193,
+          "min": 75193,
+          "max": 75713,
+          "n": 5
+        },
+        "bytesScript": {
+          "median": 31789,
+          "min": 31789,
+          "max": 31789,
+          "n": 5
+        },
+        "bytesImage": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 5
+        },
+        "requests": {
+          "median": 12,
+          "min": 12,
+          "max": 13,
+          "n": 5
+        }
+      },
+      "runs": [
+        {
+          "lcp": 456,
+          "fcp": 456,
+          "ttfb": 3.6000000089406967,
+          "load": 252.79999999701977,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 2,
+            "worst": 192
+          },
+          "frames": {
+            "frames": 2927,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 116.5,
+            "interval": 3.199999999999818,
+            "droppedPct": 1.282051282051282,
+            "fps": 296.3698241633579
+          },
+          "heap": {
+            "used": 1715300,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75713,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789,
+              "other": 520
+            },
+            "unsized": 0,
+            "requests": 13,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 136,
+          "fcp": 136,
+          "ttfb": 3.2999999970197678,
+          "load": 138.29999999701977,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 1,
+            "total": 90,
+            "blocking": 40
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 88.79999999701977
+          },
+          "frames": {
+            "frames": 2934,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 6.700000000000273,
+            "interval": 3.2000000000000455,
+            "droppedPct": 0.03408316291751875,
+            "fps": 300.04501186676487
+          },
+          "heap": {
+            "used": 1716384,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 128,
+          "fcp": 128,
+          "ttfb": 3.7999999970197678,
+          "load": 135.6000000089407,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 1,
+            "total": 84,
+            "blocking": 34
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 83.6000000089407
+          },
+          "frames": {
+            "frames": 2932,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 6.699999999999818,
+            "interval": 3.2000000000007276,
+            "droppedPct": 0.034106412005457026,
+            "fps": 300.0214959106589
+          },
+          "heap": {
+            "used": 1719288,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 140,
+          "fcp": 140,
+          "ttfb": 3.4000000059604645,
+          "load": 145.1000000089407,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 1,
+            "total": 94,
+            "blocking": 44
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 89.3999999910593
+          },
+          "frames": {
+            "frames": 2939,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 6.599999999999909,
+            "interval": 3.200000000000273,
+            "droppedPct": 0.13596193065941536,
+            "fps": 299.74086392295294
+          },
+          "heap": {
+            "used": 1716336,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 140,
+          "fcp": 140,
+          "ttfb": 3,
+          "load": 145.20000000298023,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 1,
+            "total": 90,
+            "blocking": 40
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 92.8999999910593
+          },
+          "frames": {
+            "frames": 2895,
+            "p50": 3.300000000000182,
+            "p95": 3.400000000001455,
+            "worst": 6.699999999999818,
+            "interval": 3.2000000000007276,
+            "droppedPct": 0.03454231433506045,
+            "fps": 300.0393970182678
+          },
+          "heap": {
+            "used": 1716336,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "id": "mobile.dark.cpu1x.reduced-motion",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "mobile": true
+      },
+      "theme": "dark",
+      "cpu": 1,
+      "motion": "reduce",
+      "tier": "default",
+      "tierObserved": "static",
+      "completed": 5,
+      "complete": true,
+      "errors": [],
+      "summary": {
+        "lcp": {
+          "median": 124,
+          "min": 112,
+          "max": 192,
+          "n": 5
+        },
+        "fcp": {
+          "median": 124,
+          "min": 112,
+          "max": 192,
+          "n": 5
+        },
+        "ttfb": {
+          "median": 3.0999999940395355,
+          "min": 2.3999999910593033,
+          "max": 3.8999999910593033,
+          "n": 5
+        },
+        "load": {
+          "median": 131.3999999910593,
+          "min": 115.79999999701977,
+          "max": 152.29999999701977,
+          "n": 5
+        },
+        "cls": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 5
+        },
+        "inp": {
+          "median": 16,
+          "min": 16,
+          "max": 24,
+          "n": 5
+        },
+        "longTaskTotal": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 5
+        },
+        "longTaskCount": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 5
+        },
+        "loafWorst": {
+          "median": 85.09999999403954,
+          "min": 74.1000000089407,
+          "max": 102.79999999701977,
+          "n": 5
+        },
+        "frameP50": {
+          "median": 3.300000000000182,
+          "min": 3.300000000000182,
+          "max": 3.300000000000182,
+          "n": 5
+        },
+        "frameP95": {
+          "median": 3.5,
+          "min": 3.5,
+          "max": 3.5,
+          "n": 5
+        },
+        "frameWorst": {
+          "median": 6.800000000000182,
+          "min": 6.599999999999909,
+          "max": 16.5,
+          "n": 5
+        },
+        "droppedPct": {
+          "median": 0.06828269033799932,
+          "min": 0.03414134516899966,
+          "max": 0.2711864406779661,
+          "n": 5
+        },
+        "heapUsed": {
+          "median": 1763980,
+          "min": 1747068,
+          "max": 1764080,
+          "n": 5
+        },
+        "heapGrowth": {
+          "median": null,
+          "min": null,
+          "max": null,
+          "n": 0
+        },
+        "bytesTotal": {
+          "median": 75193,
+          "min": 75193,
+          "max": 75193,
+          "n": 5
+        },
+        "bytesScript": {
+          "median": 31789,
+          "min": 31789,
+          "max": 31789,
+          "n": 5
+        },
+        "bytesImage": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "n": 5
+        },
+        "requests": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "n": 5
+        }
+      },
+      "runs": [
+        {
+          "lcp": 192,
+          "fcp": 192,
+          "ttfb": 3.4000000059604645,
+          "load": 142.70000000298023,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 2,
+            "worst": 83.70000000298023
+          },
+          "frames": {
+            "frames": 2929,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 6.800000000000182,
+            "interval": 3.2000000000007276,
+            "droppedPct": 0.03414134516899966,
+            "fps": 300.01844375678826
+          },
+          "heap": {
+            "used": 1747068,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 144,
+          "fcp": 144,
+          "ttfb": 3.8999999910593033,
+          "load": 152.29999999701977,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 102.79999999701977
+          },
+          "frames": {
+            "frames": 2944,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 6.700000000000728,
+            "interval": 3.200000000000273,
+            "droppedPct": 0.1357312521208008,
+            "fps": 299.6792424010997
+          },
+          "heap": {
+            "used": 1763980,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 112,
+          "fcp": 112,
+          "ttfb": 3.0999999940395355,
+          "load": 115.79999999701977,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 74.1000000089407
+          },
+          "frames": {
+            "frames": 2943,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 16.5,
+            "interval": 3.200000000000273,
+            "droppedPct": 0.2711864406779661,
+            "fps": 299.2939836008871
+          },
+          "heap": {
+            "used": 1764080,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 124,
+          "fcp": 124,
+          "ttfb": 2.3999999910593033,
+          "load": 123.29999999701977,
+          "cls": 0,
+          "inp": 24,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 85.09999999403954
+          },
+          "frames": {
+            "frames": 2928,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 10,
+            "interval": 3.2000000000007276,
+            "droppedPct": 0.06828269033799932,
+            "fps": 299.90675942908086
+          },
+          "heap": {
+            "used": 1747140,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        },
+        {
+          "lcp": 124,
+          "fcp": 124,
+          "ttfb": 2.699999988079071,
+          "load": 131.3999999910593,
+          "cls": 0,
+          "inp": 16,
+          "interactions": 9,
+          "shifts": [],
+          "longTasks": {
+            "count": 0,
+            "total": 0,
+            "blocking": 0
+          },
+          "loaf": {
+            "count": 1,
+            "worst": 88.30000001192093
+          },
+          "frames": {
+            "frames": 2955,
+            "p50": 3.300000000000182,
+            "p95": 3.5,
+            "worst": 6.599999999999909,
+            "interval": 3.199999999999818,
+            "droppedPct": 0.06765899864682003,
+            "fps": 300.0355492356914
+          },
+          "heap": {
+            "used": 1764080,
+            "series": [],
+            "growth": null
+          },
+          "bytes": {
+            "total": 75193,
+            "byType": {
+              "document": 32087,
+              "style": 11317,
+              "script": 31789
+            },
+            "unsized": 0,
+            "requests": 12,
+            "kind": "transfer"
+          },
+          "tierObserved": "static",
+          "pageErrors": []
+        }
+      ]
+    }
+  ],
+  "notes": [],
+  "budget": {
+    "source": "default (Core Web Vitals \"good\" thresholds, indicative for lab data)",
+    "budgets": {
+      "lcp": 2500,
+      "inp": 200,
+      "cls": 0.1
+    },
+    "tradeoffs": [],
+    "breaches": [],
+    "unmeasured": [],
+    "isDefault": true
+  },
+  "notValidated": [
+    "Field performance: these are lab numbers from one machine, not the 75th percentile of real users.",
+    "Real mobile hardware, GPU thermals and battery: CPU throttling slows JavaScript only, it does not emulate a phone GPU.",
+    "Energy use and GPU memory: no scriptable measurement exists.",
+    "Safari and Firefox: this run measured Chromium only. Re-run with --browser firefox or webkit for those engines.",
+    "Network conditions: loaded locally without network throttling.",
+    "Memory growth: needs --repeats 4 or more with an interaction script; not measured."
+  ],
+  "status": "measured"
+}
