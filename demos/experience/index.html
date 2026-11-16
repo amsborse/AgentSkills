@@ -19,9 +19,9 @@
   a.demo { display: grid; grid-template-rows: 150px auto; border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); color: inherit; text-decoration: none; }
   a.demo:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
   .sw { display: grid; place-items: center; }
-  .sw.signal { background: #0a0e13; color: #62c6ff; font: 600 15px "Cascadia Mono", Consolas, ui-monospace, monospace; }
+  .sw.signal { background: #202725; color: #d2ed71; font: 500 24px Bahnschrift, "Arial Narrow", sans-serif; letter-spacing: .06em; text-transform: uppercase; }
   .sw.notes { background: #f5eee1; color: #963a20; font: italic 500 30px "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
-  .sw.lantern { background: radial-gradient(120% 90% at 12% 8%, #4b2a8f, transparent 62%), radial-gradient(95% 85% at 88% 92%, #ff8a3d, transparent 66%), #0c0a1a; color: #fff; font: 600 34px Bahnschrift, "Arial Narrow", sans-serif; font-stretch: 75%; letter-spacing: .12em; text-transform: uppercase; }
+  .sw.lantern { background: #e5d9c7; color: #9a482b; font: 400 38px "Trebuchet MS", "Avenir Next", sans-serif; letter-spacing: -.06em; }
   .txt { padding: 18px 20px 22px; }
   .txt small { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
   .txt b { display: block; font-size: 1.25rem; margin: 6px 0 6px; }
@@ -33,6 +33,9 @@
   th { color: var(--muted); font-weight: 600; }
   .scroll { overflow-x: auto; }
   p.foot { color: var(--muted); font-size: .9375rem; margin-top: 28px; }
+  .earlier { display: flex; flex-wrap: wrap; gap: 8px 24px; color: var(--muted); font-size: .875rem; margin-top: 18px; }
+  .earlier a { color: inherit; text-underline-offset: 4px; display: inline-flex; align-items: center; min-height: 44px; }
+  .earlier a:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
   @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } table { min-width: 640px; } }
 </style>
 </head>
@@ -41,20 +44,21 @@
   <h1>Experience demos</h1>
   <p class="lede">Three products built from the same recipes and the same quality runtime, each made to look and behave like itself. Add <code>?quality=static</code> (or <code>low</code>, <code>balanced</code>, <code>high</code>, <code>ultra</code>) to any of them to hold a tier.</p>
   <div class="grid">
-    <a class="demo spring-press" href="signal.html"><div class="sw signal" aria-hidden="true">▂▅▂▇▃ signal</div><div class="txt"><small>Operate</small><b>Signal</b><span>A service health console. Dense, flat, mono. Motion only when a view changes.</span></div></a>
+    <a class="demo spring-press" href="signal.html"><div class="sw signal" aria-hidden="true">/ signal</div><div class="txt"><small>Operate</small><b>Signal</b><span>A relay desk for a fictional fleet. Ten traces, three exceptions, one next action.</span></div></a>
     <a class="demo spring-press" href="field-notes.html"><div class="sw notes" aria-hidden="true">Field Notes</div><div class="txt"><small>Read</small><b>Field Notes</b><span>A long essay on warm paper. Reading progress and figures that arrive as you reach them.</span></div></a>
-    <a class="demo spring-press" href="lantern.html"><div class="sw lantern" aria-hidden="true">Lantern</div><div class="txt"><small>Persuade</small><b>Lantern</b><span>A landing page with a living sky you can move from dusk to dawn.</span></div></a>
+    <a class="demo spring-press" href="lantern.html"><div class="sw lantern" aria-hidden="true">lantern</div><div class="txt"><small>Persuade</small><b>Lantern</b><span>An architectural light study. Move the evening through a pendant's living beam.</span></div></a>
   </div>
+  <nav class="earlier" aria-label="Earlier demo designs"><a href="v1/signal.html">Signal · Earlier version</a><a href="v1/lantern.html">Lantern · Earlier version</a></nav>
   <div class="scroll">
   <table>
     <caption>How they differ</caption>
     <thead><tr><th scope="col"></th><th scope="col">Signal</th><th scope="col">Field Notes</th><th scope="col">Lantern</th></tr></thead>
     <tbody>
-      <tr><th scope="row">Type</th><td>Grotesque and mono</td><td>Old-style serif</td><td>Condensed display</td></tr>
-      <tr><th scope="row">Colour</th><td>Cool slate, blue accent, status colours with a legend</td><td>Warm paper, oxblood accent</td><td>Violet night, ember accent</td></tr>
-      <tr><th scope="row">Density and shape</th><td>Dense, sharp, lines</td><td>Airy, soft, shadows</td><td>Balanced, round, glow</td></tr>
-      <tr><th scope="row">Recipes</th><td>spring-states, route-transition</td><td>scroll-reveal, spring-states, cursor-light</td><td>flow-hero, magnetic-target, cursor-light, scroll-reveal</td></tr>
-      <tr><th scope="row">Interaction</th><td>Row opens to detail and back (Enter, Esc)</td><td>Footnotes open in place</td><td>A slider moves the evening</td></tr>
+      <tr><th scope="row">Type</th><td>DIN-style display and mono</td><td>Old-style serif</td><td>Geometric humanist and Charter-style prose</td></tr>
+      <tr><th scope="row">Colour</th><td>Graphite, lime and a shape-coded state key</td><td>Warm paper, oxblood accent</td><td>Aubergine plaster, limestone and copper</td></tr>
+      <tr><th scope="row">Density and shape</th><td>Instrument traces, register, attention queue</td><td>Airy, soft, shadows</td><td>Architectural drawing, shaped light, room notes</td></tr>
+      <tr><th scope="row">Recipes</th><td>spring-states, route-transition</td><td>scroll-reveal, spring-states, cursor-light</td><td>flow-hero, magnetic-target, cursor-light, scroll-reveal, spring-states</td></tr>
+      <tr><th scope="row">Interaction</th><td>Traces follow hover and focus; rows open to detail (Enter, Esc)</td><td>Footnotes open in place</td><td>A slider changes the pendant's evening light</td></tr>
       <tr><th scope="row">Cost at rest</th><td>No frames</td><td>No script frames; scroll effects run in CSS</td><td>One shader, tiered; a still gradient on static and reduced motion</td></tr>
     </tbody>
   </table>

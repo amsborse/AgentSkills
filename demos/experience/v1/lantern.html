@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Lantern · light that follows the evening (demo)</title>
+<link rel="stylesheet" href="../../../shared/creative/recipes/spring-states/recipe.css">
+<link rel="stylesheet" href="../../../shared/creative/recipes/scroll-reveal/recipe.css">
+<link rel="stylesheet" href="../../../shared/creative/recipes/cursor-light/recipe.css">
+<link rel="stylesheet" href="../../../shared/creative/recipes/magnetic-target/recipe.css">
+<link rel="stylesheet" href="../../../shared/creative/recipes/flow-hero/recipe.css">
+<style>
+  /* Lantern: a Persuade surface. Dark-first, condensed display type, light and glow for depth.
+     Intensity 3: one living signature (the sky in the hero) on the quality runtime; the rest is calm. */
+  :root {
+    --bg: #0b0918; --bg-2: #120e26; --surface: #17122e; --line: #2c2450; --ink: #f4f0ff; --muted: #b9b0d6;
+    --accent: #ff9a52; --accent-ink: #1c0d02; --glow: #7a4fd033;
+    --flow-a: #0c0a1a; --flow-b: #4b2a8f; --flow-c: #ff8a3d;
+    --display: Bahnschrift, "DIN Alternate", "Avenir Next Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+    --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --card-shadow: none;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f0f8; --bg-2: #ebe5f3; --surface: #fffdfb; --line: #dcd3ea; --ink: #1b1430; --muted: #51486b;
+      --accent: #b3480a; --accent-ink: #fff8f2; --glow: #7a4fd01f;
+      --card-shadow: 0 1px 2px #2b1b5514, 0 14px 32px -16px #2b1b5540;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; color: var(--ink); font: 1.0625rem/1.6 var(--sans);
+    background: radial-gradient(900px 480px at 85% 110vh, var(--glow), transparent 70%), radial-gradient(700px 420px at 5% 170vh, var(--glow), transparent 70%), var(--bg);
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .display { font-family: var(--display); font-stretch: 75%; font-weight: 600; text-transform: uppercase; letter-spacing: .01em; line-height: .92; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 24px; }
+
+  /* Hero: always night, in both themes. The sky is the product. */
+  .flow-hero { min-height: min(100svh, 860px); display: grid; grid-template-rows: auto 1fr auto; color: #fbf8ff; --magnetic-focus: #fff; }
+  .flow-hero::after { /* scrim: text contrast against the brightest colour the field reaches */
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(180deg, #06051099 0%, #0605104d 30%, #06051080 62%, #060510e6 100%);
+  }
+  .nav { display: flex; align-items: center; gap: 20px; padding-block: 20px; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; font: 600 1.375rem/1 var(--display); font-stretch: 75%; letter-spacing: .14em; text-transform: uppercase; }
+  .logo i { width: 12px; height: 18px; border-radius: 6px 6px 3px 3px; background: var(--hero-accent, #ff9a52); box-shadow: 0 0 18px 2px var(--hero-accent, #ff9a52); }
+  .nav .sp { flex: 1; }
+  .nav a { color: #e9e2fb; text-decoration: none; font-size: .9375rem; } .nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .hero-body { align-self: center; padding-block: 4vh; }
+  .eyebrow { font: 600 .8125rem/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; color: #ffd9bd; }
+  h1 { font-size: clamp(3rem, min(11vw, 13svh), 8rem); margin: 18px 0 20px; max-width: 12ch; text-shadow: 0 2px 40px #0009; text-wrap: balance; }
+  h1 span { color: var(--hero-accent, #ffb27a); }
+  .lede { max-width: 34em; font-size: 1.25rem; line-height: 1.5; color: #f1ebff; text-shadow: 0 1px 14px #000a; margin: 0 0 30px; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; }
+  .magnetic__inner.btn { display: inline-block; padding: 16px 28px; border-radius: 999px; background: #fff7ef; color: #1c0d02; font-weight: 650; font-size: 1.0625rem; box-shadow: 0 10px 40px -8px #ff9a5299; }
+  .ghost { color: #fbf8ff; text-underline-offset: 5px; }
+  /* The one interactive idea: move the evening. */
+  .dial { padding-block: 22px 26px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px 18px; align-items: center; }
+  .dial label { font: 600 .8125rem/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: #e9e2fb; }
+  .dial output { font: 600 1.5rem/1 var(--display); font-stretch: 75%; letter-spacing: .06em; min-width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .dial input { width: 100%; height: 28px; margin: 0; background: none; accent-color: var(--hero-accent, #ff9a52); cursor: pointer; }
+  .dial .ticks { grid-column: 2; display: flex; justify-content: space-between; font-size: .8125rem; color: #d9d0f0; }
+
+  section.block { padding-block: clamp(64px, 11vh, 120px); }
+  h2 { font-size: clamp(2.2rem, 6.4vw, 4.5rem); margin: 0 0 18px; max-width: 14ch; }
+  .sub { color: var(--muted); max-width: 36em; margin: 0 0 40px; font-size: 1.125rem; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { padding: 26px 24px 28px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--card-shadow); --light-color: color-mix(in srgb, var(--accent) 22%, transparent); --light-size: 360px; }
+  .card svg { display: block; margin-bottom: 22px; color: var(--accent); }
+  .card h3 { font: 600 1.625rem/1.05 var(--display); font-stretch: 75%; text-transform: uppercase; letter-spacing: .03em; margin: 0 0 10px; }
+  .card p { margin: 0; color: var(--muted); font-size: 1rem; }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  .steps li { padding: 22px 20px 0 0; counter-increment: s; }
+  .steps li::before { content: counter(s, decimal-leading-zero); display: block; font: 600 2.75rem/1 var(--display); font-stretch: 75%; color: var(--accent); margin-bottom: 12px; }
+  .steps b { display: block; margin-bottom: 4px; } .steps span { color: var(--muted); font-size: .9375rem; }
+  .close { text-align: center; } .close h2 { margin-inline: auto; } .close .sub { margin-inline: auto; }
+  .close .magnetic__inner.btn { background: var(--accent); color: var(--accent-ink); box-shadow: 0 12px 40px -12px var(--accent); }
+  .close .magnetic { --magnetic-focus: var(--accent); }
+  /* Quality: visible, because the tiers are part of what this demo shows. */
+  .quality { border-top: 1px solid var(--line); padding-block: 22px 40px; display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; color: var(--muted); font-size: .9375rem; }
+  .quality select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 40px; }
+  .quality output { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .875rem; }
+  .quality a { color: inherit; margin-left: auto; }
+  @media (max-width: 860px) {
+    .cards { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr 1fr; row-gap: 12px; }
+    .nav a:not(.keep) { display: none; }
+    .dial { grid-template-columns: 1fr auto; } .dial input { grid-column: 1 / -1; height: 44px; } .dial .ticks { grid-column: 1 / -1; }
+    .lede { font-size: 1.125rem; }
+    .quality a { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="scroll-progress" aria-hidden="true" style="--scroll-progress-color: var(--accent)"></div>
+
+<section class="flow-hero" id="hero">
+  <div class="wrap nav">
+    <span class="logo"><i aria-hidden="true"></i>Lantern</span>
+    <span class="sp"></span>
+    <a href="#how">How it works</a><a href="#rooms">Rooms</a><a class="keep" href="../index.html">All demos</a>
+  </div>
+  <div class="wrap hero-body">
+    <div class="eyebrow">Home lighting · sample product</div>
+    <h1 class="display">Light that follows the <span>evening</span></h1>
+    <p class="lede">Lantern shifts every lamp in the house from daylight to ember as the sun goes down, so the rooms wind down when you do.</p>
+    <div class="cta">
+      <a class="magnetic" href="#rooms"><span class="magnetic__inner btn">See it in a room</span></a>
+      <a class="ghost" href="#how">How it works</a>
+    </div>
+  </div>
+  <div class="wrap dial">
+    <label for="hour">Move the evening</label>
+    <input id="hour" type="range" min="0" max="100" value="18" step="1" aria-describedby="hour-out">
+    <output id="hour-out" for="hour">Dusk · 18:30</output>
+    <div class="ticks" aria-hidden="true"><span>Dusk</span><span>Midnight</span><span>Dawn</span></div>
+  </div>
+</section>
+
+<section class="block wrap" id="rooms">
+  <h2 class="display reveal">Three rooms, one sky</h2>
+  <p class="sub reveal">Each room keeps its own job. The colour of the light is what they share.</p>
+  <div class="cards">
+    <article class="card cursor-light reveal" tabindex="0">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 34h28M12 34V20a10 10 0 0 1 20 0v14M22 4v3M6 12l2 2M38 12l-2 2"/></svg>
+      <h3>Kitchen</h3><p>Bright and neutral while you cook, then down to a warm counter glow once the plates are cleared.</p>
+    </article>
+    <article class="card cursor-light reveal" tabindex="0">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 30v-8a4 4 0 0 1 8 0v4h16v-4a4 4 0 0 1 8 0v8zM10 30v4M34 30v4M14 20v-4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v4"/></svg>
+      <h3>Living room</h3><p>Follows the window. When the sky turns amber, so do the lamps, a few minutes behind it.</p>
+    </article>
+    <article class="card cursor-light reveal" tabindex="0">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M30 26A13 13 0 0 1 18 8a13 13 0 1 0 12 18zM31 8v6M28 11h6"/></svg>
+      <h3>Bedroom</h3><p>No blue after ten. A low ember by the bed, and a slow sunrise in the half hour before the alarm.</p>
+    </article>
+  </div>
+</section>
+
+<section class="block wrap" id="how">
+  <h2 class="display reveal">Set once, then forget it</h2>
+  <p class="sub reveal">Nothing to schedule. Lantern reads sunset for where you live and does the rest.</p>
+  <ol class="steps">
+    <li class="reveal"><b>Plug in the bridge</b><span>It finds the lamps already in the house.</span></li>
+    <li class="reveal"><b>Name the rooms</b><span>Kitchen, bedroom, the stairs.</span></li>
+    <li class="reveal"><b>Pick a bedtime</b><span>The evening is paced back from it.</span></li>
+    <li class="reveal"><b>Leave it alone</b><span>A switch still works like a switch.</span></li>
+  </ol>
+</section>
+
+<section class="block wrap close">
+  <h2 class="display reveal">Tonight, a little warmer</h2>
+  <p class="sub reveal">Lantern is a sample product made for this demo. The button goes back to the top.</p>
+  <a class="magnetic" href="#hero"><span class="magnetic__inner btn">Back to the sky</span></a>
+</section>
+
+<div class="wrap quality">
+  <label>Quality <select data-quality-pick aria-label="Quality tier"></select></label>
+  <output data-quality-out></output>
+  <span id="flow-state"></span>
+  <a href="../index.html">All demos</a>
+</div>
+
+<script src="../../../shared/creative/recipes/_runtime/quality.js"></script>
+<script src="../../../shared/creative/recipes/_runtime/demo.js"></script>
+<script src="../../../shared/creative/recipes/scroll-reveal/recipe.js"></script>
+<script src="../../../shared/creative/recipes/cursor-light/recipe.js"></script>
+<script src="../../../shared/creative/recipes/magnetic-target/recipe.js"></script>
+<script src="../../../shared/creative/recipes/flow-hero/recipe.js"></script>
+<script>
+(function () {
+  'use strict';
+  var hero = document.getElementById('hero'), hour = document.getElementById('hour'), out = document.getElementById('hour-out');
+  ExperienceScroll.init();
+  ExperienceCursorLight.init();
+  ExperienceMagnetic.init();
+  var flow = ExperienceFlow.mount(hero, { speed: 0.8 });
+
+  // The evening: three skies, blended by the slider. Colours go to the CSS variables first,
+  // so the still gradient (static tier, reduced motion, no WebGL) changes exactly like the shader.
+  var SKIES = [
+    { at: 0,   name: 'Dusk',     a: [12, 10, 26], b: [75, 42, 143],  c: [255, 138, 61],  hi: [255, 178, 122] },
+    { at: 50,  name: 'Midnight', a: [5, 6, 15],   b: [27, 42, 107],  c: [106, 75, 208],  hi: [176, 160, 255] },
+    { at: 100, name: 'Dawn',     a: [26, 16, 36], b: [176, 72, 106], c: [255, 194, 122], hi: [255, 214, 160] }
+  ];
+  function mix(x, y, t) { return 'rgb(' + x.map(function (v, i) { return Math.round(v + (y[i] - v) * t); }).join(' ') + ')'; }
+  function apply() {
+    queued = false;
+    var v = +hour.value, i = v < 50 ? 0 : 1, lo = SKIES[i], hi = SKIES[i + 1], t = (v - lo.at) / (hi.at - lo.at);
+    hero.style.setProperty('--flow-a', mix(lo.a, hi.a, t));
+    hero.style.setProperty('--flow-b', mix(lo.b, hi.b, t));
+    hero.style.setProperty('--flow-c', mix(lo.c, hi.c, t));
+    hero.style.setProperty('--hero-accent', mix(lo.hi, hi.hi, t));
+    // 0..100 maps 18:00 → 06:00
+    var mins = 18 * 60 + Math.round(v / 100 * 720 / 5) * 5, h = Math.floor(mins / 60) % 24, m = mins % 60;
+    var name = v < 25 ? 'Dusk' : v < 75 ? 'Midnight' : 'Dawn';
+    out.textContent = name + ' · ' + String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    hour.setAttribute('aria-valuetext', out.textContent);
+    flow.refresh();
+  }
+  var queued = false;
+  hour.addEventListener('input', function () { if (!queued) { queued = true; requestAnimationFrame(apply); } }); // one update per frame
+  apply();
+
+  var state = document.getElementById('flow-state');
+  function report() { state.textContent = 'Hero: ' + (hero.dataset.flow === 'live' ? 'live shader' : 'still gradient'); }
+  new MutationObserver(report).observe(hero, { attributes: true, attributeFilter: ['data-flow'] });
+  report();
+})();
+</script>
+</body>
+</html>

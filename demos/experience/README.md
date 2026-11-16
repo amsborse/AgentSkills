@@ -11,11 +11,21 @@ Open `index.html` from disk (no server, no build, no dependencies). Add
 | | Signal | Field Notes | Lantern |
 |---|---|---|---|
 | Job | Operate: service health console | Read: long essay | Persuade: landing page |
-| Type | Grotesque and mono | Old-style serif | Condensed display |
-| Colour | Cool slate, blue accent, status colours with a legend and shapes | Warm paper, oxblood accent | Violet night, ember accent |
-| Recipes | spring-states, route-transition | scroll-reveal, spring-states, cursor-light | flow-hero, magnetic-target, cursor-light, scroll-reveal |
-| Interaction | A row opens to detail and back (Enter, Esc, tap), deep-linkable | Footnotes open in place | A slider moves the sky from dusk to dawn |
+| Type | DIN-style instrument headings and monospace observations | Old-style serif | Geometric humanist headings and Charter-style prose |
+| Colour | Graphite and mineral paper, lime accent; neutral healthy state and clay failure state, with a shape key | Warm paper, oxblood accent | Aubergine plaster and warm limestone, copper accent |
+| Recipes | spring-states, route-transition | scroll-reveal, spring-states, cursor-light | flow-hero, magnetic-target, cursor-light, scroll-reveal, spring-states |
+| Interaction | Ten latency traces answer row hover and focus; service detail opens and returns (Enter, Esc, tap), deep-linkable | Footnotes open in place | An evening slider changes a pendant's shaped beam, in both colour themes |
 | Cost at rest | No frames requested | No script frames; scroll effects run in CSS | One shader, tiered; a still gradient on `static` and with reduced motion |
+
+Signal is a relay desk: an exception-first register with an unboxed fleet horizon and a compact
+attention queue. Its voice is terse and observational. Lantern is an architectural light study:
+a suspended pendant, a quiet table, a room plan and an evening told in three domestic moments.
+Its voice is warm and unhurried. Both have a manual theme control and start from the system theme.
+
+The earlier designs remain at [`v1/signal.html`](v1/signal.html) and
+[`v1/lantern.html`](v1/lantern.html), with their local recipe paths repaired. The screenshot and
+measurement sections below describe the earlier designs pending the orchestrator's new captures
+and measurements; this redesign has not been browser-verified.
 
 ## Screenshots
 
