@@ -38,7 +38,17 @@
     --shadow: 0 12px 36px -24px #424c3860;
   }
   * { box-sizing: border-box; }
-  html { background: var(--bg); }
+  html { background: var(--bg); scrollbar-gutter: stable; }
+  ::view-transition { pointer-events: none; }
+  /* A relay scan: the old desk stays still beneath one downward trace.
+     The switch stays live; the fleet's new colours ease behind the reveal. */
+  html[data-theme-motion]::view-transition-group(*) { animation: none; }
+  html[data-theme-motion]::view-transition-old(*),
+  html[data-theme-motion]::view-transition-new(*) { animation: none; mix-blend-mode: normal; }
+  html[data-theme-motion]::view-transition-new(root) { z-index: 2; }
+  html[data-theme-motion]::view-transition-old(signal-switch),
+  html[data-theme-motion]::view-transition-old(signal-scan) { display: none; }
+  html[data-theme-motion]::view-transition-group(signal-scan) { z-index: 3; }
   body { margin: 0; min-height: 100vh; color: var(--ink); font: 14px/1.5 var(--sans); background: radial-gradient(ellipse at 10% 0%, var(--bg-2), transparent 60%), var(--bg); }
   button, input { color: inherit; font: inherit; }
   button, a, input { touch-action: manipulation; }
@@ -54,8 +64,14 @@
   .env::before { content: " / "; color: var(--accent); }
   .spacer { flex: 1; }
   .bar a { font-size: 13px; }
-  .theme { border: 1px solid var(--line-2); background: var(--surface); padding: 7px 12px; width: 108px; min-height: 40px; font: 12px var(--mono); }
+  .theme { border: 1px solid var(--line-2); background: var(--surface); padding: 6px 10px; width: 140px; min-height: 44px; display: inline-flex; align-items: center; gap: 9px; font: 12px var(--mono); white-space: nowrap; flex-shrink: 0; }
   .theme:hover, .theme:focus-visible { background: var(--bg-2); }
+  .theme svg { width: 32px; height: 28px; color: var(--accent); }
+  .relay-lever { transform-origin: 16px 20px; transform: rotate(-28deg); }
+  .theme[aria-pressed="true"] .relay-lever { transform: rotate(28deg); }
+  html[data-theme-motion] .theme { view-transition-name: signal-switch; }
+  .theme-scan { position: fixed; top: 0; left: 0; width: 100%; height: 1px; background: var(--accent); pointer-events: none; opacity: 0; }
+  html[data-theme-motion] .theme-scan { opacity: 1; view-transition-name: signal-scan; }
   main { max-width: 1440px; padding: 30px clamp(20px, 4vw, 64px) 32px; margin: auto; }
   .head { display: flex; gap: 24px; justify-content: space-between; align-items: end; }
   .eyebrow { margin: 0 0 12px; }
@@ -179,8 +195,9 @@
   </span>
   <span class="env">Relay desk / fictional fleet</span>
   <span class="spacer"></span>
-  <a href="index.html">Demos</a><button class="theme spring-press" id="theme" type="button" aria-label="Change colour theme">Light desk</button>
+  <a href="index.html">Demos</a><button class="theme" id="theme" type="button" aria-pressed="false" aria-label="Route to light desk"><svg viewBox="0 0 32 28" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 6h5m14 0h5M5 24h22"/><circle cx="16" cy="20" r="4"/><g class="relay-lever"><path d="M16 20V6" stroke-width="2"/><rect x="12" y="2" width="8" height="7" rx="1" fill="currentColor"/></g></svg><span id="theme-label">Light desk</span></button>
 </header>
+<div class="theme-scan" aria-hidden="true"></div>
 
 <main>
   <section id="list" aria-labelledby="t">
@@ -414,9 +431,73 @@
   document.querySelectorAll('[data-service]').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.service, true); }); });
   // A single explicit override; the system theme remains the initial choice.
   var theme = $('theme'), scheme = matchMedia('(prefers-color-scheme: dark)');
-  function themeLabel() { var dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : scheme.matches; theme.textContent = dark ? 'Light desk' : 'Dark desk'; }
-  theme.addEventListener('click', function () { var dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : scheme.matches; document.documentElement.dataset.theme = dark ? 'light' : 'dark'; themeLabel(); });
-  scheme.addEventListener('change', themeLabel); themeLabel();
+  var root = document.documentElement, reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  var themeIntent = null, themeRun = 0, themeTransition = null, themeAnimations = [];
+  var themeDuration = 1600, themeEase = 'cubic-bezier(.45,.05,.25,1)';
+  function isDark() { return root.dataset.theme ? root.dataset.theme === 'dark' : scheme.matches; }
+  function themeLabel() {
+    var dark = isDark(), label = dark ? 'Light desk' : 'Dark desk';
+    $('theme-label').textContent = label;
+    theme.setAttribute('aria-label', 'Route to ' + label.toLowerCase());
+    theme.setAttribute('aria-pressed', String(dark));
+    theme.title = 'Route to ' + label.toLowerCase();
+  }
+  function themeStill() { return reduced.matches || root.dataset.quality === 'static' || !document.startViewTransition; }
+  function stopThemeAnimations() { themeAnimations.forEach(function (a) { a.cancel(); }); themeAnimations = []; }
+  function themePaint() {
+    var nodes = [theme.querySelector('.relay-lever')].concat(Array.from(fleet.querySelectorAll('path, polyline')));
+    return nodes.map(function (node) {
+      var cs = getComputedStyle(node), props = node.classList.contains('relay-lever') ? ['transform'] : ['fill', 'stroke'];
+      var from = {}; props.forEach(function (p) { from[p] = cs[p]; });
+      return { node: node, props: props, from: from };
+    });
+  }
+  function applyTheme(next) { root.dataset.theme = next; themeLabel(); }
+  function clearTheme(run) {
+    if (run !== themeRun) return;
+    stopThemeAnimations(); root.removeAttribute('data-theme-motion'); themeTransition = null; themeIntent = null;
+  }
+  function changeTheme() {
+    var next = (themeIntent || (isDark() ? 'dark' : 'light')) === 'dark' ? 'light' : 'dark';
+    themeIntent = next;
+    var run = ++themeRun, before = themePaint();
+    if (themeTransition) themeTransition.skipTransition();
+    stopThemeAnimations();
+    if (themeStill()) { applyTheme(next); clearTheme(run); return; }
+    root.dataset.themeMotion = 'relay-scan';
+    function failed(error) {
+      if (run !== themeRun) return; // A newer intent deliberately skipped this capture.
+      console.error('Signal: theme reveal failed.', error);
+      applyTheme(next); if (themeTransition) themeTransition.skipTransition(); clearTheme(run);
+    }
+    try {
+      var vt = document.startViewTransition(function () { if (run === themeRun) applyTheme(next); });
+      themeTransition = vt;
+      vt.ready.then(function () {
+        if (run !== themeRun) return;
+        var timing = { duration: themeDuration, easing: themeEase, fill: 'both' };
+        before.forEach(function (item) {
+          var cs = getComputedStyle(item.node), from = {}, to = {};
+          item.props.forEach(function (p) { if (item.from[p] !== cs[p]) { from[p] = item.from[p]; to[p] = cs[p]; } });
+          if (Object.keys(to).length) themeAnimations.push(item.node.animate([from, to], timing));
+        });
+        themeAnimations.push(root.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0)' }], Object.assign({ pseudoElement: '::view-transition-new(root)' }, timing)));
+        themeAnimations.push(root.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + innerHeight + 'px)' }], Object.assign({ pseudoElement: '::view-transition-group(signal-scan)' }, timing)));
+      }).catch(failed);
+      vt.updateCallbackDone.catch(failed);
+      vt.finished.then(function () { clearTheme(run); }, failed);
+    } catch (error) { failed(error); }
+  }
+  function settleTheme() {
+    if (!themeTransition) return;
+    var next = themeIntent, vt = themeTransition; ++themeRun;
+    vt.skipTransition(); applyTheme(next); clearTheme(themeRun);
+  }
+  theme.addEventListener('click', changeTheme);
+  reduced.addEventListener('change', function () { if (reduced.matches) settleTheme(); });
+  root.addEventListener('qualitychange', function () { if (themeStill()) settleTheme(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) settleTheme(); });
+  scheme.addEventListener('change', function () { settleTheme(); themeLabel(); }); themeLabel();
   render();
   if (location.hash.length > 1) show(decodeURIComponent(location.hash.slice(1)), false);
 })();
