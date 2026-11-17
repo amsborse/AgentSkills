@@ -98,3 +98,18 @@ cross-document View Transitions not Baseline; CSS scroll-driven animations Basel
 
 Reference galleries are captured only under `shared/creative/reference-workflow.md`: robots.txt
 respected, logged out, screenshots and short recordings, no assets copied.
+
+## Sellable and workflow skills (2026-11-14)
+
+Copied unmodified into `vendor/` (not installed; see `vendor/README.md` for each skill, the review
+done and how to promote one). Picked from the 2026 roundups of popular skill repositories.
+
+| Source | Commit | License | Copied to `vendor/` |
+| --- | --- | --- | --- |
+| [getsentry/skills](https://github.com/getsentry/skills) | a582c51ee2 | Apache-2.0 | iterate-pr, find-bugs, skill-scanner, gha-security-review, claude-settings-audit, pr-screenshots |
+| [openai/skills](https://github.com/openai/skills) | 49f948faa9 | Apache-2.0 | gh-fix-ci, gh-address-comments, security-threat-model |
+| [anthropics/skills](https://github.com/anthropics/skills) | 1780c5e5a5 | Apache-2.0 | webapp-testing, frontend-design (mcp-builder rejected: paid API call) |
+| [emilkowalski/skills](https://github.com/emilkowalski/skills) | 0f2e23b32b | MIT | review-animations, break-ui, learn-taste |
+| [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | 39b723ceeb | MIT | doubt-driven-development |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | 5863806dd4 | MIT | grill-with-docs |
+| [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | 1f837447b2 | MIT | product-marketing, pricing, launch, copywriting, cro |
