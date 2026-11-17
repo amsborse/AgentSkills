@@ -62,13 +62,29 @@ test('every demo loads without errors on every tier, in both themes', { skip }, 
   }
 });
 
-test('no demo scrolls sideways on a phone', { skip }, async () => {
-  for (const name of DEMOS) {
-    const { page, close } = await open(demo(name), { viewport: PHONE, hasTouch: true });
-    const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    assert.ok(over <= 0, `${name} overflows by ${over}px`);
-    await close();
+// 320px is the narrowest common phone; Lantern's header once overflowed there by 30px.
+test('no demo scrolls sideways on a phone, down to 320px', { skip }, async () => {
+  for (const viewport of [PHONE, { width: 320, height: 700 }]) {
+    for (const name of DEMOS) {
+      const { page, close } = await open(demo(name), { viewport, hasTouch: true });
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      assert.ok(over <= 0, `${name} at ${viewport.width}px overflows by ${over}px`);
+      await close();
+    }
   }
+});
+
+test('lantern: the theme switch stays whole, named and usable at 320px', { skip }, async () => {
+  const { page, errors, close } = await open(demo('lantern', '?quality=static'), { viewport: { width: 320, height: 700 }, hasTouch: true });
+  const box = await page.locator('#theme').boundingBox();
+  assert.ok(box.x >= 0 && box.x + box.width <= 320, `theme switch spans ${box.x}..${box.x + box.width}`);
+  assert.ok(box.width >= 44 && box.height >= 44, `touch target ${box.width}x${box.height}`);
+  assert.match(await page.locator('#theme').getAttribute('aria-label'), /\S/);
+  const before = await page.locator('#theme').getAttribute('aria-pressed');
+  await page.locator('#theme').tap();
+  await page.waitForFunction((b) => document.getElementById('theme').getAttribute('aria-pressed') !== b, before);
+  assert.deepEqual(errors, []);
+  await close();
 });
 
 test('the three demos do not share a typeface, a background or an accent', { skip }, async () => {
