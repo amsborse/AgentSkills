@@ -1,0 +1,30 @@
+{
+  "film": "cut.json",
+  "createdAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "skill": { "name": "cinematic-creation", "version": "1.0.0" },
+  "agents": [{ "role": "creative director", "host": "which agent host", "model": "as reported by the host, or unknown" }],
+  "backends": [
+    {
+      "shot": "s01",
+      "kind": "procedural | text-to-video | image-to-video | still",
+      "tool": "renderer or service name and version",
+      "paid": false,
+      "approvedBy": null,
+      "seed": 1,
+      "prompt": "the exact prompt sent, or the look id for procedural shots",
+      "settings": {},
+      "jobId": null,
+      "output": "relative path"
+    }
+  ],
+  "music": { "file": "score.wav", "licence": "original", "generator": "script path and command, or performer", "seed": 1 },
+  "render": {
+    "command": "the exact command that rebuilt the film",
+    "codec": "h264 yuv420p crf 18 +faststart, aac 48 kHz",
+    "output": "film.mp4",
+    "poster": "poster.png",
+    "sha256": null
+  },
+  "cost": { "currency": "USD", "actual": 0, "estimated": 0, "notes": "every paid job with its own cost, or 'none'" },
+  "limitations": []
+}

@@ -373,6 +373,70 @@
       "workflows": []
     },
     {
+      "name": "cinematic-creation",
+      "path": "skills/cinematic-creation",
+      "description": "Turn a creative brief into a cinematic short film: script, storyboard, shot prompts, original music, editing and automated review, on free or local backends with paid generators gated. Use for \"make a cinematic film\", \"storyboard this\", \"score this film\" or \"review this cut\".",
+      "aliases": [
+        "make a cinematic film",
+        "make a short film",
+        "cinematic video",
+        "film from this brief",
+        "storyboard this",
+        "shot list",
+        "write shot prompts",
+        "score this film",
+        "edit the rough cut",
+        "review this cut",
+        "animatic"
+      ],
+      "keywords": [
+        "cinematic",
+        "film",
+        "cinematography",
+        "storyboard",
+        "shot list",
+        "camera",
+        "score",
+        "music",
+        "sound design",
+        "editing",
+        "transitions",
+        "color grade",
+        "text-to-video",
+        "image-to-video",
+        "animatic",
+        "render",
+        "continuity",
+        "pacing"
+      ],
+      "composes": [
+        "research",
+        "verify",
+        "coordinate-agents",
+        "build-animation"
+      ],
+      "requires": [
+        {
+          "capability": "video-render",
+          "optional": true
+        },
+        {
+          "capability": "image-generation",
+          "optional": true
+        },
+        {
+          "capability": "video-generation",
+          "optional": true
+        },
+        {
+          "capability": "audio-synthesis",
+          "optional": true
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "coordinate-agents",
       "path": "skills/coordinate-agents",
       "description": "Split work across agents — delegate an isolated implementation to OpenAI Codex through codex-bridge in its own git worktree, run independent parts in parallel subagents, then review and integrate the results yourself. Includes the former /codex-frontend workflow. Use for \"use Codex for this\", \"delegate to Codex\", \"split this work\", \"run agents in parallel\" or \"orchestrate agents\".",
@@ -584,7 +648,7 @@
     {
       "name": "history-learning",
       "path": "skills/history-learning",
-      "description": "Learn durable preferences, corrections, decisions and working patterns from historical coding-agent conversations (Claude Code, Codex, Cursor, OpenCode, Antigravity, Kiro, Qwen) and turn them into reviewed, evidence-backed skill updates. Use when asked to learn from past conversations or chat history, mine repeated corrections or preferences, update skills from experience, run incremental history learning, or audit what has been learned. Read-only over history, consent-gated per source, redacts before any model sees text, and never publishes or overwrites skills on its own.",
+      "description": "Learn durable preferences and corrections from past coding-agent conversations (Claude Code, Codex, Cursor, OpenCode, Antigravity, Kiro, Qwen) as reviewed skill updates. Use to learn from chat history, mine repeated corrections or audit what was learned. Read-only, consent-gated, redacted; never overwrites skills itself.",
       "aliases": [
         "learn from past conversations",
         "mine my chat history",
@@ -1580,7 +1644,7 @@
     {
       "name": "review-changes",
       "path": "skills/review-changes",
-      "description": "Show what a branch, PR or diff changes for a person, not as code. Interface changes appear as real before/after screenshots of the running app, side by side with a pixel diff, in both themes and at desktop and mobile widths. Backend changes become plain-English cards: what changed, what it improves, how it could break, and a confidence level backed by evidence. Suggestions are cross-checked before they are shown. Use for \"show me the changes\", \"before and after\", \"ui side by side\", \"visual diff of this branch\", \"change report\" or \"what did this PR change\".",
+      "description": "Show what a branch, PR or diff changes for a person, not as code: real before/after screenshots side by side with a pixel diff, in both themes at desktop and mobile widths, and plain-English cards for backend changes with evidence-backed confidence. Use for \"show me the changes\", \"before and after\", \"ui side by side\", \"visual diff of this branch\", \"change report\" or \"what did this PR change\".",
       "aliases": [
         "show me the changes",
         "before and after",

@@ -1,6 +1,6 @@
 ---
 name: review-changes
-description: Show what a branch, PR or diff changes for a person, not as code. Interface changes appear as real before/after screenshots of the running app, side by side with a pixel diff, in both themes and at desktop and mobile widths. Backend changes become plain-English cards: what changed, what it improves, how it could break, and a confidence level backed by evidence. Suggestions are cross-checked before they are shown. Use for "show me the changes", "before and after", "ui side by side", "visual diff of this branch", "change report" or "what did this PR change".
+description: Show what a branch, PR or diff changes for a person, not as code: real before/after screenshots side by side with a pixel diff, in both themes at desktop and mobile widths, and plain-English cards for backend changes with evidence-backed confidence. Use for "show me the changes", "before and after", "ui side by side", "visual diff of this branch", "change report" or "what did this PR change".
 metadata:
   aliases: "show me the changes, before and after, ui side by side, visual diff, change report, what did this pr change, what changed in this branch, review the ui changes"
   keywords: "screenshot, before, after, side by side, visual, diff, ui, backend, risk, confidence, report, pr"

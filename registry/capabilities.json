@@ -7,6 +7,12 @@
       ],
       "optionalFor": []
     },
+    "audio-synthesis": {
+      "requiredBy": [],
+      "optionalFor": [
+        "cinematic-creation"
+      ]
+    },
     "browser": {
       "requiredBy": [
         "add-interactions",
@@ -80,6 +86,7 @@
       "requiredBy": [],
       "optionalFor": [
         "build-animation",
+        "cinematic-creation",
         "create-visuals",
         "revamp-ui"
       ]
@@ -151,6 +158,18 @@
       "optionalFor": [
         "coordinate-agents",
         "research"
+      ]
+    },
+    "video-generation": {
+      "requiredBy": [],
+      "optionalFor": [
+        "cinematic-creation"
+      ]
+    },
+    "video-render": {
+      "requiredBy": [],
+      "optionalFor": [
+        "cinematic-creation"
       ]
     },
     "web-search": {

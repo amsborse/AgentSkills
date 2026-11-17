@@ -1,6 +1,6 @@
 ---
 name: history-learning
-description: Learn durable preferences, corrections, decisions and working patterns from historical coding-agent conversations (Claude Code, Codex, Cursor, OpenCode, Antigravity, Kiro, Qwen) and turn them into reviewed, evidence-backed skill updates. Use when asked to learn from past conversations or chat history, mine repeated corrections or preferences, update skills from experience, run incremental history learning, or audit what has been learned. Read-only over history, consent-gated per source, redacts before any model sees text, and never publishes or overwrites skills on its own.
+description: Learn durable preferences and corrections from past coding-agent conversations (Claude Code, Codex, Cursor, OpenCode, Antigravity, Kiro, Qwen) as reviewed skill updates. Use to learn from chat history, mine repeated corrections or audit what was learned. Read-only, consent-gated, redacted; never overwrites skills itself.
 license: MIT
 metadata:
   aliases: "learn from past conversations, mine my chat history, incremental history learning, audit what has been learned"
