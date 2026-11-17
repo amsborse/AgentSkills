@@ -218,6 +218,30 @@ test('lantern: the shader runs only above the static tier, and the slider change
   await live.close();
 });
 
+// Regression: the readout sat in an auto-width grid column, so "Midnight · 00:00" widened it and
+// shrank the slider by about 20px under the pointer. On the static tier that reflow left a key
+// release waiting about 520ms for a paint (Event Timing), which field INP would count.
+test('lantern: the slider keeps its width while the readout changes, at desktop and phone widths', { skip }, async () => {
+  for (const viewport of [{ width: 1440, height: 900 }, PHONE]) {
+    const { page, errors, close } = await open(demo('lantern', '?quality=static'), { viewport });
+    await page.locator('#hour').focus();
+    const sizes = [];
+    for (const key of ['Home', 'PageUp', 'End']) {
+      if (key === 'PageUp') await page.evaluate(() => { const h = document.getElementById('hour'); h.value = 50; h.dispatchEvent(new Event('input')); });
+      else await page.keyboard.press(key);
+      await page.waitForTimeout(80);
+      sizes.push(await page.evaluate(() => ({
+        text: document.getElementById('hour-out').textContent,
+        slider: Math.round(document.getElementById('hour').getBoundingClientRect().width * 10) / 10,
+      })));
+    }
+    assert.deepEqual(sizes.map((s) => s.text.split(' ')[0]), ['Dusk', 'Midnight', 'Dawn'], `${viewport.width}px readouts`);
+    assert.equal(new Set(sizes.map((s) => s.slider)).size, 1, `${viewport.width}px slider widths ${JSON.stringify(sizes)}`);
+    assert.deepEqual(errors, []);
+    await close();
+  }
+});
+
 test('lantern: on touch the call to action stays put and still navigates', { skip }, async () => {
   const { page, errors, close } = await open(demo('lantern', '?quality=balanced'), { viewport: PHONE, hasTouch: true });
   await page.locator('#hero .magnetic').tap();

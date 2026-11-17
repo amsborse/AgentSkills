@@ -200,6 +200,25 @@ real device. Full figures: `demos/experience/README.md`, "Measured".
 - Unverified: browser navigation regression, full suite and real-browser measurements; the
   orchestrator must run them outside this subprocess-restricted sandbox. No commit or release.
 
+## Phase 3, stage 3: Lantern slow key release (2026-11-17)
+
+- Symptom: on the static tier, 3 of 20 headed bench runs recorded a `keyup` on `#hour` of about
+  520 ms, all of it presentation delay (no paint until the next visual change).
+- Bisect (headed, 25 runs per copy of the page): a bare range input 0; no slider listener 0; no
+  `paintLight()` or no `flow.refresh()` still stalled; dropping only the readout text update 0.
+- Mechanism, measured: the readout sat in an auto-width grid column, so "Midnight · 00:00"
+  (124.8 px) against "Dusk"/"Dawn" (93.6 px) shrank the slider from 661.3 to 641.5 px at
+  1440 wide. Why Chrome then waits about 520 ms to present is unknown.
+- Fix: the readout reserves the width of its longest reading (`min-width: 16ch`). Headed probe
+  on the fixed copy: 0 of 25 (the unfixed copy: 4–11 of 25). Headless does not reproduce the
+  stall even on the unfixed page, so headless runs cannot confirm the fix.
+- Regression test: `lantern: the slider keeps its width while the readout changes` failed before
+  the fix (661.3 / 641.5 / 661.3) and passes after; demo and bench suites 40 of 40.
+- Not verified: the 40-run headed bench on the real page. It was stopped at the owner's request
+  (windows on screen) and left no report. It needs an off-screen headed run or the owner's go-ahead.
+- Unrelated, found here: at 320 px the header theme button overflows by 30 px (before and after
+  this fix). Left as a follow-up.
+
 ## Commits
 
 - db4f1f4 Stage 1: foundation and experience bench

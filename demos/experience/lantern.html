@@ -123,7 +123,8 @@
   .dial { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.4fr) auto; align-items: center; gap: 8px 36px; padding-block: 26px; }
   .dial label { font: 14px var(--display); }
   .dial label span { display: block; margin-top: 6px; color: var(--muted); font: 15px var(--serif); }
-  .dial output { font: 13px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* Sized for the longest reading ("Midnight · 00:00"), so changing the hour never reflows the slider. */
+  .dial output { font: 13px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 16ch; text-align: right; }
   .dial input { width: 100%; min-width: 0; height: 44px; margin: 0; accent-color: var(--accent); cursor: pointer; }
   .ticks { display: flex; justify-content: space-between; color: var(--muted); font: 11px/1.5 var(--display); grid-column: 2; }
   .section-tag { font: 12px/1.5 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
