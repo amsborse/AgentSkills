@@ -123,7 +123,8 @@
   .dial { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.4fr) auto; align-items: center; gap: 8px 36px; padding-block: 26px; }
   .dial label { font: 14px var(--display); }
   .dial label span { display: block; margin-top: 6px; color: var(--muted); font: 15px var(--serif); }
-  .dial output { font: 13px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* Sized for the longest reading ("Midnight · 00:00"), so changing the hour never reflows the slider. */
+  .dial output { font: 13px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 16ch; text-align: right; }
   .dial input { width: 100%; min-width: 0; height: 44px; margin: 0; accent-color: var(--accent); cursor: pointer; }
   .ticks { display: flex; justify-content: space-between; color: var(--muted); font: 11px/1.5 var(--display); grid-column: 2; }
   .section-tag { font: 12px/1.5 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
@@ -185,6 +186,12 @@
     footer { gap: 8px 20px; } footer .mark { width: 100%; } .demo-settings { margin-left: 0; width: 100%; }
   }
   @media (max-width: 420px) { .dial label { font-size: 13px; } .dial label span { font-size: 14px; } .dial output { font-size: 12px; } }
+  /* The narrowest phones: tighten the header so the lamp switch keeps its words and stays on screen. */
+  @media (max-width: 360px) {
+    .nav.wrap { padding-inline: 16px; gap: 10px; }
+    .logo { gap: 8px; font-size: 22px; }
+    .theme { width: auto; padding: 4px 8px 4px 6px; }
+  }
   :root[data-quality="static"] *, :root[data-quality="static"] *::before, :root[data-quality="static"] *::after { animation: none !important; transition: none !important; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 </style>

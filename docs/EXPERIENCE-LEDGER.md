@@ -200,6 +200,37 @@ real device. Full figures: `demos/experience/README.md`, "Measured".
 - Unverified: browser navigation regression, full suite and real-browser measurements; the
   orchestrator must run them outside this subprocess-restricted sandbox. No commit or release.
 
+## Phase 3, stage 3: Lantern slow key release (2026-11-17)
+
+- Symptom: on the static tier, 3 of 20 headed bench runs recorded a `keyup` on `#hour` of about
+  520 ms, all of it presentation delay (no paint until the next visual change).
+- Bisect (headed, 25 runs per copy of the page): a bare range input 0; no slider listener 0; no
+  `paintLight()` or no `flow.refresh()` still stalled; dropping only the readout text update 0.
+- Mechanism, measured: the readout sat in an auto-width grid column, so "Midnight · 00:00"
+  (124.8 px) against "Dusk"/"Dawn" (93.6 px) shrank the slider from 661.3 to 641.5 px at
+  1440 wide. Why Chrome then waits about 520 ms to present is unknown.
+- Fix: the readout reserves the width of its longest reading (`min-width: 16ch`). Headed probe
+  on the fixed copy: 0 of 25 (the unfixed copy: 4–11 of 25). Headless does not reproduce the
+  stall even on the unfixed page, so headless runs cannot confirm the fix.
+- Regression test: `lantern: the slider keeps its width while the readout changes` failed before
+  the fix (661.3 / 641.5 / 661.3) and passes after; demo and bench suites 40 of 40.
+- Headed bench, windows off screen (perf-bench default), 1440x900 dark, static tier, 40 runs each,
+  run one after the other. Off-screen placement still reproduces the stall (a 20-run probe of the
+  parent hit INP 520 ms with a 1,076 ms frame).
+
+  | commit | runs with INP >= 200 ms | INP median / worst | worst frame (max) | CLS max | errors |
+  |---|---|---|---|---|---|
+  | 092b02c (parent) | 8 of 40 | 16 / 528 ms | 47 ms | 0 | 0 |
+  | 815557e (fix) | 0 of 40 | 16 / 32 ms | 33 ms | 0 | 0 |
+
+- 320 px header: the theme switch overflowed the page by 30 px (right edge at 350 px), before and
+  after the slider fix. Below 360 px the header now uses a 16 px gutter, smaller gaps and logo, and
+  a switch that sizes to its label. At 320 px the switch spans 188 to 289 px, 44 px tall, with
+  the full label in both themes and both states. 390 and 1440 px are unchanged. Tests:
+  `no demo scrolls sideways on a phone, down to 320px` and `lantern: the theme switch stays whole,
+  named and usable at 320px`, red on 815557e (30 px overflow; switch at 232..350) and green after.
+  Demo and bench suites: 42 of 42.
+
 ## Commits
 
 - db4f1f4 Stage 1: foundation and experience bench

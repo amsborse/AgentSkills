@@ -62,13 +62,29 @@ test('every demo loads without errors on every tier, in both themes', { skip }, 
   }
 });
 
-test('no demo scrolls sideways on a phone', { skip }, async () => {
-  for (const name of DEMOS) {
-    const { page, close } = await open(demo(name), { viewport: PHONE, hasTouch: true });
-    const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    assert.ok(over <= 0, `${name} overflows by ${over}px`);
-    await close();
+// 320px is the narrowest common phone; Lantern's header once overflowed there by 30px.
+test('no demo scrolls sideways on a phone, down to 320px', { skip }, async () => {
+  for (const viewport of [PHONE, { width: 320, height: 700 }]) {
+    for (const name of DEMOS) {
+      const { page, close } = await open(demo(name), { viewport, hasTouch: true });
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      assert.ok(over <= 0, `${name} at ${viewport.width}px overflows by ${over}px`);
+      await close();
+    }
   }
+});
+
+test('lantern: the theme switch stays whole, named and usable at 320px', { skip }, async () => {
+  const { page, errors, close } = await open(demo('lantern', '?quality=static'), { viewport: { width: 320, height: 700 }, hasTouch: true });
+  const box = await page.locator('#theme').boundingBox();
+  assert.ok(box.x >= 0 && box.x + box.width <= 320, `theme switch spans ${box.x}..${box.x + box.width}`);
+  assert.ok(box.width >= 44 && box.height >= 44, `touch target ${box.width}x${box.height}`);
+  assert.match(await page.locator('#theme').getAttribute('aria-label'), /\S/);
+  const before = await page.locator('#theme').getAttribute('aria-pressed');
+  await page.locator('#theme').tap();
+  await page.waitForFunction((b) => document.getElementById('theme').getAttribute('aria-pressed') !== b, before);
+  assert.deepEqual(errors, []);
+  await close();
 });
 
 test('the three demos do not share a typeface, a background or an accent', { skip }, async () => {
@@ -216,6 +232,30 @@ test('lantern: the shader runs only above the static tier, and the slider change
   assert.ok(await framesIn(live.page, 600) <= 2, 'the shader stops as soon as the hero leaves the viewport');
   assert.deepEqual(live.errors, []);
   await live.close();
+});
+
+// Regression: the readout sat in an auto-width grid column, so "Midnight · 00:00" widened it and
+// shrank the slider by about 20px under the pointer. On the static tier that reflow left a key
+// release waiting about 520ms for a paint (Event Timing), which field INP would count.
+test('lantern: the slider keeps its width while the readout changes, at desktop and phone widths', { skip }, async () => {
+  for (const viewport of [{ width: 1440, height: 900 }, PHONE]) {
+    const { page, errors, close } = await open(demo('lantern', '?quality=static'), { viewport });
+    await page.locator('#hour').focus();
+    const sizes = [];
+    for (const key of ['Home', 'PageUp', 'End']) {
+      if (key === 'PageUp') await page.evaluate(() => { const h = document.getElementById('hour'); h.value = 50; h.dispatchEvent(new Event('input')); });
+      else await page.keyboard.press(key);
+      await page.waitForTimeout(80);
+      sizes.push(await page.evaluate(() => ({
+        text: document.getElementById('hour-out').textContent,
+        slider: Math.round(document.getElementById('hour').getBoundingClientRect().width * 10) / 10,
+      })));
+    }
+    assert.deepEqual(sizes.map((s) => s.text.split(' ')[0]), ['Dusk', 'Midnight', 'Dawn'], `${viewport.width}px readouts`);
+    assert.equal(new Set(sizes.map((s) => s.slider)).size, 1, `${viewport.width}px slider widths ${JSON.stringify(sizes)}`);
+    assert.deepEqual(errors, []);
+    await close();
+  }
 });
 
 test('lantern: on touch the call to action stays put and still navigates', { skip }, async () => {
