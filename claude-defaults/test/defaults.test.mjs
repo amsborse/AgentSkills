@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { applyBlock, run, wrap } from '../install-defaults.mjs';
+import { applyBlock, importPath, run, wrap } from '../install-defaults.mjs';
 import { aggregate, compareMarkers, main, parseLine, periodKey } from '../scripts/token-usage.mjs';
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'claude-defaults-'));
@@ -114,4 +114,15 @@ test('token-usage mark writes to the logs folder and report handles empty histor
   } finally {
     delete process.env.CLAUDE_HOME;
   }
+});
+
+test('importPath uses the home-relative form when the file is reachable through ~/agent-skills', () => {
+  const home = tmp();
+  const repo = path.resolve('..');
+  const rules = path.resolve('RULES.md');
+  // Not reachable through home: absolute path.
+  assert.equal(importPath(rules, home), path.resolve(rules).split(path.sep).join('/'));
+  // Reachable through home (simulated with a link): home-relative path.
+  fs.symlinkSync(repo, path.join(home, 'agent-skills'), 'junction');
+  assert.equal(importPath(rules, home), '~/agent-skills/claude-defaults/RULES.md');
 });
