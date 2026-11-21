@@ -18,8 +18,23 @@ const END = '<!-- claude-defaults:end -->';
 const toSlash = (p) => p.split(path.sep).join('/');
 
 // Each target: a global instruction file and the block to put in it.
+// Claude Code's @-import works reliably with a home-relative path (~/agent-skills/...) and not with
+// paths that contain spaces. Use that form when the same file is reachable through ~/agent-skills.
+export function importPath(rules, home) {
+  const abs = path.resolve(rules);
+  const repoRoot = path.resolve(HERE, '..');
+  const rel = path.relative(repoRoot, abs);
+  const viaHome = path.join(home, 'agent-skills', rel);
+  try {
+    if (!rel.startsWith('..') && fs.existsSync(viaHome) && fs.realpathSync(viaHome) === fs.realpathSync(abs)) {
+      return '~/' + toSlash(path.join('agent-skills', rel));
+    }
+  } catch { /* fall through to the absolute path */ }
+  return toSlash(abs);
+}
+
 export function targets(env = process.env, home = os.homedir(), rules = path.join(HERE, 'RULES.md')) {
-  const rulesPath = toSlash(path.resolve(rules));
+  const rulesPath = importPath(rules, home);
   const claudeHome = env.CLAUDE_HOME || path.join(home, '.claude');
   const codexHome = env.CODEX_HOME || path.join(home, '.codex');
   return [
@@ -33,7 +48,7 @@ export function targets(env = process.env, home = os.homedir(), rules = path.joi
     {
       id: 'codex',
       file: path.join(codexHome, 'AGENTS.md'),
-      block: `Shared working rules: read ${rulesPath} before starting work and follow it (plain-English replies, aliases QQ/ACC/DRY, token habits).`,
+      block: `Shared working rules: read ${toSlash(path.resolve(rules))} before starting work and follow it (plain-English replies, aliases QQ/ACC/DRY, token habits).`,
       requireDir: codexHome,
     },
   ];

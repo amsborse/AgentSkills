@@ -16,8 +16,12 @@ These rules apply on every PC. The installer adds a pointer to this file in each
 
 ## Aliases
 
-- **QQ: <question>** = quick question. Answer briefly. Do not change code. Use the cheapest model available for lookups.
-- **ACC: <task>** = autonomous code completion. Read and plan, ask one grouped set of questions up front (each with a predicted answer), then work unattended. Take the recommended option for open questions, park risky steps on a branch, and finish with a report. Save the report to the agent's report folder if it has one.
+- **QQ: <question>** = quick question. Answer briefly and directly. If it needs tools or file reads, hand it to a cheap worker model and relay the short answer. Do not change code.
+- **ACC: <task>** = autonomous code completion. Steps:
+  1. Read and plan (read only what is needed).
+  2. Ask ONE grouped, numbered set of questions, each with a predicted answer. Skip if there are no real questions.
+  3. Once answered (or skipped), work without stopping. Take the recommended option for open questions, park risky or destructive steps on a branch, and keep going.
+  4. Final report: what is done and verified, what is not, the decisions made, and the questions to ask now. For Claude Code, also save it as `~/.claude/acc-reports/YYYY-MM-DD-HHMM-<short-slug>.md` with the sections `## Done`, `## Not done`, `## Decisions`, `## Questions for you` (one `- ` bullet per question).
 - **DRY: <change>** = dry run. Read the code and list the exact files and lines that would change and why. Make no edits. End by asking whether to run it as ACC.
 
 ## Driver and workers (where subagents are available)
