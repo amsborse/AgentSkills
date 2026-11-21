@@ -105,3 +105,27 @@ test('unknown agents are refused', () => {
   assert.equal(r.code, 2);
   assert.match(r.out, /codex, opencode, antigravity/);
 });
+
+// Codex runs use the fake codex; its session rollouts go to a throwaway CODEX_HOME.
+function codexBridge(mode) {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'cb-codex-home-'));
+  const FAKE_CODEX = path.join(ROOT, 'tests', 'fixtures', 'fake-codex.mjs');
+  return bridge(['run', '--cd', '$WORK', '--prompt', 'read note.txt'],
+    { extraEnv: { CODEX_EXE: FAKE_CODEX, CODEX_HOME: home, FAKE_CODEX_MODE: mode } });
+}
+
+test('codex run: a clean run is ok', () => {
+  const r = codexBridge('ok');
+  assert.equal(r.code, 0, r.out);
+  assert.equal(r.summary.agent, 'codex');
+  assert.equal(r.summary.status, 'ok');
+  assert.deepEqual(r.summary.errors, []);
+});
+
+test('codex: a sandbox that fails to start is a failure, not ok', () => {
+  // Codex exits 0 and only says so in prose; the bwrap error sits in the session rollout.
+  const r = codexBridge('sandbox-fail');
+  assert.equal(r.code, 1, r.out);
+  assert.equal(r.summary.status, 'failed');
+  assert.match(r.summary.errors.join('\n'), /sandbox failed to start: bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted/);
+});

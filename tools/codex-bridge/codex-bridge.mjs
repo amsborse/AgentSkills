@@ -234,7 +234,8 @@ function runAntigravity(kind, task, run, opts, sandbox) {
 }
 
 function authMode(exe) {
-  const r = spawnSync(exe, ["login", "status"], { encoding: "utf8", env: childEnv() });
+  const [cmd, args] = opencodeCommand(exe, ["login", "status"]);
+  const r = spawnSync(cmd, args, { encoding: "utf8", env: childEnv() });
   const out = `${r.stdout || ""}${r.stderr || ""}`;
   if (/ChatGPT/i.test(out)) return "chatgpt";
   if (/API key/i.test(out)) return "api-key";
@@ -347,15 +348,61 @@ function writeStatus(run, data) {
 function codexBackend(codexArgs, run, exe) {
   const sep = codexArgs.indexOf("--");
   const at = sep >= 0 ? sep : codexArgs.length;
+  // CODEX_EXE may also name a .js/.mjs script (a fake used by the bridge's own tests).
+  const [cmd, args] = opencodeCommand(exe, [...codexArgs.slice(0, at), "--json", "-o", path.join(run.dir, "last-message.md"), ...codexArgs.slice(at)]);
   return {
-    exe, env: childEnv(), agent: "codex",
-    args: [...codexArgs.slice(0, at), "--json", "-o", path.join(run.dir, "last-message.md"), ...codexArgs.slice(at)],
+    exe: cmd, args, env: childEnv(), agent: "codex",
     onEvent(ev, state) {
       if (ev.type === "thread.started") state.threadId = ev.thread_id;
       if (ev.type === "turn.completed") state.usage = ev.usage;
       if (ev.type === "error" || ev.type === "turn.failed") state.errors.push(ev.message || ev.error?.message || JSON.stringify(ev));
+      // Older Codex builds put command output in the stream.
+      if (ev.item?.type === "command_execution") noteSandboxFailure(ev.item.aggregated_output, state);
+    },
+    // `codex exec --json` hides tool calls, and Codex exits 0 when its sandbox cannot start, only saying so in
+    // prose. The error text is in the session rollout, so read it there and fail the run loudly.
+    finalize(state) {
+      const rollout = findRollout(state.threadId);
+      if (!rollout) return;
+      for (const line of fs.readFileSync(rollout, "utf8").split("\n")) {
+        if (!line.includes("_output")) continue;
+        let rec;
+        try { rec = JSON.parse(line); } catch { continue; }
+        const p = rec.payload || {};
+        if (!/_call_output$/.test(p.type || "")) continue;
+        const parts = Array.isArray(p.output) ? p.output.map(o => o?.text ?? "") : [typeof p.output === "string" ? p.output : JSON.stringify(p.output ?? "")];
+        for (const text of parts) {
+          let inner = text;
+          try { inner = JSON.parse(text).output ?? text; } catch {}
+          noteSandboxFailure(String(inner), state);
+        }
+      }
     },
   };
+}
+
+// bubblewrap (Codex's Linux sandbox) refused to start, e.g. Ubuntu blocking unprivileged user namespaces.
+const SANDBOX_FAIL_RE = /^bwrap: .*(?:Operation not permitted|Permission denied|No permissions|Failed|Can't|Creating new namespace failed).*$/im;
+function noteSandboxFailure(text, state) {
+  const m = SANDBOX_FAIL_RE.exec(text || "");
+  if (!m) return;
+  const msg = `codex sandbox failed to start: ${m[0].trim()}`;
+  if (!state.errors.includes(msg)) state.errors.push(msg);
+}
+
+// Codex keeps each thread at $CODEX_HOME/sessions/YYYY/MM/DD/rollout-<time>-<threadId>.jsonl (local date).
+function findRollout(threadId) {
+  if (!threadId) return null;
+  const root = path.join(CODEX_HOME, "sessions");
+  for (const offset of [0, -1, 1]) {
+    const d = new Date(Date.now() + offset * 86400000);
+    const dir = path.join(root, String(d.getFullYear()), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0"));
+    let names = [];
+    try { names = fs.readdirSync(dir); } catch { continue; }
+    const hit = names.find(n => n.startsWith("rollout-") && n.endsWith(`${threadId}.jsonl`));
+    if (hit) return path.join(dir, hit);
+  }
+  return null;
 }
 
 function execute(kind, backend, run, opts) {
