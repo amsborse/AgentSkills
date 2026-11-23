@@ -148,8 +148,13 @@ export function collectStats(opts = {}) {
   const ntfyCfg = readJsonSafe(path.join(geminiCfg, 'ntfy.json'), {});
   const hasNtfy = Boolean(env.AGY_NTFY_TOPIC || ntfyCfg?.topic);
 
-  // Check hooks.json presence
+  // Check hooks.json & CLI settings presence
   const hooksCfg = readJsonSafe(path.join(geminiCfg, 'hooks.json'), {});
+  const cliSettings = readJsonSafe(path.join(home, '.gemini', 'antigravity-cli', 'settings.json'), {});
+  const hasNativeStatus = Boolean(cliSettings?.statusLine?.enabled !== false && cliSettings?.statusLine?.command);
+  const hasNativeTitle = Boolean(cliSettings?.title?.enabled !== false && cliSettings?.title?.command);
+  const etaDir = path.join(geminiCfg, 'cache', 'eta');
+  const etaCount = fs.existsSync(etaDir) ? fs.readdirSync(etaDir).filter((f) => f.endsWith('.json')).length : 0;
 
   // Aggregate telemetry per feature key
   const byFeature = {};
@@ -212,6 +217,20 @@ export function collectStats(opts = {}) {
   };
 
   const features = [
+    {
+      id: 'native-statusline-title',
+      name: 'Mission-Control Status Line, ETA & Native Title',
+      category: 'Terminal UX',
+      status: hasNativeStatus && hasNativeTitle ? 'active' : 'missing',
+      summary: 'Creative 2-line native agy status bar + tab title showing distinct color pill, AI conversation title, git branch/dirty count, context & quota bars, live turn timer, time alive, ETA progress bar, and NEXT task.',
+      why: 'Gives full cockpit awareness (what this session is doing, how long it has been alive, time left, and what comes next) natively inside agy without fighting the TUI.',
+      files: ['~/.gemini/antigravity-cli/settings.json', '~/.gemini/config/scripts/agy-statusline.js', '~/.gemini/config/scripts/agy-title.js', '~/.gemini/config/scripts/agy-eta.js'],
+      triggerHint: 'Runs automatically on every agy state update; track multi-step ETA with `node ~/.gemini/config/scripts/agy-eta.js plan <steps> <mins> "<next>"`.',
+      metricLabel: `${hasNativeStatus ? 'statusLine ON' : 'OFF'} · ${hasNativeTitle ? 'title ON' : 'OFF'} · ${etaCount} ETA plan(s)`,
+      evidenceCount: (hasNativeStatus ? 1 : 0) + etaCount + liveSessions.length,
+      lastAt: installedAt,
+      verdict: verdict(hasNativeStatus && hasNativeTitle, (hasNativeStatus ? 1 : 0) + etaCount + liveSessions.length),
+    },
     {
       id: 'session-colors-status',
       name: 'Distinct Session Colors & Live Tab Status',

@@ -202,10 +202,12 @@ function agy {
                     } catch {}
                 }
 
-                # Re-assert colors every 250ms (guards against agy.exe OSC 110 resets) and title/progress on change or every 1s
+                # Re-assert colors every 250ms (guards against agy.exe OSC 110 resets) and WT progress ring.
+                # When native `title` is configured in agy settings.json, let agy own OSC 0 so it shows
+                # its live conversation_title + Approve state cleanly without fighting our keeper.
                 try {
                     if ($changed -or ($tick % 4 -eq 0)) {
-                        [Console]::Write("$colorSeq$esc]0;$curTab$bel$curProg")
+                        [Console]::Write("$colorSeq$curProg")
                     } else {
                         [Console]::Write($colorSeq)
                     }

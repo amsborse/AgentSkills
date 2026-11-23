@@ -4,12 +4,15 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { buildHooksConfig, mergeHooksJson, mergeWtSettings, run } from '../install.mjs';
+import { buildHooksConfig, mergeCliSettings, mergeHooksJson, mergeWtSettings, run } from '../install.mjs';
 import { collectStats } from '../scripts/collect-stats.mjs';
 
 const require = createRequire(import.meta.url);
 const { checkCommand, findChainOperator } = require('../scripts/agy-pretool-guard.js');
 const { saveHandoff, loadUnusedHandoff } = require('../scripts/agy-handoff.js');
+const { renderStatusLine } = require('../scripts/agy-statusline.js');
+const { renderTitle } = require('../scripts/agy-title.js');
+const { runCli: runEta } = require('../scripts/agy-eta.js');
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-defaults-'));
 const quiet = () => {};
@@ -116,5 +119,47 @@ test('install run is idempotent and collectStats reads real telemetry honestly',
 
   const stats = collectStats({ home, psDir, wtFile: wt, tmpDir: path.join(home, 'tmp') });
   assert.equal(stats.summary.totalTelemetryEvents, 0);
-  assert.ok(stats.features.length >= 10);
+  assert.ok(stats.features.length >= 12);
+});
+
+test('statusLine, native title, and agy-eta render title, time alive, ETA, and next task', () => {
+  const dir = tmp();
+  const prevEta = process.env.AGY_ETA_DIR;
+  process.env.AGY_ETA_DIR = path.join(dir, 'eta');
+  try {
+    runEta(['--session', 'conv-ui-1', 'plan', '4', '10', 'Wire native statusLine']);
+    runEta(['--session', 'conv-ui-1', 'step', 'Deploy & test']);
+    const payload = {
+      cwd: 'C:\\Tools',
+      conversation_id: 'conv-ui-1',
+      conversation_title: 'Creative Cockpit Statusbar',
+      agent_state: 'working',
+      model: { id: 'Gemini 4 Neon (High)', display_name: 'Gemini 4 Neon (High)' },
+      context_window: { used_percentage: 28.4 },
+      quota: { weekly: { remaining_fraction: 0.91 } },
+      subagents: [{ name: 'worker', role: 'Tester', status: 'running' }],
+      task_count: 1,
+      terminal_width: 140,
+    };
+    const out = renderStatusLine(payload);
+    const plain = out.replace(/\x1b\[[0-9;]*m/g, '');
+    assert.ok(plain.includes('Creative Cockpit Statusbar'));
+    assert.ok(plain.includes('CTX'));
+    assert.ok(plain.includes('ALIVE'));
+    assert.ok(plain.includes('ETA'));
+    assert.ok(plain.includes('1/4'));
+    assert.ok(plain.includes('NEXT'));
+    assert.ok(plain.includes('Deploy & test'));
+    const title = renderTitle(payload);
+    assert.ok(title.includes('Working') && title.includes('Creative Cockpit'));
+
+    const cliCfg = mergeCliSettings({ model: 'Gemini 4 Neon (High)' }, 'C:/cfg/scripts');
+    assert.equal(cliCfg.model, 'Gemini 4 Neon (High)');
+    assert.equal(cliCfg.colorScheme, 'terminal');
+    assert.ok(cliCfg.statusLine.command.includes('agy-statusline.js'));
+    assert.ok(cliCfg.title.command.includes('agy-title.js'));
+  } finally {
+    if (prevEta === undefined) delete process.env.AGY_ETA_DIR;
+    else process.env.AGY_ETA_DIR = prevEta;
+  }
 });

@@ -24,8 +24,30 @@ const SCRIPT_FILES = [
   'agy-pretool-guard.js',
   'agy-format.js',
   'agy-handoff.js',
+  'agy-eta.js',
+  'agy-statusline.js',
+  'agy-title.js',
   'agy-notify.ps1',
 ];
+
+export function mergeCliSettings(existingObj, scriptsDir) {
+  const s = (name) => toSlash(path.join(scriptsDir, name));
+  const out = existingObj && typeof existingObj === 'object' && !Array.isArray(existingObj) ? { ...existingObj } : {};
+  if (!out.colorScheme) out.colorScheme = 'terminal';
+  out.statusLine = {
+    type: 'command',
+    command: `node "${s('agy-statusline.js')}"`,
+    padding: 0,
+    enabled: true,
+    stack_with_default: false,
+  };
+  out.title = {
+    type: 'command',
+    command: `node "${s('agy-title.js')}"`,
+    enabled: true,
+  };
+  return out;
+}
 
 export function buildHooksConfig(scriptsDir) {
   const s = (name) => toSlash(path.join(scriptsDir, name));
@@ -143,6 +165,24 @@ export function run(argv = [], opts = {}) {
     }
     log(`${dryRun ? 'would-write' : 'wrote'} ${hooksFile}`);
     results.hooks = dryRun ? 'would-write' : 'wrote';
+  }
+
+  // Merge ~/.gemini/antigravity-cli/settings.json (native statusLine + title + terminal colorScheme)
+  const cliSettingsFile = opts.cliSettings || path.join(home, '.gemini', 'antigravity-cli', 'settings.json');
+  const prevCliText = fs.existsSync(cliSettingsFile) ? fs.readFileSync(cliSettingsFile, 'utf8') : '';
+  const prevCli = prevCliText ? JSON.parse(prevCliText) : {};
+  const nextCli = mergeCliSettings(prevCli, scriptsDst);
+  const nextCliText = JSON.stringify(nextCli, null, 2) + '\n';
+  if (JSON.stringify(prevCli) === JSON.stringify(nextCli)) {
+    log(`unchanged ${cliSettingsFile}`);
+    results.cliSettings = 'unchanged';
+  } else {
+    if (!dryRun) {
+      fs.mkdirSync(path.dirname(cliSettingsFile), { recursive: true });
+      fs.writeFileSync(cliSettingsFile, nextCliText, 'utf8');
+    }
+    log(`${dryRun ? 'would-write' : 'wrote'} ${cliSettingsFile}`);
+    results.cliSettings = dryRun ? 'would-write' : 'wrote';
   }
 
   // PowerShell agy-colors.ps1 + unified claude-colors.ps1 + $PROFILE wiring
