@@ -1,0 +1,45 @@
+{
+  "actions": [
+    {
+      "id": "User.AgySplit",
+      "command": {
+        "action": "splitPane",
+        "split": "right",
+        "size": 0.5,
+        "profile": "Antigravity (AGY)"
+      }
+    },
+    {
+      "id": "User.AgyTab",
+      "command": {
+        "action": "newTab",
+        "profile": "Antigravity (AGY)"
+      }
+    }
+  ],
+  "keybindings": [
+    {
+      "id": "User.AgySplit",
+      "keys": "ctrl+shift+alt+a"
+    },
+    {
+      "id": "User.AgyTab",
+      "keys": "ctrl+alt+a"
+    }
+  ],
+  "profile": {
+    "guid": "{8b2d5a41-7e31-4f92-9c8a-6d4e2a91b307}",
+    "name": "Antigravity (AGY)",
+    "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoLogo -Command agy",
+    "startingDirectory": "C:\\Tools",
+    "colorScheme": "Infinity Steel",
+    "tabColor": "#2FA8FF",
+    "tabTitle": "AGY",
+    "suppressApplicationTitle": false,
+    "icon": "✨",
+    "opacity": 94,
+    "useAcrylic": true,
+    "cursorShape": "bar",
+    "hidden": false
+  }
+}
