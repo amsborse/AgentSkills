@@ -5,9 +5,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { buildHooksConfig, mergeHooksJson, mergeWtSettings, run } from '../install.mjs';
+import { collectStats } from '../scripts/collect-stats.mjs';
 
 const require = createRequire(import.meta.url);
 const { checkCommand, findChainOperator } = require('../scripts/agy-pretool-guard.js');
+const { saveHandoff, loadUnusedHandoff } = require('../scripts/agy-handoff.js');
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-defaults-'));
 const quiet = () => {};
@@ -20,13 +22,47 @@ test('agy-pretool-guard blocks PS 5.1 chain operators outside quotes and allows 
   assert.equal(checkCommand('npm test; if ($?) { npm run build }'), null);
 });
 
-test('agy-pretool-guard blocks batch email sends and destructive git commands', () => {
+test('agy-pretool-guard blocks batch emails, secrets reads, prod deploys, and destructive git', () => {
   assert.match(checkCommand('pnpm --filter @sutra/worker deliver'), /Batch email guard/);
   assert.equal(checkCommand('pnpm --filter @sutra/worker deliver --no-email'), null);
+  assert.match(checkCommand('cat .env'), /Secrets guard/);
+  assert.match(checkCommand('Get-Content ~/.ssh/id_ed25519'), /Secrets guard/);
+  assert.equal(checkCommand('cat .env.example'), null);
+  assert.match(checkCommand('./scripts/deploy.sh'), /Prod deploy guard/);
+  assert.match(checkCommand('wrangler deploy'), /Prod deploy guard/);
+  assert.equal(checkCommand('wrangler deploy --env test'), null);
+  assert.match(checkCommand('vercel --prod'), /Prod deploy guard/);
   assert.match(checkCommand('git reset --hard HEAD'), /git reset --hard/);
   assert.match(checkCommand('git clean -fd'), /git clean -fd/);
   assert.match(checkCommand('git push --force origin main'), /force-pushing/);
   assert.equal(checkCommand('git status'), null);
+});
+
+test('agy-handoff saves a handoff note on budget/threshold and loads it once', () => {
+  const dir = tmp();
+  const prevDir = process.env.AGY_HANDOFF_DIR;
+  const prevWatch = process.env.AGY_WATCH_DIR;
+  process.env.AGY_HANDOFF_DIR = path.join(dir, 'handoffs');
+  process.env.AGY_WATCH_DIR = path.join(dir, 'watch');
+  const repoDir = path.join(dir, 'demo-repo');
+  fs.mkdirSync(repoDir, { recursive: true });
+  try {
+    const saved = saveHandoff({
+      conversationId: `conv-${Date.now()}`,
+      cwd: repoDir,
+      terminationReason: 'MAX_TOKEN_BUDGET_EXCEEDED',
+    });
+    assert.ok(saved && fs.existsSync(saved));
+    const loaded = loadUnusedHandoff(repoDir);
+    assert.ok(loaded && loaded.content.includes('Session Handoff'));
+    // Second load returns null because it was marked .used.md
+    assert.equal(loadUnusedHandoff(repoDir), null);
+  } finally {
+    if (prevDir === undefined) delete process.env.AGY_HANDOFF_DIR;
+    else process.env.AGY_HANDOFF_DIR = prevDir;
+    if (prevWatch === undefined) delete process.env.AGY_WATCH_DIR;
+    else process.env.AGY_WATCH_DIR = prevWatch;
+  }
 });
 
 test('mergeHooksJson preserves unrelated user hooks and updates managed hooks', () => {
@@ -36,6 +72,7 @@ test('mergeHooksJson preserves unrelated user hooks and updates managed hooks', 
   assert.ok(merged['agy-session-status']);
   assert.ok(merged['agy-pretool-guard']);
   assert.ok(merged['agy-auto-format']);
+  assert.ok(merged['agy-context-handoff']);
 });
 
 test('mergeWtSettings adds profile and bindings once idempotently', () => {
@@ -48,7 +85,7 @@ test('mergeWtSettings adds profile and bindings once idempotently', () => {
   assert.deepEqual(twice, once);
 });
 
-test('install run is idempotent and honors --dry-run', () => {
+test('install run is idempotent and collectStats reads real telemetry honestly', () => {
   const home = tmp();
   const psDir = path.join(home, 'ps');
   fs.mkdirSync(psDir, { recursive: true });
@@ -65,6 +102,7 @@ test('install run is idempotent and honors --dry-run', () => {
   assert.equal(first.geminiMd, 'wrote');
   assert.equal(first.hooks, 'wrote');
   assert.equal(first.agyColors, 'wrote');
+  assert.equal(first.claudeColors, 'wrote');
   assert.equal(first.psProfile, 'updated');
   assert.equal(first.wt, 'updated');
 
@@ -72,6 +110,11 @@ test('install run is idempotent and honors --dry-run', () => {
   assert.equal(second.geminiMd, 'unchanged');
   assert.equal(second.hooks, 'unchanged');
   assert.equal(second.agyColors, 'unchanged');
+  assert.equal(second.claudeColors, 'unchanged');
   assert.equal(second.psProfile, 'unchanged');
   assert.equal(second.wt, 'unchanged');
+
+  const stats = collectStats({ home, psDir, wtFile: wt, tmpDir: path.join(home, 'tmp') });
+  assert.equal(stats.summary.totalTelemetryEvents, 0);
+  assert.ok(stats.features.length >= 10);
 });

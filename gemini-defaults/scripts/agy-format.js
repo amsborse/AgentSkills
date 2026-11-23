@@ -3,11 +3,12 @@
 // Antigravity PostToolUse auto-formatter (edit_file|write_file):
 // - Runs nearest project node_modules/.bin/prettier on JS/TS/JSON/CSS/HTML/MD/YAML/etc.
 // - Runs local ruff format on .py files if ruff is available on PATH.
-// Silent and best-effort; always outputs `{}` so it never blocks or costs tokens.
+// Silent and best-effort; logs real format counts to telemetry and always outputs `{}`.
 
 const { execFileSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { recordEvent } = require('./telemetry.js');
 
 const PRETTIER_EXTS = new Set([
   '.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts',
@@ -16,9 +17,11 @@ const PRETTIER_EXTS = new Set([
 ]);
 
 function main() {
+  const t0 = Date.now();
   try {
     const raw = fs.readFileSync(0, 'utf8').replace(/^\uFEFF/, '').trim();
     const payload = raw ? JSON.parse(raw) : {};
+    const cwd = payload.cwd || (payload.workspacePaths && payload.workspacePaths[0]) || '';
     const args = payload.toolCall && payload.toolCall.args ? payload.toolCall.args : {};
     const file = args.Path || args.path || args.file_path;
     if (!file || typeof file !== 'string' || !fs.existsSync(file)) {
@@ -36,6 +39,14 @@ function main() {
             stdio: 'ignore',
             timeout: 15000,
           });
+          recordEvent({
+            feature: 'auto-format',
+            event: 'PostToolUse',
+            outcome: 'formatted',
+            detail: `prettier:${ext}`,
+            repo: cwd || path.dirname(file),
+            ms: Date.now() - t0,
+          });
           break;
         }
         if (path.dirname(dir) === dir) break;
@@ -43,6 +54,14 @@ function main() {
     } else if (ext === '.py') {
       try {
         execFileSync('ruff', ['format', '--quiet', file], { stdio: 'ignore', timeout: 10000 });
+        recordEvent({
+          feature: 'auto-format',
+          event: 'PostToolUse',
+          outcome: 'formatted',
+          detail: 'ruff:.py',
+          repo: cwd || path.dirname(file),
+          ms: Date.now() - t0,
+        });
       } catch {}
     }
   } catch {}

@@ -9,6 +9,7 @@ import { REPO_ROOT, createLink, detectAgents, linkState, ownedRepoLink, removeLi
 const args = new Set(process.argv.slice(2));
 const USAGE = `Usage: node scripts/install.mjs [--dry-run] [--uninstall]
          [--router-hook on|off] [--codex-block on|off] [--learning-hooks on|off]
+         [--gemini-defaults on|off]
 
 Links every skill in this repository into each detected agent's skill folder.
   --dry-run     show what would change and change nothing
@@ -18,7 +19,7 @@ if (args.has('--help') || args.has('-h')) { process.stdout.write(USAGE); process
 {
   // An unknown flag stops the run: a typo such as --dry-rnu must never become a real install.
   const flags = new Set(['--dry-run', '--uninstall']);
-  const valued = new Set(['--router-hook', '--codex-block', '--learning-hooks']);
+  const valued = new Set(['--router-hook', '--codex-block', '--learning-hooks', '--gemini-defaults']);
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
     if (valued.has(argv[i])) { i++; continue; }
@@ -40,6 +41,7 @@ const option = (name) => {
 const routerOption = option('--router-hook');
 const codexOption = option('--codex-block');
 const learningOption = option('--learning-hooks');
+const geminiDefaultsOption = option('--gemini-defaults');
 const results = [];
 const say = (status, what, detail = '') => {
   results.push({ status, what, detail });
@@ -214,6 +216,16 @@ function configureCodex(mode) {
   say(plan ? 'would-update' : 'updated', codexFile, `Codex block ${mode}`);
 }
 if (codexOption || uninstall) configureCodex(uninstall ? 'off' : codexOption);
+
+const geminiDir = path.join(home, '.gemini');
+const shouldSyncGemini = !uninstall && (geminiDefaultsOption === 'on' || (geminiDefaultsOption !== 'off' && fs.existsSync(geminiDir)));
+if (shouldSyncGemini) {
+  const { run: runGeminiDefaults } = await import('../gemini-defaults/install.mjs');
+  const gArgv = [...(plan ? ['--dry-run'] : []), ...(process.env.AGENT_SKILLS_HOME_OVERRIDE ? ['--no-wt'] : [])];
+  const gRes = runGeminiDefaults(gArgv, { home, log: () => {} });
+  const changed = Object.values(gRes).filter((v) => v !== 'unchanged').length;
+  say(changed ? (plan ? 'would-update' : 'updated') : 'ok', path.join(geminiDir, 'config'), changed ? `${changed} gemini-defaults item(s)` : 'gemini-defaults up to date');
+}
 
 if (!plan) {
   const manifest = path.join(process.env.NIGHTLY_EVOLUTION_HOME || path.join(home, '.config', 'nightly-evolution'), 'install.json');

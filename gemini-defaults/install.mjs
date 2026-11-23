@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// Idempotent installer for Antigravity / Gemini (`agy`) defaults:
+// Idempotent installer for Antigravity / Gemini (`agy`) defaults + unified Claude colors:
 // - Syncs GEMINI.md and hook scripts into ~/.gemini/config/
 // - Merges our named hooks into ~/.gemini/config/hooks.json (preserving any user hooks)
-// - On Windows: installs agy-colors.ps1 into the PowerShell profile folder and wires $PROFILE,
-//   and merges the Antigravity (AGY) profile + shortcuts into Windows Terminal settings.json.
+// - On Windows: installs agy-colors.ps1 & claude-colors.ps1 into the PowerShell profile folder,
+//   wires $PROFILE, and merges the Antigravity (AGY) profile + shortcuts into Windows Terminal settings.json.
+// - Records install metadata in ~/.gemini/config/telemetry/installed.json for usage analytics.
 //
 //   node gemini-defaults/install.mjs            install or refresh
 //   node gemini-defaults/install.mjs --dry-run  show what would change
@@ -18,9 +19,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const toSlash = (p) => p.split(path.sep).join('/');
 
 const SCRIPT_FILES = [
+  'telemetry.js',
   'agy-session-hook.js',
   'agy-pretool-guard.js',
   'agy-format.js',
+  'agy-handoff.js',
   'agy-notify.ps1',
 ];
 
@@ -38,6 +41,10 @@ export function buildHooksConfig(scriptsDir) {
     },
     'agy-auto-format': {
       PostToolUse: [{ matcher: 'edit_file|write_file', hooks: [{ type: 'command', command: `node "${s('agy-format.js')}"`, timeout: 20 }] }],
+    },
+    'agy-context-handoff': {
+      SessionStart: [{ type: 'command', command: `node "${s('agy-handoff.js')}"`, timeout: 10 }],
+      Stop: [{ type: 'command', command: `node "${s('agy-handoff.js')}"`, timeout: 8 }],
     },
   };
 }
@@ -138,10 +145,11 @@ export function run(argv = [], opts = {}) {
     results.hooks = dryRun ? 'would-write' : 'wrote';
   }
 
-  // PowerShell agy-colors.ps1 + $PROFILE wiring (Windows or explicit psProfileDir)
+  // PowerShell agy-colors.ps1 + unified claude-colors.ps1 + $PROFILE wiring
   const psDir = opts.psProfileDir !== undefined ? opts.psProfileDir : findPsProfileDir(home);
   if (psDir) {
     results.agyColors = syncFile(path.join(HERE, 'powershell', 'agy-colors.ps1'), path.join(psDir, 'agy-colors.ps1'), dryRun, log);
+    results.claudeColors = syncFile(path.join(HERE, 'powershell', 'claude-colors.ps1'), path.join(psDir, 'claude-colors.ps1'), dryRun, log);
     const profFile = path.join(psDir, 'Microsoft.PowerShell_profile.ps1');
     if (fs.existsSync(profFile)) {
       const profText = fs.readFileSync(profFile, 'utf8');
@@ -172,6 +180,23 @@ export function run(argv = [], opts = {}) {
       log(`${dryRun ? 'would-update' : 'updated'} ${wtFile}`);
       results.wt = dryRun ? 'would-update' : 'updated';
     }
+  }
+
+  // Record install stamp for telemetry/dashboard (preserve original installedAt)
+  if (!dryRun) {
+    const metaFile = path.join(geminiConfig, 'telemetry', 'installed.json');
+    fs.mkdirSync(path.dirname(metaFile), { recursive: true });
+    let prev = {};
+    if (fs.existsSync(metaFile)) {
+      try { prev = JSON.parse(fs.readFileSync(metaFile, 'utf8')); } catch {}
+    }
+    const now = new Date().toISOString();
+    const meta = {
+      installedAt: prev.installedAt || now,
+      updatedAt: now,
+      version: 2,
+    };
+    fs.writeFileSync(metaFile, JSON.stringify(meta, null, 2) + '\n', 'utf8');
   }
 
   return results;

@@ -35,15 +35,18 @@ function Select-AgyTheme([string]$Preferred) {
 
     $dir = Get-AgySessionDir
     $inUse = @{}
-    foreach ($f in (Get-ChildItem -Path $dir -Filter '*.json' -ErrorAction SilentlyContinue)) {
-        try {
-            $data = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
-            if ($data.pid -and (Get-Process -Id $data.pid -ErrorAction SilentlyContinue)) {
-                if ($data.color) { $inUse[$data.color] = $true }
-            } else {
-                Remove-Item -LiteralPath $f.FullName -Force -ErrorAction SilentlyContinue
-            }
-        } catch {}
+    foreach ($scanDir in @($dir, (Join-Path $env:TEMP 'claude-sessions'))) {
+        if (-not (Test-Path $scanDir)) { continue }
+        foreach ($f in (Get-ChildItem -Path $scanDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+            try {
+                $data = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+                if ($data.pid -and (Get-Process -Id $data.pid -ErrorAction SilentlyContinue)) {
+                    if ($data.color) { $inUse[$data.color] = $true }
+                } else {
+                    Remove-Item -LiteralPath $f.FullName -Force -ErrorAction SilentlyContinue
+                }
+            } catch {}
+        }
     }
 
     $lastFile = Join-Path $dir 'last-color.txt'

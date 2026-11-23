@@ -1,3 +1,5 @@
 node_modules/
 .DS_Store
 *.log
+gemini-defaults/dashboard/data.json
+gemini-defaults/dashboard/local.html

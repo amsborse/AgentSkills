@@ -1,5 +1,6 @@
 # Antigravity (AGY) Stop notification: persistent Windows toast with colored
-# session badge + sound (ported from ~/.claude/hooks/notify-done.ps1).
+# session badge + sound + optional ntfy.sh mobile push (opt-in via AGY_NTFY_TOPIC
+# or ~/.gemini/config/ntfy.json).
 param(
     [string]$Status = 'done',
     [string]$SessionTitle = '',
@@ -17,11 +18,13 @@ if ($Status -eq 'error') {
     $title = 'Antigravity - ERROR'
     $body = if ($Detail) { "$label$tag - $Detail" } else { "Stopped with error$where$tag" }
     $sound = 'Windows Critical Stop.wav'
+    $priority = 'high'
 } else {
     $title = 'Antigravity'
     $body = "Finished: $label$tag"
     $claudeWav = Join-Path $env:USERPROFILE '.claude\hooks\sounds\tube-hq.wav'
     $sound = if (Test-Path $claudeWav) { $claudeWav } else { 'Windows Notify Messaging.wav' }
+    $priority = 'default'
 }
 
 # Generate/cache a circular badge image in the session's accent color
@@ -80,6 +83,25 @@ try {
     $appId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
     [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($appId).Show(
         [Windows.UI.Notifications.ToastNotification]::new($doc))
+} catch {}
+
+# Optional ntfy.sh remote/mobile push (only when topic is configured by the user)
+try {
+    $topic = $env:AGY_NTFY_TOPIC
+    $server = if ($env:AGY_NTFY_SERVER) { $env:AGY_NTFY_SERVER.TrimEnd('/') } else { 'https://ntfy.sh' }
+    $ntfyCfg = Join-Path $env:USERPROFILE '.gemini\config\ntfy.json'
+    if (-not $topic -and (Test-Path $ntfyCfg)) {
+        $cfg = Get-Content -LiteralPath $ntfyCfg -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($cfg.topic) { $topic = [string]$cfg.topic }
+        if ($cfg.server) { $server = ([string]$cfg.server).TrimEnd('/') }
+    }
+    if ($topic) {
+        $headers = @{ Title = $title; Priority = $priority }
+        $null = Invoke-RestMethod -Uri "$server/$topic" -Method Post -Headers $headers -Body $body -TimeoutSec 4 -ErrorAction Stop
+        $telFile = Join-Path $env:USERPROFILE '.gemini\config\telemetry\events.jsonl'
+        $ev = @{ ts = [DateTime]::UtcNow.ToString('o'); feature = 'ntfy-push'; event = 'Stop'; outcome = 'notified'; detail = $Status; repo = $Folder; ms = $null } | ConvertTo-Json -Compress
+        [System.IO.File]::AppendAllText($telFile, "$ev`n", [System.Text.UTF8Encoding]::new($false))
+    }
 } catch {}
 
 try {

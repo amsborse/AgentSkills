@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { recordEvent } = require('./telemetry.js');
 
 const SESSION_DIR = path.join(os.tmpdir(), 'agy-sessions');
 const NOTIFY_SCRIPT = path.join(__dirname, 'agy-notify.ps1');
@@ -110,8 +111,10 @@ function shortToolName(name) {
 }
 
 function main() {
+  const t0 = Date.now();
   const payload = readStdin();
   const event = payload.hookEventName || '';
+  const cwd = payload.cwd || (payload.workspacePaths && payload.workspacePaths[0]) || '';
 
   try {
     const file = findSessionFile(payload);
@@ -125,6 +128,7 @@ function main() {
       if (event === 'SessionStart') {
         state.status = 'ready';
         state.detail = '';
+        recordEvent({ feature: 'session-status', event, outcome: 'fired', detail: state.color || '', repo: cwd, ms: Date.now() - t0 });
       } else if (event === 'PreInvocation') {
         if (state.status !== 'working') {
           state.turnStartedAt = Date.now();
@@ -136,6 +140,7 @@ function main() {
           if (derived) {
             state.title = derived;
             state.titleLocked = true;
+            recordEvent({ feature: 'auto-title', event, outcome: 'fired', detail: state.color || '', repo: cwd, ms: Date.now() - t0 });
           }
         }
       } else if (event === 'PostToolUse') {
@@ -158,14 +163,22 @@ function main() {
           state.detail = '';
         }
 
-        // Detached toast + sound notification on error or completed multi-step/longer turn
+        recordEvent({
+          feature: 'session-status',
+          event,
+          outcome: isError ? 'error' : (isCanceled ? 'skipped' : 'fired'),
+          detail: state.color || '',
+          repo: cwd,
+          ms: turnMs || (Date.now() - t0),
+        });
+
         const shouldNotify =
           !process.env.AGY_NO_NOTIFY &&
           fs.existsSync(NOTIFY_SCRIPT) &&
           (isError || (!isCanceled && payload.fullyIdle !== false && turnMs >= MIN_NOTIFY_MS));
 
         if (shouldNotify) {
-          const folder = path.basename(payload.cwd || state.cwd || '');
+          const folder = path.basename(cwd || state.cwd || '');
           const args = [
             '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', NOTIFY_SCRIPT,
             '-Status', isError ? 'error' : 'done',
@@ -176,6 +189,14 @@ function main() {
             '-Detail', String(payload.error || '').slice(0, 140),
           ];
           spawn('powershell.exe', args, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+          recordEvent({
+            feature: 'desktop-notify',
+            event,
+            outcome: 'notified',
+            detail: isError ? 'error' : 'done',
+            repo: cwd,
+            ms: Date.now() - t0,
+          });
         }
       }
 
