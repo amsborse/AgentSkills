@@ -26,25 +26,33 @@ const SCRIPT_FILES = [
   'agy-handoff.js',
   'agy-eta.js',
   'agy-statusline.js',
+  'agy-statusline.cmd',
   'agy-title.js',
+  'agy-title.cmd',
   'agy-notify.ps1',
 ];
 
-export function mergeCliSettings(existingObj, scriptsDir) {
-  const s = (name) => toSlash(path.join(scriptsDir, name));
-  const quoteIfNeeded = (p) => (/\s/.test(p) ? `"${p}"` : p);
+export function mergeCliSettings(existingObj, scriptsDir, platform = process.platform) {
   const out = existingObj && typeof existingObj === 'object' && !Array.isArray(existingObj) ? { ...existingObj } : {};
   if (!out.colorScheme) out.colorScheme = 'terminal';
+  // On Windows, agy's statusline runner breaks on spaces/quotes in `command`, so point directly
+  // at a single space-free .cmd shim with native backslashes.
+  const statusCmd = platform === 'win32'
+    ? path.win32.join(scriptsDir, 'agy-statusline.cmd')
+    : `node ${toSlash(path.join(scriptsDir, 'agy-statusline.js'))}`;
+  const titleCmd = platform === 'win32'
+    ? path.win32.join(scriptsDir, 'agy-title.cmd')
+    : `node ${toSlash(path.join(scriptsDir, 'agy-title.js'))}`;
   out.statusLine = {
     type: 'command',
-    command: `node ${quoteIfNeeded(s('agy-statusline.js'))}`,
+    command: statusCmd,
     padding: 0,
     enabled: true,
     stack_with_default: false,
   };
   out.title = {
     type: 'command',
-    command: `node ${quoteIfNeeded(s('agy-title.js'))}`,
+    command: titleCmd,
     enabled: true,
   };
   return out;

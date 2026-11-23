@@ -153,11 +153,11 @@ test('statusLine, native title, and agy-eta render title, time alive, ETA, and n
     const title = renderTitle(payload);
     assert.ok(title.includes('Working') && title.includes('Creative Cockpit'));
 
-    const cliCfg = mergeCliSettings({ model: 'Gemini 4 Neon (High)' }, 'C:/cfg/scripts');
+    const cliCfg = mergeCliSettings({ model: 'Gemini 4 Neon (High)' }, 'C:\\cfg\\scripts', 'win32');
     assert.equal(cliCfg.model, 'Gemini 4 Neon (High)');
     assert.equal(cliCfg.colorScheme, 'terminal');
-    assert.equal(cliCfg.statusLine.command, 'node C:/cfg/scripts/agy-statusline.js');
-    assert.equal(cliCfg.title.command, 'node C:/cfg/scripts/agy-title.js');
+    assert.equal(cliCfg.statusLine.command, 'C:\\cfg\\scripts\\agy-statusline.cmd');
+    assert.equal(cliCfg.title.command, 'C:\\cfg\\scripts\\agy-title.cmd');
   } finally {
     if (prevEta === undefined) delete process.env.AGY_ETA_DIR;
     else process.env.AGY_ETA_DIR = prevEta;
