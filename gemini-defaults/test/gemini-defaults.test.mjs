@@ -156,8 +156,8 @@ test('statusLine, native title, and agy-eta render title, time alive, ETA, and n
     const cliCfg = mergeCliSettings({ model: 'Gemini 4 Neon (High)' }, 'C:/cfg/scripts');
     assert.equal(cliCfg.model, 'Gemini 4 Neon (High)');
     assert.equal(cliCfg.colorScheme, 'terminal');
-    assert.ok(cliCfg.statusLine.command.includes('agy-statusline.js'));
-    assert.ok(cliCfg.title.command.includes('agy-title.js'));
+    assert.equal(cliCfg.statusLine.command, 'node C:/cfg/scripts/agy-statusline.js');
+    assert.equal(cliCfg.title.command, 'node C:/cfg/scripts/agy-title.js');
   } finally {
     if (prevEta === undefined) delete process.env.AGY_ETA_DIR;
     else process.env.AGY_ETA_DIR = prevEta;

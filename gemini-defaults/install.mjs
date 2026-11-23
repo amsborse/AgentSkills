@@ -32,18 +32,19 @@ const SCRIPT_FILES = [
 
 export function mergeCliSettings(existingObj, scriptsDir) {
   const s = (name) => toSlash(path.join(scriptsDir, name));
+  const quoteIfNeeded = (p) => (/\s/.test(p) ? `"${p}"` : p);
   const out = existingObj && typeof existingObj === 'object' && !Array.isArray(existingObj) ? { ...existingObj } : {};
   if (!out.colorScheme) out.colorScheme = 'terminal';
   out.statusLine = {
     type: 'command',
-    command: `node "${s('agy-statusline.js')}"`,
+    command: `node ${quoteIfNeeded(s('agy-statusline.js'))}`,
     padding: 0,
     enabled: true,
     stack_with_default: false,
   };
   out.title = {
     type: 'command',
-    command: `node "${s('agy-title.js')}"`,
+    command: `node ${quoteIfNeeded(s('agy-title.js'))}`,
     enabled: true,
   };
   return out;
