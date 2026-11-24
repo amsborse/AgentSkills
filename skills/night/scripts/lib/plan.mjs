@@ -40,8 +40,15 @@ export function scoreLoop(loop, { signals = [], evaluation = [], red = false } =
   return { scores, basis, priority: priority(scores) };
 }
 
-function newTask(fields) {
+export function newTask(fields) {
   const t = {
+    // key: stable idempotency key (preset tasks); dependencies: keys or ids that must be kept or done first.
+    key: fields.key || null,
+    dependencies: fields.dependencies || [],
+    verify: fields.verify || [],
+    side_effect: Boolean(fields.side_effect),
+    once: Boolean(fields.once),
+    blocker: null,
     id: `t-${hash(`${fields.loop || fields.skill || 'build'}:${fields.objective || ''}:${fields.iteration || 0}:${Math.random()}`, 8)}`,
     title: fields.title,
     loop: fields.loop || null,
