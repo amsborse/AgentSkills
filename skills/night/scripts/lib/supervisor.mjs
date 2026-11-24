@@ -9,13 +9,15 @@ import { paths, ensureLayout, loadConfig, loadState, saveState, event, acquireLo
 import { detectEnv } from './env.mjs';
 import { discoverSkills } from './loops.mjs';
 import { plan, requeue, followUpTasks } from './plan.mjs';
+import { readApprovals, requestApproval, classifyBlocker, writeQueue, ledgerKeys, recordKey, dependencyStatus, resourcePressure, ownershipConflict } from './unblock.mjs';
 import { runChecks, measureMetrics, inspectDiff, decide } from './evaluate.mjs';
 import { adapters, availableAgents, pickAgent, agentEnv, tempPromptFile } from './agents.mjs';
 import * as ws from './workspace.mjs';
 
 const MIN = 60_000;
 // The orchestrator, its loops and the libraries it runs on. A run never edits the code that judges it.
-const ENGINE_PATHS = ['skills/night/**', 'skills/night-evolve-skills/**', 'nightly-evolution/scripts/lib/**', 'history-learning/scripts/lib/**', 'tests/night.test.mjs', 'tests/fixtures/night/**'];
+const ENGINE_PATHS = ['skills/night/**', 'skills/night-evolve-skills/**', 'nightly-evolution/scripts/lib/**', 'history-learning/scripts/lib/**', 'tests/night.test.mjs', 'tests/fixtures/night/**', 'skills/autonomous-night-loop/**'];
+const DEP_BAD = new Set(['blocked', 'waiting_approval', 'skipped', 'missing']);
 const OPEN = new Set(['pending', 'running']);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -45,7 +47,7 @@ const tail = (file, n) => {
 /** The prompt for one iteration. Earlier notes are quoted as data; only this text is instruction. */
 export function buildPrompt({ task, state, config, p, protectedPaths, checks, cwd }) {
   const skill = task.skill_path && fs.existsSync(task.skill_path) ? stripFrontmatter(fs.readFileSync(task.skill_path, 'utf8')).trim() : '';
-  const past = (task.history || []).filter((h) => h.verdict || h.failure).slice(-3)
+  const past = (task.history || []).filter((h) => (h.verdict || h.failure) && h.failure !== 'rate_limited').slice(-3)
     .map((h) => `- attempt ${h.attempt}: ${h.verdict || h.failure}${h.reasons?.length ? ` because ${h.reasons.join('; ')}` : ''}`).join('\n');
   const failures = readJsonl(p.failures).filter((f) => f.loop === task.loop).slice(-3)
     .map((f) => `- ${f.class}: ${String(f.detail || '').slice(0, 200)}`).join('\n');
@@ -68,6 +70,8 @@ export function buildPrompt({ task, state, config, p, protectedPaths, checks, cw
     `- Loop or mode: ${task.loop || task.mode}`,
     task.objective ? `- Objective: ${task.objective}` : '',
     task.acceptance?.length ? `- Acceptance: ${task.acceptance.join('; ')}` : '',
+    task.verify?.length ? `- Acceptance commands the supervisor runs after its own checks: ${task.verify.map((v) => v.run).join(' ; ')}` : '',
+    task.approved?.length ? `- The owner approved, for this task only: ${task.approved.join('; ')}` : '',
     task.scope?.length && task.scope[0] !== '**' ? `- Stay inside: ${task.scope.join(', ')}` : '',
     `- Keep rule: ${task.keep_rule}. ${task.writes === 'report' ? 'This loop writes no files: put the whole report in NIGHT_RESULT.report.' : 'Make one bounded, reviewable change.'}`,
     past ? `\nEarlier attempts at this task were not kept:\n${past}\nDo something different.` : '',
@@ -75,7 +79,10 @@ export function buildPrompt({ task, state, config, p, protectedPaths, checks, cw
     '## Rules',
     '- Do not commit, push, merge, rebase, switch branches, deploy, publish, send messages or call external services. The supervisor commits.',
     '- Do not read or print secrets. Do not change these protected paths: ' + protectedPaths.join(', '),
-    '- Never delete, skip or weaken a test or assertion to make checks pass.',
+    '- Never delete, skip or weaken a test, assertion or statistical gate to make checks pass.',
+    '- State lives in files, not in your session: the mission, the handoff and learnings notes below and the supervisor\'s queue carry everything forward. Put what the next iteration needs in NIGHT_RESULT.',
+    '- When only the owner can decide the next step (money, access, a destructive or irreversible action, a protected path), do not take it: set NIGHT_RESULT.blocker to {"kind":"authorization","decision":"the exact question","consequence":"what waits meanwhile"}.',
+    '- When the evidence shows the objective cannot be met honestly, set NIGHT_RESULT.blocker to {"kind":"research","detail":"the negative result and its evidence"}. A negative result is a valid outcome; a faked pass is not.',
     `- After you finish, the supervisor runs these checks itself and ignores your claims: ${checks.map((c) => `\`${c.run}\``).join(', ') || '(none configured)'}.`,
     ...(config.instructions || []).map((i) => `- ${i}`),
     '',
@@ -102,6 +109,14 @@ export async function runNight(root, opts = {}) {
   const lock = acquireLock(root, 'supervisor');
   let state = loadState(root);
   const resuming = opts.resume && state && !TERMINAL.has(state.status);
+  // One owner per repository: never start next to a supervisor in another worktree of the same repo.
+  const conflict = opts.dryRun ? null : ownershipConflict(root, resuming ? { branch: state.branch, runDir: state.run_dir } : {});
+  if (conflict) {
+    lock.release();
+    const err = new Error(`${conflict}; stop that run first`);
+    err.code = 'LOCKED';
+    throw err;
+  }
   if (opts.resume && !resuming) {
     lock.release();
     const err = new Error(state ? `nothing to resume: the last run is ${state.status}` : 'nothing to resume: no run yet');
@@ -158,6 +173,7 @@ class Supervisor {
       usage: { input_tokens: 0, output_tokens: 0, cost_usd: 0, cost_known: true },
       agents_down: {}, warnings: [], tasks: [], head_checks: [], head_sha: null, eval_ms: 0,
       user_dirty: env.dirty.length, skill_errors: errors,
+      preset: previous?.status === 'planned' ? previous.preset || null : null, rate_streak: 0,
     };
     if (env.dirty.length) this.state.warnings.push(`the main checkout has ${env.dirty.length} uncommitted change(s); the run starts from HEAD ${baseSha.slice(0, 8)} and never touches them`);
     for (const e of errors) this.state.warnings.push(`skill not loaded: ${e.path}: ${e.error}`);
@@ -167,7 +183,7 @@ class Supervisor {
     this.writeMission(mode, objective);
 
     if (opts.dryRun) {
-      const { tasks, warnings } = plan({ mode, objective, loops, skills, env, red: false });
+      const { tasks, warnings } = fromPreset ? { tasks: [], warnings: [] } : plan({ mode, objective, loops, skills, env, red: false });
       this.state.tasks = planned || tasks;
       this.state.warnings.push(...warnings, 'dry run: no worktree, agent or check was started');
       this.state.status = 'planned';
@@ -203,8 +219,9 @@ class Supervisor {
     }
     this.log('baseline', { checks: summarizeChecks(baseline), red });
 
-    const fresh = plan({ mode, objective, loops, skills, env: runEnv, red });
+    const fresh = fromPreset ? { tasks: [], warnings: [] } : plan({ mode, objective, loops, skills, env: runEnv, red });
     this.state.tasks = planned || fresh.tasks;
+    for (const t of this.state.tasks) if (t.loop && !t.skill_path) t.skill_path = loops.find((l) => l.name === t.loop)?.path || null;
     this.state.warnings.push(...fresh.warnings);
     if (mode === 'evolve-skills' || this.state.tasks.some((t) => t.mode === 'evolve-skills')) this.state.evolve = true;
     this.save();
@@ -234,6 +251,15 @@ class Supervisor {
       const cp = this.ownCheckpoint(t);
       if (cp) ws.revertTo(cp.dir, cp);
       t.lane = null;
+      if (t.side_effect) {
+        // Its outside effect may or may not have happened: a person checks before it runs again.
+        t.history.push({ at: nowIso(), attempt: t.attempts, failure: 'interrupted', reasons: ['the supervisor stopped mid-task and the task has side effects: outcome uncertain, check state'] });
+        this.awaitApproval(t, {
+          decision: `Run "${t.title}" again? It was interrupted mid-task and has side effects: outcome uncertain, check state first.`,
+          consequence: 'the task and everything that depends on it wait', default: 'deny: the side effect is not repeated', extra: { uncertain: true },
+        });
+        continue;
+      }
       t.status = 'pending';
       t.history.push({ at: nowIso(), attempt: t.attempts, failure: 'interrupted', reasons: ['the supervisor stopped mid-task; the change was reverted'] });
     }
@@ -322,7 +348,7 @@ class Supervisor {
     const now = Date.now();
     const busy = [...this.running.keys()].map((id) => this.task(id));
     const left = Date.parse(this.state.deadline) - now;
-    const ready = this.state.tasks.filter((t) => t.status === 'pending' && (!t.not_before || Date.parse(t.not_before) <= now));
+    const ready = this.state.tasks.filter((t) => t.status === 'pending' && (!t.not_before || Date.parse(t.not_before) <= now) && this.dependenciesMet(t));
     const fits = ready.filter((t) => this.needMs(t) <= left);
     if (ready.length && !fits.length && !busy.length) this.timeShort = true;
     return fits
@@ -372,7 +398,8 @@ class Supervisor {
         }
         if (!reason && !this.running.size) {
           const open = s.tasks.filter((t) => t.status === 'pending');
-          if (!open.length) reason = 'queue_empty';
+          // Everything that can run has run; what is left needs the owner. Pause, do not end.
+          if (!open.length) reason = s.tasks.some((t) => t.status === 'waiting_approval') ? 'waiting_approval' : 'queue_empty';
           else if (this.timeShort) reason = 'time_insufficient';
           else {
             const wake = Math.min(...open.map((t) => (t.not_before ? Date.parse(t.not_before) : Date.now())));
@@ -392,6 +419,8 @@ class Supervisor {
   launch(task) {
     task.status = 'running';
     task.attempts += 1;
+    recordKey(this.root, { key: task.key, status: 'started', task_id: task.id, run_id: this.state.run_id });
+    writeQueue(this.root, this.state);
     const promise = this.runTask(task)
       .catch((error) => this.taskCrashed(task, error))
       .finally(() => { this.running.delete(task.id); this.save(); });
@@ -419,7 +448,10 @@ class Supervisor {
     const metricDefs = config.evaluation.metrics || [];
     const before = metricDefs.length ? await measureMetrics(metricDefs, lane, this.logDir()) : {};
 
-    const agentName = pickAgent(task, config, { available: this.available, down: this.agentsUp(), forced: state.forced_agent });
+    const down = this.agentsUp();
+    // After an agent failed on this task, try another authorized agent first when one is usable.
+    const agentName = (task.avoid_agent && !state.forced_agent ? pickAgent(task, config, { available: this.available, down: new Set([...down, task.avoid_agent]), forced: null }) : null)
+      || pickAgent(task, config, { available: this.available, down, forced: state.forced_agent });
     if (!agentName) { task.status = 'pending'; task.attempts -= 1; task.not_before = new Date(Date.now() + this.backoffMs(1)).toISOString(); return; }
     const left = Date.parse(state.deadline) - Date.now() - (state.eval_ms || 0) - config.timeouts.finalize_minutes * MIN;
     const timeoutMs = Math.max(MIN, Math.min(config.timeouts.task_minutes * MIN, left));
@@ -436,6 +468,7 @@ class Supervisor {
       onSpawn: (pid) => this.pids.add(pid),
     });
     this.addUsage(res);
+    if (res.failure !== 'rate_limited') state.rate_streak = 0;
     if (ws.remoteRefs(lane) !== remotesBefore) {
       const msg = `remote-tracking refs changed while ${agentName} ran ${task.id}: something may have pushed (or fetched). The run stopped; check the remote before resuming`;
       state.halt = 'remote_refs_changed';
@@ -467,9 +500,23 @@ class Supervisor {
       const patch = ws.savePatch(lane, cp.sha, path.join(p.artifacts, state.run_id, `${task.id}-${task.attempts}.patch`));
       ws.revertTo(lane, cp);
       if (res.failure === 'rate_limited') {
-        const backoff = this.backoffMs(Object.keys(state.agents_down).length + 1) * 4;
-        state.agents_down[agentName] = new Date(Date.now() + backoff).toISOString();
-        this.log('agent_down', { agent: agentName, until: state.agents_down[agentName] });
+        // A quota is waited out, never worked around: it costs no attempt, iteration or stagnation.
+        state.rate_streak = (state.rate_streak || 0) + 1;
+        const { backoff_base_seconds: base, rate_limit_max_seconds: cap } = config.retry;
+        const until = new Date(Date.now() + Math.min(cap, base * 4 * 2 ** (state.rate_streak - 1)) * 1000).toISOString();
+        state.agents_down[agentName] = until;
+        this.log('agent_down', { agent: agentName, until, streak: state.rate_streak });
+        this.account(task, record);
+        task.history.push({ at: nowIso(), attempt: task.attempts, failure: 'rate_limited', agent: agentName, reasons: [`${agentName} hit a usage limit; waiting until ${until}`] });
+        appendJsonl(p.failures, { at: nowIso(), run_id: state.run_id, task_id: task.id, loop: task.loop, agent: agentName, class: 'rate_limited', detail: String(res.detail || '').slice(0, 300), until });
+        task.attempts -= 1;
+        task.status = 'pending';
+        task.lane = null;
+        task.last_error = `${agentName} rate limited until ${until}`;
+        try { fs.rmSync(path.join(p.checkpoints, `${task.id}.json`), { force: true }); } catch { /* best effort */ }
+        this.save();
+        this.writeBacklog();
+        return;
       }
       this.finishAttempt(task, record, {
         verdict: 'inconclusive', failure: res.failure, regressions: [], improvements: [], confidence: 0,
@@ -490,7 +537,15 @@ class Supervisor {
     }
     const reportText = task.writes === 'report' ? (res.claim?.report || '') : null;
     let d = decide({ task, baseline: baseChecks, after, diff, metrics, report: reportText, config });
-    record.results = { checks: summarizeChecks(after), metrics: d.metrics };
+    // The task's own acceptance commands, after the global checks: a claim of "done" is checked too.
+    let accepted = [];
+    if (task.verify?.length && (d.verdict === 'keep' || (d.failure === 'no_change' && res.claim?.done))) {
+      this.phase('evaluate');
+      accepted = await runChecks(task.verify, lane, { timeoutMs: config.timeouts.evaluation_minutes * MIN, logDir: this.logDir(), repeat: 1, env: agentEnv(), deadline: Date.parse(state.deadline) });
+      const bad = accepted.filter((c) => !c.ok || c.skipped);
+      if (bad.length) d = { ...d, verdict: 'revert', failure: 'acceptance_failed', regressions: [...(d.regressions || []), ...bad.map((c) => `acceptance check ${c.name} ${c.skipped ? 'did not run' : 'failed'}`)] };
+    }
+    record.results = { checks: summarizeChecks(after), acceptance: summarizeChecks(accepted), metrics: d.metrics };
 
     let commit = null;
     let artifact = null;
@@ -557,7 +612,7 @@ class Supervisor {
   }
 
   /** Record the experiment, then decide the task's next state: kept, retry, blocked or done. */
-  finishAttempt(task, record, d, { commit = null, artifact = null, patch = null, changes = null, agentFailure = false } = {}) {
+  finishAttempt(task, record, d, { commit = null, artifact = null, patch = null, changes = null, agentFailure = false, protectedFiles = null } = {}) {
     const { state, config, p } = this;
     state.iterations += 1;
     const kept = d.verdict === 'keep';
@@ -661,7 +716,8 @@ class Supervisor {
     const removed = ws.removeLanes(this.root, this.lanes.concat(Array.from({ length: this.config.max_concurrent_agents }, (_, k) => path.join(s.workspace, `lane-${k}`))));
     const open = s.tasks.filter((t) => t.status === 'pending').length;
     s.stop_reason = reason || 'queue_empty';
-    s.status = this.interrupted ? 'stopped' : open === 0 && ['queue_empty'].includes(s.stop_reason) ? 'done' : 'stopped';
+    // paused is not an end: `night approvals approve|deny` then `night resume` carries on.
+    s.status = this.interrupted ? 'stopped' : s.stop_reason === 'waiting_approval' ? 'paused' : open === 0 && ['queue_empty'].includes(s.stop_reason) ? 'done' : 'stopped';
     s.ended_at = nowIso();
     s.phase = 'ended';
     s.phase_deadline = null;

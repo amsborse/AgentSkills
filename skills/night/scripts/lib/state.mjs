@@ -52,10 +52,12 @@ export const DEFAULT_CONFIG = {
     commands: {},
   },
   timeouts: { task_minutes: 45, stall_minutes: 12, evaluation_minutes: 30, finalize_minutes: 10, heartbeat_seconds: 20 },
-  retry: { backoff_base_seconds: 30, backoff_max_seconds: 900 },
+  retry: { backoff_base_seconds: 30, backoff_max_seconds: 900, rate_limit_max_seconds: 2700 },
   evaluation: { commands: [], metrics: [], flaky_repeat: 2 },
   workspace: { dir: '../{repo}-night', setup: [], branch_prefix: 'night/' },
-  resources: { min_free_disk_mb: 500 },
+  // max_cpu_percent 0 turns the CPU ceiling off; pressure_stop_minutes is how long an idle loop waits under pressure.
+  resources: { min_free_disk_mb: 500, min_free_memory_mb: 200, max_cpu_percent: 0, pressure_stop_minutes: 30 },
+  report: { path: null },
   protected_paths: DEFAULT_PROTECTED,
   instructions: [],
 };
@@ -99,6 +101,11 @@ export function paths(root) {
     logs: path.join(dir, 'logs'),
     reports: path.join(dir, 'reports'),
     artifacts: path.join(dir, 'artifacts'),
+    approvals: path.join(dir, 'approvals.jsonl'),
+    queue: path.join(dir, 'queue.json'),
+    idempotency: path.join(dir, 'idempotency.jsonl'),
+    preset: path.join(dir, 'preset.yaml'),
+    loopReport: path.join(dir, 'NIGHT-LOOP-REPORT.md'),
   };
 }
 
@@ -123,7 +130,10 @@ export function loadConfig(root) {
   const p = paths(root);
   const text = fs.existsSync(p.config) ? fs.readFileSync(p.config, 'utf8') : '';
   const user = text.trim() ? parseYaml(text) : {};
-  const config = deepMerge(DEFAULT_CONFIG, user || {});
+  // Merge order: defaults < preset (.night/preset.yaml, written by `night preset`) < the user's config.
+  const presetText = fs.existsSync(p.preset) ? fs.readFileSync(p.preset, 'utf8') : '';
+  const preset = presetText.trim() ? parseYaml(presetText)?.config : null;
+  const config = deepMerge(deepMerge(DEFAULT_CONFIG, preset || {}), user || {});
   const problems = validateConfig(config);
   if (problems.length) {
     const err = new Error(`invalid .night/config.yaml: ${problems.join('; ')}`);
@@ -145,6 +155,9 @@ export function validateConfig(c) {
   }
   if (c.allow_external_actions) out.push('allow_external_actions: true is not supported; night runs never take external actions');
   if (!Array.isArray(c.agents?.order)) out.push('agents.order must be a list');
+  for (const k of ['min_free_memory_mb', 'max_cpu_percent', 'pressure_stop_minutes']) {
+    if (!(Number(c.resources?.[k]) >= 0)) out.push(`resources.${k} must be >= 0`);
+  }
   for (const cmd of c.evaluation?.commands || []) if (!cmd?.name || !cmd?.run) out.push('each evaluation.commands entry needs name and run');
   return out;
 }
