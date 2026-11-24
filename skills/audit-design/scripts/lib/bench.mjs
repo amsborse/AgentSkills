@@ -86,6 +86,14 @@ const STEP_TYPES = {
 };
 
 export const BROWSERS = ['chromium', 'firefox', 'webkit'];
+
+// Every run opens a fresh context, so a headed bench opens a new window per run (--runs 40 means 40
+// windows grabbing the screen). Chromium keeps an off-screen window visible and painting at the
+// display's refresh rate, so headed frame numbers stay real without taking over the desktop.
+export const launchOptions = (o) => ({
+  headless: !o.headed,
+  args: o.headed && !o['on-screen'] && o.browser === 'chromium' ? ['--window-position=-32000,-32000'] : [],
+});
 // Chrome DevTools presets (bytes per second, round-trip ms), as Lighthouse and DevTools use them.
 export const NETWORKS = {
   'slow-4g': { downloadThroughput: 1.6e6 / 8 * 0.9, uploadThroughput: 750e3 / 8 * 0.9, latency: 150 * 3.75 },

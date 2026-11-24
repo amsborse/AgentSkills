@@ -13,6 +13,12 @@
         "cinematic-creation"
       ]
     },
+    "bash": {
+      "requiredBy": [
+        "vm-claude-session"
+      ],
+      "optionalFor": []
+    },
     "browser": {
       "requiredBy": [
         "add-interactions",
@@ -78,7 +84,8 @@
         "review-changes",
         "review-code",
         "run-autonomous",
-        "ship"
+        "ship",
+        "vm-claude-session"
       ],
       "optionalFor": []
     },
@@ -118,6 +125,12 @@
         "run-autonomous"
       ]
     },
+    "scp": {
+      "requiredBy": [
+        "vm-claude-session"
+      ],
+      "optionalFor": []
+    },
     "shell": {
       "requiredBy": [
         "build-feature",
@@ -150,6 +163,12 @@
         "test-everything",
         "understand-code",
         "verify"
+      ],
+      "optionalFor": []
+    },
+    "ssh": {
+      "requiredBy": [
+        "vm-claude-session"
       ],
       "optionalFor": []
     },

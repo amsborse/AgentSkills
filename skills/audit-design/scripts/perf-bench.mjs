@@ -7,7 +7,7 @@
 //     [--viewports desktop=1440x900,mobile=390x844] [--themes dark] [--cpu 1,4]
 //     [--motion no-preference,reduce] [--tiers default,ultra,high,balanced,low,static]
 //     [--tier-param quality] [--runs 5] [--script steps.json] [--repeats 1] [--settle 1500]
-//     [--frames 2000] [--headed] [--budget budget.json] [--baseline report.json]
+//     [--frames 2000] [--headed [--on-screen]] [--budget budget.json] [--baseline report.json]
 //     [--save-baseline FILE] [--allow-remote] [--json]
 //
 // What it measures per run: LCP, FCP, TTFB, load, CLS, INP (with --script), long tasks, long
@@ -26,10 +26,10 @@ import { parseViewports, isLocalUrl } from './lib/audit.mjs';
 import {
   SCHEMA, TIERS, MOTIONS, DEFAULT_BUDGET, parseList, parseCpu, buildMatrix, withTier, validateScript, samplePath,
   frameStats, inpFrom, heapGrowth, summarizeRuns, conditionComplete, compareReports, validateBudget, checkBudget,
-  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes, BROWSERS, NETWORKS, frameRateDrift,
+  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes, BROWSERS, NETWORKS, frameRateDrift, launchOptions,
 } from './lib/bench.mjs';
 
-const USAGE = 'usage: node perf-bench.mjs --url URL [--project DIR] [--out DIR] [--viewports name=WxH,...] [--themes light,dark] [--cpu 1,4] [--motion no-preference,reduce] [--tiers default,low,...] [--tier-param NAME] [--runs N] [--browser chromium|firefox|webkit] [--network slow-4g|fast-4g|3g] [--script FILE] [--repeats N] [--settle MS] [--frames MS] [--headed] [--budget FILE] [--baseline FILE] [--save-baseline FILE] [--allow-remote] [--json]';
+const USAGE = 'usage: node perf-bench.mjs --url URL [--project DIR] [--out DIR] [--viewports name=WxH,...] [--themes light,dark] [--cpu 1,4] [--motion no-preference,reduce] [--tiers default,low,...] [--tier-param NAME] [--runs N] [--browser chromium|firefox|webkit] [--network slow-4g|fast-4g|3g] [--script FILE] [--repeats N] [--settle MS] [--frames MS] [--headed] [--on-screen] [--budget FILE] [--baseline FILE] [--save-baseline FILE] [--allow-remote] [--json]';
 const usage = (msg) => {
   if (msg) console.error(`error: ${msg}`);
   console.error(USAGE);
@@ -55,6 +55,7 @@ try {
       settle: { type: 'string', default: '1500' },
       frames: { type: 'string', default: '2000' },
       headed: { type: 'boolean', default: false },
+      'on-screen': { type: 'boolean', default: false },
       browser: { type: 'string', default: 'chromium' },
       network: { type: 'string' },
       budget: { type: 'string' },
@@ -316,7 +317,7 @@ async function oneRun(browser, cell) {
 
 let browser;
 try {
-  browser = await chromium.launch({ headless: !o.headed });
+  browser = await chromium.launch(launchOptions(o));
 } catch (e) {
   console.error(`${o.browser} could not start: ${String(e.message || e).split('\n')[0]}. Nothing was measured.`);
   process.exit(2);

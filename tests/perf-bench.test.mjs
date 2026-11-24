@@ -12,8 +12,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   SCHEMA, METRICS, DEFAULT_BUDGET, parseList, parseCpu, buildMatrix, withTier, validateScript, samplePath, median, percentile, stat,
   frameStats, inpFrom, heapGrowth, flattenRun, summarizeRuns, conditionComplete, compareStat, compareReports, validateBudget, checkBudget,
-  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes, BROWSERS, NETWORKS, frameRateDrift,
+  notValidated, renderBenchMarkdown, benchStatus, findVitalsLib, tallyBytes, BROWSERS, NETWORKS, frameRateDrift, launchOptions,
 } from '../skills/audit-design/scripts/lib/bench.mjs';
+
+test('headed runs open their windows off-screen unless --on-screen is given', () => {
+  assert.deepEqual(launchOptions({ browser: 'chromium', headed: false }), { headless: true, args: [] });
+  assert.deepEqual(launchOptions({ browser: 'chromium', headed: true }), { headless: false, args: ['--window-position=-32000,-32000'] });
+  assert.deepEqual(launchOptions({ browser: 'chromium', headed: true, 'on-screen': true }), { headless: false, args: [] });
+  // The flag is Chromium's; other engines keep their default window.
+  assert.deepEqual(launchOptions({ browser: 'firefox', headed: true }), { headless: false, args: [] });
+});
 
 test('web-vitals is found in a project even though its exports map hides package.json', () => {
   const project = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-wv-'));
