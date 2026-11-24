@@ -38,8 +38,33 @@ node ~/.claude/scripts/eta.js step [note]
 node ~/.claude/scripts/eta.js done
 ```
 
+## Calendar log of finished tasks (optional)
+
+`scripts/claude-task-log.js` logs a finished task to a calendar when Claude stops. It is off until
+`~/.claude/claude-task-log.json` names the logger command, and it logs only tasks Claude titled
+itself (never the prompt text):
+
+```
+node ~/.claude/scripts/claude-task-log.js title "Fix the week panel" --kind fix
+node ~/.claude/scripts/claude-task-log.js status
+```
+
+The duration is the eta plan's elapsed time (1 to 1440 minutes); the request id is the session
+plus the plan start, so a retry writes the same event. The Stop hook returns at once and a
+detached worker runs the logger. Every outcome goes to `~/.claude/cache/eta/task-log.log`; a
+failure also shows one Windows toast, repeated only when the reason changes or after a success.
+Config, for Sutra's desktop app:
+
+```json
+{ "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+              "D:/.../Sutra/apps/desktop/scripts/Log-ClaudeTask.ps1"],
+  "exe": "D:/.../Sutra.Desktop.exe" }
+```
+
+Its Stop hook entry: `node "~/.claude/scripts/claude-task-log.js" hook-stop` (timeout 5).
+
 ## Test
 
 ```
-node --test claude-statusline/scripts/statusline.test.js
+node --test claude-statusline/scripts/statusline.test.js claude-statusline/scripts/claude-task-log.test.js
 ```
