@@ -1,6 +1,6 @@
 ---
 name: night-dependencies
-description: Polyglot dependency and supply-chain loop. Patches advisories, runs safe lockstep bumps or codemod migrations, checks install scripts, and prunes dead packages. Use for "/night dependencies".
+description: Polyglot dependency loop. Patches advisories, runs safe bumps or codemods, checks install scripts, and prunes dead packages. Use for "/night dependencies".
 metadata:
   aliases: "night-dependencies, night dependencies, overnight dependency upgrade"
   keywords: "night, loop, dependencies, upgrade, cve, lockfile"

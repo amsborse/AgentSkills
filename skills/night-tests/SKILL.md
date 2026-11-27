@@ -1,6 +1,6 @@
 ---
 name: night-tests
-description: Polyglot test-coverage loop. Adds one focused behavioral or characterization test per iteration across Node, Python, Rust, Go, .NET or Swift, proving it catches breaks. Use for "/night tests".
+description: Polyglot test loop. Adds one behavioral test per iteration across Node, Python, Rust, Go, .NET or Swift, proving it catches breaks. Use for "/night tests".
 metadata:
   aliases: "night-tests, night tests, test loop, add tests overnight, coverage loop"
   keywords: "night, loop, tests, coverage, regression, unit, integration, characterization"

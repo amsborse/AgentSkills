@@ -1,6 +1,6 @@
 ---
 name: night-saas-lab
-description: SaaS craft and feature-replication loop. Ships one tested Linear/Vercel/PostHog-bar slice—Cmd+K, sample onboarding, usage meters, audit logs or HITL queues. Use for "/night saas".
+description: SaaS craft loop. Ships one tested Linear/PostHog-bar slice: Cmd+K, sample onboarding, usage meters, audit logs or HITL queues. Use for "/night saas".
 metadata:
   aliases: "night-saas-lab, night saas, night saas lab, overnight saas lab"
   keywords: "night, loop, saas, onboarding, metering, auditlog"

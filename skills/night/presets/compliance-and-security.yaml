@@ -1,0 +1,50 @@
+name: compliance-and-security
+mission: |
+  # Enterprise Legal, Privacy & Security Hardening DAG
+  Audit and harden SPDX/SBOM licensing, dependency supply chain, classic injection boundaries, stateful multi-tenant/race faults, GDPR/CCPA privacy & DSAR controls, and redacted operational audit logs.
+config:
+  max_iterations: 18
+  max_concurrent_agents: 2
+  max_stagnant_iterations: 4
+tasks:
+  - key: trust-1-spdx-licenses
+    title: "SPDX & third-party license audit: copyleft guard and attribution inventory"
+    loop: night-compliance
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Verify SPDX manifest metadata, add automated checks against AGPL/GPL/SSPL/CC-BY-NC contamination in production dependencies, and verify third-party notices."
+  - key: trust-2-supply-chain
+    title: "Supply chain & advisories: patch reachable CVEs with lockfile integrity"
+    loop: night-dependencies
+    depends_on: [trust-1-spdx-licenses]
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Resolve high/moderate dependency advisories, inspect install scripts, and prune verified dead dependencies."
+  - key: trust-3-redteam-sinks
+    title: "Trust boundaries: injection, SSRF, XSS, and path-traversal red-team pass"
+    loop: night-redteam
+    depends_on: [trust-2-supply-chain]
+    keep_rule: no-regression
+    estimate_minutes: 30
+    objective: "Prove and fix one reachable input-to-sink trust boundary vulnerability strictly via local regression tests."
+  - key: trust-4-stateful-faults
+    title: "Stateful security faults: cross-tenant IDOR/BOLA and TOCTOU concurrency proofs"
+    loop: night-security-faults
+    depends_on: [trust-2-supply-chain]
+    keep_rule: tests-up
+    estimate_minutes: 30
+    objective: "Test cross-tenant read/write/export isolation, parallel race conditions, numeric edge cases, and AI tool boundaries."
+  - key: trust-5-privacy-dsar
+    title: "Privacy & consumer controls: consent/GPC gating, DSAR export/delete, PII scrubbing"
+    loop: night-compliance
+    depends_on: [trust-4-stateful-faults]
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Enforce pre-consent/Sec-GPC analytics gating, PII redaction in logs/errors, DSAR export/erasure completeness, or symmetric subscription cancellation."
+  - key: trust-6-audit-readiness
+    title: "Operational audit readiness: structured redacted logging, rate limits, and shutdown"
+    loop: night-readiness
+    depends_on: [trust-3-redteam-sinks, trust-5-privacy-dsar]
+    keep_rule: no-regression
+    estimate_minutes: 30
+    objective: "Ensure correlation/tenant IDs, secret/PII redaction, rate-limit Retry-After headers, and graceful SIGTERM drain are verified by tests."

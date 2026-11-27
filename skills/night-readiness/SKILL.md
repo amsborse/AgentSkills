@@ -1,6 +1,6 @@
 ---
 name: night-readiness
-description: Production-readiness loop. Hardens one operational gap per iteration—env validation, timeouts, idempotency, healthz, graceful shutdown or logging. Use for "/night readiness".
+description: Production-readiness loop. Hardens env validation, timeouts, webhook idempotency, healthz, graceful shutdown or redacted logging. Use for "/night readiness".
 metadata:
   aliases: "night-readiness, night readiness, night production, overnight production readiness"
   keywords: "night, loop, readiness, observability, idempotency, shutdown, resilience"

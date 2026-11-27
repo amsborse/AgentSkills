@@ -14,7 +14,8 @@ import { plan, CONTROL_WORDS, BUILD_WORDS, PLAYLIST_MODES, buildTask } from './l
 import { runChecks, measureMetrics } from './lib/evaluate.mjs';
 import { availableAgents, agentEnv } from './lib/agents.mjs';
 import { runNight, evalCommands } from './lib/supervisor.mjs';
-import { renderReport, writeReport } from './lib/report.mjs';
+import { renderReport, renderHtmlReport, writeReport } from './lib/report.mjs';
+import { listPresets, loadPreset, seedPreset, readApprovals, resolveApproval } from './lib/unblock.mjs';
 import { watch } from './lib/watchdog.mjs';
 import * as ws from './lib/workspace.mjs';
 
@@ -27,7 +28,9 @@ const HELP = `night: autonomous, verified improvement loops on an isolated branc
   night status [--json]             what is running, the queue, the last results
   night stop [--now]                finish the current iteration and stop (--now: kill agents, revert)
   night resume [--detach]           continue an interrupted run
-  night report                      write and print the morning report
+  night report [--html]             write and print the morning report (+ interactive latest.html)
+  night preset [list|NAME] [--file] list or seed a multi-step DAG preset pack (saas-launch, indie-game-polish, ...)
+  night approvals [list|approve|deny ID] inspect or resolve queued owner approvals
   night plan [mode] [objective...]  show the prioritized plan without running anything
   night loops                       list loop skills and the modes they serve
   night init                        create .night/config.yaml with the defaults
@@ -47,7 +50,7 @@ function parseArgs(argv) {
     if (a === '--') { pos.push(...argv.slice(i + 1)); break; }
     if (a.startsWith('--')) {
       const [k, v] = a.slice(2).split('=');
-      const valued = ['agent', 'max-iterations', 'hours', 'interval', 'priority', 'loop'].includes(k);
+      const valued = ['agent', 'max-iterations', 'hours', 'interval', 'priority', 'loop', 'file'].includes(k);
       flags[k] = v ?? (valued ? argv[++i] : true);
     } else pos.push(a);
   }
@@ -215,11 +218,77 @@ async function main() {
       return 0;
     }
     case 'report': {
-      if (!loadState(root)) { print(renderReport(root)); return 0; }
-      const { file, text } = writeReport(root);
+      if (!loadState(root)) {
+        if (flags.html) { print(renderHtmlReport(root)); return 0; }
+        print(renderReport(root));
+        return 0;
+      }
+      const { file, htmlFile, text } = writeReport(root);
+      if (flags.html) { print(path.relative(root, htmlFile)); return 0; }
       print(text);
-      print(`\n(written to ${path.relative(root, file)})`);
+      print(`\n(written to ${path.relative(root, file)} and ${path.relative(root, htmlFile)})`);
       return 0;
+    }
+    case 'preset': {
+      const [sub] = pos;
+      if ((!sub || sub === 'list') && !flags.file) {
+        const names = listPresets(root);
+        if (!names.length) { print('night: no presets available'); return 0; }
+        for (const n of names) {
+          const pr = loadPreset(n, null, root);
+          const summary = pr.mission.split(/\r?\n/).map((l) => l.replace(/^#+\s*/, '').trim()).find(Boolean) || '';
+          print(`${n.padEnd(26)} ${String(pr.tasks.length).padStart(2)} tasks  ${summary}`);
+        }
+        return 0;
+      }
+      const preset = loadPreset(sub || null, flags.file || null, root);
+      const { loops } = discoverSkills(root);
+      const seeded = seedPreset(root, preset);
+      for (const t of seeded.state.tasks) {
+        if (t.loop && !t.skill_path) t.skill_path = loops.find((l) => l.name === t.loop)?.path || null;
+      }
+      saveState(root, seeded.state);
+      print(`night: seeded preset "${preset.name}" (${seeded.added.length} added, ${seeded.skipped.length} skipped). Run \`night run --detach\` to execute the DAG.`);
+      for (const t of seeded.state.tasks) {
+        const deps = t.dependencies?.length ? ` <- [${t.dependencies.join(', ')}]` : '';
+        print(`  [${t.status}] ${t.key || t.id}: ${t.title}${deps}`);
+      }
+      return 0;
+    }
+    case 'approvals': {
+      const [sub = 'list', id, ...noteWords] = pos;
+      if (sub === 'list') {
+        const all = readApprovals(root);
+        if (!all.length) { print('night: no approvals recorded'); return 0; }
+        for (const a of all) print(`${a.id}  [${a.status}]  ${a.decision}${a.note ? ` (${a.note})` : ''}`);
+        return 0;
+      }
+      if (sub === 'approve' || sub === 'deny') {
+        if (!id) { print(`night: approvals ${sub} needs an approval id`); return 1; }
+        const status = sub === 'approve' ? 'approved' : 'denied';
+        const resolved = resolveApproval(root, id, status, noteWords.join(' '));
+        const s = loadState(root);
+        if (s) {
+          for (const t of s.tasks || []) {
+            if (t.status === 'waiting_approval' && t.blocker?.approval === resolved.id) {
+              if (status === 'approved') {
+                t.status = 'pending';
+                t.blocker = null;
+                t.blocked_reason = null;
+                t.approved = [...(t.approved || []), resolved.decision];
+              } else {
+                t.status = 'blocked';
+                t.blocked_reason = `approval ${resolved.id} denied`;
+              }
+            }
+          }
+          saveState(root, s);
+        }
+        print(`night: ${resolved.id} marked ${resolved.status}`);
+        return 0;
+      }
+      print(`night: unknown approvals subcommand ${sub}`);
+      return 1;
     }
     case 'watchdog': {
       const config = loadConfig(root);

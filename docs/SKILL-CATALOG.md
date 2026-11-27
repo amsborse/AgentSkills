@@ -55,6 +55,7 @@ interactively by day ("run night-tests on the parser"). Architecture:
 | `night-accessibility` | `/night accessibility`, `/night polish` | revamp-ui, verify, test-everything | code |
 | `night-bug-hunter` | `/night bugs`, `/night qa` | fix-bug, test-everything | code |
 | `night-chaos` | `/night chaos`, `/night resilience`, `/night hardening` | test-everything, fix-bug, verify | code |
+| `night-compliance` | `/night compliance`, `/night legal`, `/night production` | security-audit, production-ready, test-everything, verify | code |
 | `night-consistency` | `/night consistency`, `/night polish` | improve, review-code, revamp-ui | code |
 | `night-dependencies` | `/night dependencies`, `/night security`, `/night production` | security-audit, test-everything, improve | code |
 | `night-docs` | `/night docs` | understand-code, verify | code |

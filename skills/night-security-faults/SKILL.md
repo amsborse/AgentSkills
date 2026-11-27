@@ -1,6 +1,6 @@
 ---
 name: night-security-faults
-description: Stateful security fault-finding loop. Proves multi-tenant IDOR, TOCTOU races, webhook replay, parser fuzzing or AI boundary escapes with local tests. Use for "/night security-faults".
+description: Stateful security fault loop. Proves multi-tenant IDOR, TOCTOU races, replay, parser fuzzing or AI boundary escapes with local tests. Use for "/night faults".
 metadata:
   aliases: "night-security-faults, night security faults, night faults, overnight security faults"
   keywords: "night, loop, faults, idor, toctou, fuzzing, tenant"

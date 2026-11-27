@@ -1,6 +1,6 @@
 ---
 name: night-ideas
-description: Creative product and engineering discovery loop. Benchmarks repo stage against proven SaaS, game, and systems patterns, returning scored specs and follow-ups. Use for "/night ideas".
+description: Creative discovery loop. Benchmarks repo stage against proven SaaS, game and systems patterns, returning scored specs. Use for "/night ideas".
 metadata:
   aliases: "night-ideas, night ideas, overnight idea research, creative night research"
   keywords: "night, loop, ideas, creative, product, roadmap"

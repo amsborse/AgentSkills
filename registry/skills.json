@@ -816,7 +816,7 @@
     {
       "name": "night",
       "path": "skills/night",
-      "description": "Run autonomous, verified improvement loops on any repository overnight. Plans by stage and signals, isolates worktrees, delegates iterations, verifies independently, rotates past blocked tasks, and writes an evidence-only morning report. Use for \"/night\", \"/night auto\", \"run loops overnight\", \"night status\" or \"night report\".",
+      "description": "Autonomous overnight loop orchestrator for any repo and stage. Plans by priority, isolates worktrees, verifies independently, rotates loops, and writes MD/HTML morning reports. Use for \"/night\" or \"run loops overnight\".",
       "aliases": [
         "night",
         "/night",
@@ -938,7 +938,7 @@
     {
       "name": "night-chaos",
       "path": "skills/night-chaos",
-      "description": "Chaos and worst-case stress loop. Injects local timeouts, 500s, corrupt state, clock skew or adversarial UI payloads and fixes crashes with tests. Use for \"/night chaos\".",
+      "description": "Chaos stress loop. Injects local timeouts, 500s, corrupt saves, async races or worst-case UI data and fixes crashes with tests. Use for \"/night chaos\".",
       "aliases": [
         "night-chaos",
         "night chaos",
@@ -971,6 +971,50 @@
       "risk": "medium",
       "workflows": [
         "skills/night-chaos/workflows/chaos-matrix.md"
+      ]
+    },
+    {
+      "name": "night-compliance",
+      "path": "skills/night-compliance",
+      "description": "Legal and compliance engineering loop. Enforces SPDX license hygiene, GDPR/CCPA privacy controls, consent gating, and AI/store disclosures. Use for \"/night compliance\".",
+      "aliases": [
+        "night-compliance",
+        "night compliance",
+        "night legal",
+        "night legal compliance",
+        "overnight legal compliance"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "compliance",
+        "legal",
+        "gdpr",
+        "ccpa",
+        "spdx",
+        "sbom",
+        "license",
+        "consent"
+      ],
+      "composes": [
+        "security-audit",
+        "production-ready",
+        "test-everything",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/night-compliance/workflows/compliance-matrix.md"
       ]
     },
     {
@@ -1007,7 +1051,7 @@
     {
       "name": "night-dependencies",
       "path": "skills/night-dependencies",
-      "description": "Polyglot dependency and supply-chain loop. Patches advisories, runs safe lockstep bumps or codemod migrations, checks install scripts, and prunes dead packages. Use for \"/night dependencies\".",
+      "description": "Polyglot dependency loop. Patches advisories, runs safe bumps or codemods, checks install scripts, and prunes dead packages. Use for \"/night dependencies\".",
       "aliases": [
         "night-dependencies",
         "night dependencies",
@@ -1106,7 +1150,7 @@
     {
       "name": "night-game-lab",
       "path": "skills/night-game-lab",
-      "description": "Game feel, mechanics and headless balance loop. Adds coyote/buffer controls, hitstop/trauma juice, seeded runs, synergy pipelines or Monte Carlo sim bots. Use for \"/night game\".",
+      "description": "Game feel and balance loop. Adds coyote/buffer controls, hitstop/trauma juice, seeded runs, synergy math or Monte Carlo sim bots. Use for \"/night game\".",
       "aliases": [
         "night-game-lab",
         "night game",
@@ -1147,7 +1191,7 @@
     {
       "name": "night-ideas",
       "path": "skills/night-ideas",
-      "description": "Creative product and engineering discovery loop. Benchmarks repo stage against proven SaaS, game, and systems patterns, returning scored specs and follow-ups. Use for \"/night ideas\".",
+      "description": "Creative discovery loop. Benchmarks repo stage against proven SaaS, game and systems patterns, returning scored specs. Use for \"/night ideas\".",
       "aliases": [
         "night-ideas",
         "night ideas",
@@ -1277,7 +1321,7 @@
     {
       "name": "night-readiness",
       "path": "skills/night-readiness",
-      "description": "Production-readiness loop. Hardens one operational gap per iteration—env validation, timeouts, idempotency, healthz, graceful shutdown or logging. Use for \"/night readiness\".",
+      "description": "Production-readiness loop. Hardens env validation, timeouts, webhook idempotency, healthz, graceful shutdown or redacted logging. Use for \"/night readiness\".",
       "aliases": [
         "night-readiness",
         "night readiness",
@@ -1410,7 +1454,7 @@
     {
       "name": "night-saas-lab",
       "path": "skills/night-saas-lab",
-      "description": "SaaS craft and feature-replication loop. Ships one tested Linear/Vercel/PostHog-bar slice—Cmd+K, sample onboarding, usage meters, audit logs or HITL queues. Use for \"/night saas\".",
+      "description": "SaaS craft loop. Ships one tested Linear/PostHog-bar slice: Cmd+K, sample onboarding, usage meters, audit logs or HITL queues. Use for \"/night saas\".",
       "aliases": [
         "night-saas-lab",
         "night saas",
@@ -1450,7 +1494,7 @@
     {
       "name": "night-security-faults",
       "path": "skills/night-security-faults",
-      "description": "Stateful security fault-finding loop. Proves multi-tenant IDOR, TOCTOU races, webhook replay, parser fuzzing or AI boundary escapes with local tests. Use for \"/night security-faults\".",
+      "description": "Stateful security fault loop. Proves multi-tenant IDOR, TOCTOU races, replay, parser fuzzing or AI boundary escapes with local tests. Use for \"/night faults\".",
       "aliases": [
         "night-security-faults",
         "night security faults",
@@ -1533,7 +1577,7 @@
     {
       "name": "night-tests",
       "path": "skills/night-tests",
-      "description": "Polyglot test-coverage loop. Adds one focused behavioral or characterization test per iteration across Node, Python, Rust, Go, .NET or Swift, proving it catches breaks. Use for \"/night tests\".",
+      "description": "Polyglot test loop. Adds one behavioral test per iteration across Node, Python, Rust, Go, .NET or Swift, proving it catches breaks. Use for \"/night tests\".",
       "aliases": [
         "night-tests",
         "night tests",

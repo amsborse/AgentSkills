@@ -1,6 +1,6 @@
 ---
 name: night-chaos
-description: Chaos and worst-case stress loop. Injects local timeouts, 500s, corrupt state, clock skew or adversarial UI payloads and fixes crashes with tests. Use for "/night chaos".
+description: Chaos stress loop. Injects local timeouts, 500s, corrupt saves, async races or worst-case UI data and fixes crashes with tests. Use for "/night chaos".
 metadata:
   aliases: "night-chaos, night chaos, night resilience, overnight chaos loop"
   keywords: "night, loop, chaos, stress, resilience, degradation"

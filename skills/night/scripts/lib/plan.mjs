@@ -6,13 +6,14 @@ export const CONTROL_WORDS = ['status', 'resume', 'stop', 'report'];
 export const BUILD_WORDS = ['build'];
 // Playlist aliases expand one /night word onto a curated set of complementary loop modes.
 export const PLAYLIST_MODES = {
-  security: ['security', 'security-faults', 'redteam', 'dependencies'],
-  production: ['readiness', 'security-faults', 'dependencies', 'chaos', 'tests'],
-  hardening: ['readiness', 'security-faults', 'chaos', 'dependencies'],
+  security: ['security', 'security-faults', 'redteam', 'dependencies', 'compliance'],
+  production: ['readiness', 'security-faults', 'compliance', 'dependencies', 'chaos', 'tests'],
+  hardening: ['readiness', 'security-faults', 'compliance', 'chaos', 'dependencies'],
   polish: ['visual', 'accessibility', 'consistency'],
-  saas: ['saas', 'readiness', 'security-faults', 'visual', 'ideas'],
-  game: ['game', 'performance', 'visual', 'chaos', 'ideas'],
+  saas: ['saas', 'readiness', 'security-faults', 'compliance', 'visual', 'ideas'],
+  game: ['game', 'performance', 'visual', 'compliance', 'chaos', 'ideas'],
   creative: ['ideas', 'saas', 'game', 'research'],
+  legal: ['compliance'],
 };
 
 const clamp = (n) => Math.max(1, Math.min(5, Math.round(n)));
@@ -24,7 +25,7 @@ export function priority(s) {
 
 const RISK_REDUCING = {
   tests: 4, bugs: 5, redteam: 4, security: 4, 'security-faults': 5,
-  readiness: 5, chaos: 4, dependencies: 3, qa: 4, accessibility: 3,
+  readiness: 5, compliance: 4, legal: 4, chaos: 4, dependencies: 3, qa: 4, accessibility: 3,
   saas: 3, game: 3,
 };
 
@@ -192,9 +193,9 @@ export function plan({ mode, objective = '', loops, skills = [], env, red = fals
   return { tasks: tasks.slice(0, mode === 'full' || mode === 'overnight' ? Math.max(limit, 16) : limit), warnings };
 }
 
-/** A kept loop task comes back for its next iteration at a lower priority unless the loop said it is done. */
+/** A kept loop task comes back for its next iteration at a lower priority unless it is a one-shot preset task or the loop said it is done. */
 export function requeue(task, loopsByName, ctx, result) {
-  if (!task.loop || result?.done) return null;
+  if (!task.loop || task.once || result?.done) return null;
   const loop = loopsByName.get(task.loop);
   if (!loop) return null;
   const next = loopTask(loop, ctx, {

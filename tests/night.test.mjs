@@ -12,9 +12,11 @@ import { assess, tick, MAX_RESTARTS } from '../skills/night/scripts/lib/watchdog
 import { priority, scoreLoop, followUpTasks } from '../skills/night/scripts/lib/plan.mjs';
 import { inspectDiff, decide, parseCounts } from '../skills/night/scripts/lib/evaluate.mjs';
 import { detectEnv } from '../skills/night/scripts/lib/env.mjs';
+import { writeReport } from '../skills/night/scripts/lib/report.mjs';
 import { checkpoint, revertTo, commitTask } from '../skills/night/scripts/lib/workspace.mjs';
 import { discoverSkills } from '../skills/night/scripts/lib/loops.mjs';
 import { DEFAULT_CONFIG } from '../skills/night/scripts/lib/state.mjs';
+import { pickAgent } from '../skills/night/scripts/lib/agents.mjs';
 import { _test } from '../skills/night/scripts/lib/supervisor.mjs';
 
 const { Supervisor } = _test;
@@ -481,11 +483,21 @@ test('night bootstrap configures starter checks on a Stage-0 repo and unverified
   assert.match(base.out, /PASS js-syntax/);
 });
 
+test('default routing is Claude-first for every loop and falls back to Codex when Claude is down', () => {
+  const available = ['claude', 'codex'];
+  assert.deepEqual(DEFAULT_CONFIG.agents.routing, {});
+  assert.equal(pickAgent({ loop: 'night-visual' }, DEFAULT_CONFIG, { available }), 'claude');
+  assert.equal(pickAgent({ loop: 'night-compliance' }, DEFAULT_CONFIG, { available }), 'claude');
+  assert.equal(pickAgent({ loop: 'night-visual' }, DEFAULT_CONFIG, { available, down: new Set(['claude']) }), 'codex');
+  assert.equal(pickAgent({ loop: 'night-compliance' }, DEFAULT_CONFIG, { available, down: new Set(['claude']) }), 'codex');
+});
+
 test('playlist modes expand domain loops and multi-loop runs rotate past an early stagnant task', () => {
   const ctx = makeRepo('rotate', {
     'package.json': JSON.stringify({ type: 'module', dependencies: { next: '15.0.0', react: '19.0.0', stripe: '17.0.0' } }),
     'math.js': MATH,
-    'math.test.js': MATH_TEST,
+    // Covers mul so the 'break' behaviour (a * b + 1) fails the baseline whichever security loop runs first.
+    'math.test.js': `${MATH_TEST.replace('{ add }', '{ add, mul }')}test('mul base', () => assert.equal(mul(2, 3), 6));\n`,
     'app/billing/page.tsx': 'export default function Billing() { return null; }\n',
   }, {
     // First 3 attempts break tests (task 1 blocks and stagnant hits 3), then subsequent attempts add valid tests!
@@ -505,4 +517,68 @@ test('playlist modes expand domain loops and multi-loop runs rotate past an earl
   const s = state(ctx);
   assert.ok(s.tasks.some((t) => t.status === 'blocked'), 'first task exhausted retries and blocked');
   assert.ok(onBranch(ctx, 'gen1.test.js'), `expected later untried loop to run and keep gen1.test.js:\n${r.out}`);
+});
+
+test('built-in presets validate, execute in DAG dependency order, and generate escaped HTML dashboard with visual pairs', () => {
+  const ctx = makeRepo('dag', { 'package.json': '{"type":"module"}\n', 'math.js': MATH, 'math.test.js': MATH_TEST }, {
+    plan: 'report-md,js-test',
+    config: { max_iterations: 6, max_concurrent_agents: 2 },
+  });
+  const list = night(ctx, ['preset', 'list']);
+  assert.equal(list.code, 0, list.out);
+  for (const p of ['any-repo-overnight', 'compliance-and-security', 'indie-game-polish', 'saas-launch']) {
+    assert.match(list.out, new RegExp(`\\b${p}\\b`), list.out);
+  }
+
+  // Write a 2-step custom DAG preset with an XSS attempt in the title to verify topological execution + HTML escaping.
+  const customPreset = path.join(ctx.base, 'mini-dag.yaml');
+  fs.writeFileSync(customPreset, [
+    'name: mini-dag',
+    'mission: "# Mini DAG <script>alert(1)</script>"',
+    'tasks:',
+    '  - key: step-1-blueprint',
+    '    title: "Blueprint <img src=x onerror=alert(1)>"',
+    '    loop: night-ideas',
+    '    writes: report',
+    '    estimate_minutes: 10',
+    '  - key: step-2-tests',
+    '    title: "Tests after blueprint"',
+    '    loop: night-tests',
+    '    depends_on: [step-1-blueprint]',
+    '    keep_rule: tests-up',
+    '    estimate_minutes: 15',
+    '',
+  ].join('\n'));
+
+  const seeded = night(ctx, ['preset', '--file', customPreset]);
+  assert.equal(seeded.code, 0, seeded.out);
+  const run = night(ctx, ['run']);
+  assert.equal(run.code, 0, run.out);
+
+  const exps = jsonl(ctx, 'experiments.jsonl');
+  assert.equal(exps.length, 2, JSON.stringify(exps.map((e) => [e.title, e.verdict])));
+  assert.match(exps[0].title, /Blueprint/);
+  assert.equal(exps[1].title, 'Tests after blueprint');
+  assert.ok(onBranch(ctx, 'gen1.test.js'), 'dependent step-2-tests ran and committed');
+
+  // Drop before/after PNG placeholders in .night/artifacts/<run_id>/ and regenerate HTML dashboard (before the re-seed below:
+  // seedPreset writes a fresh `planned` state when no task is active, replacing state.json).
+  const s = state(ctx);
+  const artDir = path.join(ctx.repo, '.night', 'artifacts', s.run_id);
+  fs.mkdirSync(artDir, { recursive: true });
+  const tinyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+  fs.writeFileSync(path.join(artDir, 'hero-before.png'), tinyPng);
+  fs.writeFileSync(path.join(artDir, 'hero-after.png'), tinyPng);
+  const { htmlFile, html } = writeReport(ctx.repo);
+  assert.ok(fs.existsSync(htmlFile) && fs.existsSync(path.join(ctx.repo, '.night', 'reports', 'latest.html')));
+  assert.match(html, /git cherry-pick /);
+  assert.match(html, /Before &amp; After Visual Evidence/);
+  assert.match(html, /Unknown/);
+  assert.doesNotMatch(html, /<img src=x onerror=alert\(1\)>/);
+  assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+
+  // Re-seeding the same preset skips already-kept keys via the idempotency ledger.
+  const reseed = night(ctx, ['preset', '--file', customPreset]);
+  assert.equal(reseed.code, 0, reseed.out);
+  assert.match(reseed.out, /0 added, 2 skipped/);
 });

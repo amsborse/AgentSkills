@@ -181,8 +181,10 @@ class Supervisor {
     for (const e of errors) this.state.warnings.push(`skill not loaded: ${e.path}: ${e.error}`);
     for (const l of loops) if (l.missing_sections.length) this.state.warnings.push(`loop ${l.name} lacks sections: ${l.missing_sections.join(', ')}`);
 
-    const planned = previous?.status === 'planned' && !opts.mode && opts.objective == null ? previous.tasks : null;
+    const defaultMode = (!opts.mode || opts.mode === 'auto' || opts.mode === 'preset') && !opts.objective;
+    const planned = previous?.status === 'planned' && defaultMode ? previous.tasks : null;
     const fromPreset = Boolean(planned && this.state.preset);
+    if (fromPreset) this.state.mode = 'preset';
     this.writeMission(mode, objective);
 
     if (opts.dryRun) {
@@ -355,7 +357,10 @@ class Supervisor {
   dependenciesMet(task) {
     const deps = task.dependencies?.length ? task.dependencies : task.depends_on;
     if (!deps?.length) return true;
-    return deps.every((dep) => dependencyStatus(dep, this.state.tasks, this.ledger) === 'done');
+    return deps.every((dep) => {
+      const st = dependencyStatus(dep, this.state.tasks, this.ledger);
+      return st === 'done' || st === 'kept';
+    });
   }
 
   eligible() {

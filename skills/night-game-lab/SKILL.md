@@ -1,6 +1,6 @@
 ---
 name: night-game-lab
-description: Game feel, mechanics and headless balance loop. Adds coyote/buffer controls, hitstop/trauma juice, seeded runs, synergy pipelines or Monte Carlo sim bots. Use for "/night game".
+description: Game feel and balance loop. Adds coyote/buffer controls, hitstop/trauma juice, seeded runs, synergy math or Monte Carlo sim bots. Use for "/night game".
 metadata:
   aliases: "night-game-lab, night game, night game lab, overnight game lab"
   keywords: "night, loop, game, playtest, hitstop, roguelike, balance"

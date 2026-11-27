@@ -1,6 +1,6 @@
 ---
 name: night
-description: Run autonomous, verified improvement loops on any repository overnight. Plans by stage and signals, isolates worktrees, delegates iterations, verifies independently, rotates past blocked tasks, and writes an evidence-only morning report. Use for "/night", "/night auto", "run loops overnight", "night status" or "night report".
+description: Autonomous overnight loop orchestrator for any repo and stage. Plans by priority, isolates worktrees, verifies independently, rotates loops, and writes MD/HTML morning reports. Use for "/night" or "run loops overnight".
 metadata:
   aliases: "night, /night, night loop, night run, overnight loops, night status, night report, night stop, night resume, night bootstrap"
   keywords: "night, overnight, loop, autonomous, unattended, watchdog, orchestrator, morning report, keep or revert, experiments"
@@ -30,10 +30,11 @@ node ~/agent-skills/skills/night/scripts/night.mjs <command> [args]
 | --- | --- |
 | `/night` or `/night auto` | `run auto --detach` (stage-aware mix of matching loops) |
 | `/night full` | `run full --detach` (broad overnight playlist: code + creative research loops) |
-| `/night <playlist>` (`saas`, `game`, `production`, `hardening`, `security`, `polish`, `creative`) | `run <playlist> --detach` |
-| `/night <loop-mode>` (`readiness`, `security-faults`, `saas-lab`, `game-lab`, `chaos`, `visual`, `dependencies`, `ideas`, `tests`, `bugs`, `improve`, `qa`, `performance`, `refactor`, `research`, `docs`, `accessibility`, `consistency`, `redteam`, `evolve-skills`) | `run <loop-mode> --detach` |
+| `/night <playlist>` (`saas`, `game`, `production`, `hardening`, `security`, `legal`, `polish`, `creative`) | `run <playlist> --detach` |
+| `/night <loop-mode>` (`readiness`, `compliance`, `security-faults`, `saas-lab`, `game-lab`, `chaos`, `visual`, `dependencies`, `ideas`, `tests`, `bugs`, `improve`, `qa`, `performance`, `refactor`, `research`, `docs`, `accessibility`, `consistency`, `redteam`, `evolve-skills`) | `run <loop-mode> --detach` |
+| `/night preset [list\|saas-launch\|indie-game-polish\|compliance-and-security\|any-repo-overnight]` | `preset [list\|<name>]` then `run --detach` |
 | `/night build <objective>` or `/night <free text>` | `run build <objective> --detach` / `run <free text> --detach` |
-| `/night status`, `stop`, `resume`, `report`, `bootstrap`, `doctor` | the same word (`stop --now` kills agents and reverts their work) |
+| `/night status`, `stop`, `resume`, `report`, `approvals`, `bootstrap`, `doctor` | the same word (`report` writes `.md` + interactive `latest.html`) |
 | "what would it do" | `plan [mode]` |
 
 Options: `--agent claude|codex|<name>`, `--max-iterations N`, `--hours H`, `--dry-run`. Detach

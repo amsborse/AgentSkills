@@ -31,12 +31,9 @@ export const DEFAULT_CONFIG = {
   allow_external_actions: false,
   agents: {
     order: ['claude', 'codex'],
-    routing: {
-      'night-visual': 'codex',
-      'night-accessibility': 'codex',
-      'night-consistency': 'codex',
-      'night-docs': 'codex',
-    },
+    // Local Claude runs first across all loops; Codex is the automatic fallback when Claude is
+    // unavailable, rate-limited, or the task is retried via avoid_agent.
+    routing: {},
     claude: {
       model: null,
       permission_mode: 'acceptEdits',
