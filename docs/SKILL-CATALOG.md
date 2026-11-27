@@ -52,21 +52,28 @@ interactively by day ("run night-tests on the parser"). Architecture:
 
 | Skill | `/night` command | Builds on | Writes |
 | --- | --- | --- | --- |
-| `night-accessibility` | `/night accessibility` | revamp-ui, verify, test-everything | code |
+| `night-accessibility` | `/night accessibility`, `/night polish` | revamp-ui, verify, test-everything | code |
 | `night-bug-hunter` | `/night bugs`, `/night qa` | fix-bug, test-everything | code |
-| `night-consistency` | `/night consistency` | improve, review-code, revamp-ui | code |
-| `night-dependencies` | `/night dependencies`, `/night security` | security-audit, test-everything | code |
+| `night-chaos` | `/night chaos`, `/night resilience`, `/night hardening` | test-everything, fix-bug, verify | code |
+| `night-compliance` | `/night compliance`, `/night legal`, `/night production` | security-audit, production-ready, test-everything, verify | code |
+| `night-consistency` | `/night consistency`, `/night polish` | improve, review-code, revamp-ui | code |
+| `night-dependencies` | `/night dependencies`, `/night security`, `/night production` | security-audit, test-everything, improve | code |
 | `night-docs` | `/night docs` | understand-code, verify | code |
 | `night-evolve-skills` | `/night evolve-skills` | manage-skills, history-learning, review-code | code |
-| `night-ideas` | `/night ideas` | research, understand-code, improve | report |
+| `night-game-lab` | `/night game`, `/night game-lab` | build-feature, build-animation, add-interactions, test-everything, verify | code |
+| `night-ideas` | `/night ideas`, `/night creative` | research, understand-code, improve | report |
 | `night-improve` | `/night improve`, `/night auto` | improve, review-code, verify | code |
-| `night-performance` | `/night performance` | improve, verify | code |
+| `night-performance` | `/night performance`, `/night game` | improve, verify | code |
 | `night-qa` | `/night qa` | test-everything, verify, fix-bug | code |
+| `night-readiness` | `/night readiness`, `/night production`, `/night hardening` | production-ready, security-audit, test-everything, improve, verify | code |
 | `night-redteam` | `/night redteam`, `/night security` | security-audit, fix-bug, test-everything | code |
 | `night-refactor` | `/night refactor` | improve, test-everything, review-code | code |
-| `night-research` | `/night research` | research, understand-code | report |
-| `night-tests` | `/night tests` | test-everything, fix-bug | code |
-| `night-visual` | `/night visual` | revamp-ui, verify, build-animation | code |
+| `night-research` | `/night research`, `/night creative` | research, understand-code | report |
+| `night-saas-lab` | `/night saas`, `/night saas-lab` | build-feature, build-ui, revamp-ui, test-everything, verify | code |
+| `night-security-faults` | `/night security-faults`, `/night faults`, `/night security` | security-audit, fix-bug, test-everything | code |
+| `night-stock-intelligence` | `/night stock-intelligence` | research, verify, improve | code |
+| `night-tests` | `/night tests`, `/night production` | test-everything, fix-bug | code |
+| `night-visual` | `/night visual`, `/night polish` | improve-visuals, audit-design, revamp-ui, add-interactions, build-animation, verify | code |
 
 `nightly-evolution` and `history-learning` stay at the repository root because night loops and scripts outside this repository
 call them by path; they are installed under the same names as before.

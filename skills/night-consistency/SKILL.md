@@ -1,6 +1,6 @@
 ---
 name: night-consistency
-description: Consistency loop. Select one naming, error-handling, component or theme-token inconsistency, align a bounded set with an established repository pattern, and retain it only when checks show no regression. Use for "night-consistency", "night consistency" or as /night consistency.
+description: Consistency loop. Aligns one bounded naming, error-handling, component or token drift with established repo patterns. Use for "/night consistency".
 metadata:
   aliases: "night-consistency, night consistency"
   keywords: "night, loop, consistency"

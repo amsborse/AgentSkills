@@ -1,6 +1,6 @@
 ---
 name: night-research
-description: Research loop. Investigate one repository question with primary sources and code evidence, then return a cited markdown report with confidence levels and unknowns, without changing any files in the worktree. Use for "night-research", "night research" or as /night research.
+description: Read-only technical research loop. Answers one architecture or library question with primary sources and code citations. Use for "/night research".
 metadata:
   aliases: "night-research, night research"
   keywords: "night, loop, research"

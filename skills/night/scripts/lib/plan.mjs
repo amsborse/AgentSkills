@@ -4,8 +4,17 @@ import { hash, nowIso, tokenize, jaccard } from '../../../../nightly-evolution/s
 
 export const CONTROL_WORDS = ['status', 'resume', 'stop', 'report'];
 export const BUILD_WORDS = ['build'];
-// Modes the mission names that map onto more than one loop or onto a day skill.
-const MODE_ALIASES = { bugs: ['bugs'], security: ['security'], tests: ['tests'] };
+// Playlist aliases expand one /night word onto a curated set of complementary loop modes.
+export const PLAYLIST_MODES = {
+  security: ['security', 'security-faults', 'redteam', 'dependencies', 'compliance'],
+  production: ['readiness', 'security-faults', 'compliance', 'dependencies', 'chaos', 'tests'],
+  hardening: ['readiness', 'security-faults', 'compliance', 'chaos', 'dependencies'],
+  polish: ['visual', 'accessibility', 'consistency'],
+  saas: ['saas', 'readiness', 'security-faults', 'compliance', 'visual', 'ideas'],
+  game: ['game', 'performance', 'visual', 'compliance', 'chaos', 'ideas'],
+  creative: ['ideas', 'saas', 'game', 'research'],
+  legal: ['compliance'],
+};
 
 const clamp = (n) => Math.max(1, Math.min(5, Math.round(n)));
 export const effortFromMinutes = (m) => (m <= 15 ? 1 : m <= 25 ? 2 : m <= 35 ? 3 : 4);
@@ -14,14 +23,21 @@ export function priority(s) {
   return Number(((s.impact * s.confidence * s.risk_reduction) / (s.effort * s.execution_cost)).toFixed(2));
 }
 
-const RISK_REDUCING = { tests: 4, bugs: 5, redteam: 4, security: 4, dependencies: 3, qa: 4, accessibility: 3 };
+const RISK_REDUCING = {
+  tests: 4, bugs: 5, redteam: 4, security: 4, 'security-faults': 5,
+  readiness: 5, compliance: 4, legal: 4, chaos: 4, dependencies: 3, qa: 4, accessibility: 3,
+  saas: 3, game: 3,
+};
 
-export function scoreLoop(loop, { signals = [], evaluation = [], red = false } = {}) {
+export function scoreLoop(loop, { signals = [], evaluation = [], red = false, stage = null } = {}) {
   const matched = loop.signals.filter((s) => signals.includes(s) || (s === 'failing-tests' && red));
   const isBug = loop.modes.includes('bugs');
   const report = loop.writes === 'report';
-  const impact = isBug && red ? 5 : report ? 2 : clamp(2 + Math.min(3, matched.length));
   const verifiable = evaluation.length > 0;
+  // On unverified (seed/prototype) repos, report loops carry actionable insights without needing a test harness.
+  const impact = isBug && red ? 5
+    : report ? (!verifiable ? 4 : 2)
+      : clamp(2 + Math.min(3, matched.length));
   const confidence = report ? 3 : verifiable ? 4 : 2;
   const rr = isBug && red ? 5 : Math.max(...loop.modes.map((m) => RISK_REDUCING[m] || 2));
   const effort = effortFromMinutes(loop.minutes);
@@ -29,7 +45,7 @@ export function scoreLoop(loop, { signals = [], evaluation = [], red = false } =
   const scores = { impact, confidence, risk_reduction: clamp(rr), effort, execution_cost: cost };
   const basis = {
     impact: isBug && red ? 'baseline is red: fixing failures comes first'
-      : report ? 'report loop: informs decisions, changes no code'
+      : report ? (!verifiable ? `stage ${stage || 'early'} has no test harness yet: evidence report delivers immediate value` : 'report loop: informs decisions, changes no code')
         : matched.length ? `repo signals match: ${matched.join(', ')}` : 'no repo signal matches this loop',
     confidence: report ? 'report quality is reviewed by a human, not measured'
       : verifiable ? `${evaluation.length} evaluation command(s) can verify each change` : 'no evaluation commands: changes cannot be verified',
@@ -121,34 +137,52 @@ export function buildTask(objective, ctx, buildSkill) {
  * Plan tasks. `mode` is a /night word or null; `objective` is free text.
  * Natural language without a mode becomes a build task unless it clearly names a loop.
  */
-export function plan({ mode, objective = '', loops, skills = [], env, red = false, limit = 8 }) {
-  const ctx = { signals: env?.signals || [], evaluation: env?.evaluation || [], red };
+export function plan({ mode, objective = '', loops, skills = [], env, red = false, limit = 12 }) {
+  const ctx = { signals: env?.signals || [], evaluation: env?.evaluation || [], red, stage: env?.stage || null };
   const byMode = (m) => loops.filter((l) => l.modes.includes(m));
   const buildSkill = skills.find((s) => s.name === 'build-feature');
   const warnings = [];
   let tasks = [];
 
-  if (!mode || mode === 'auto') {
+  if (!mode || mode === 'auto' || mode === 'full' || mode === 'overnight') {
     if (objective && !mode) {
       const words = new Set(tokenize(objective));
       const named = loops.find((l) => l.modes.some((m) => words.has(m)) || words.has(l.name));
       tasks = named ? [loopTask(named, ctx, { objective })] : [buildTask(objective, ctx, buildSkill)];
     } else {
-      // auto: every loop whose signals match, plus the red-baseline rule; evolve-skills only on request.
+      const fullMode = mode === 'full' || mode === 'overnight';
+      const unverified = ctx.evaluation.length === 0;
+      // auto: every loop whose signals match, plus night-improve and (on unverified or full runs) night-ideas; evolve-skills only on request.
       const candidates = loops.filter((l) => !l.modes.includes('evolve-skills'));
       tasks = candidates
         .map((l) => loopTask(l, ctx, { objective }))
-        .filter((t) => t.basis.impact !== 'no repo signal matches this loop' || t.loop === 'night-improve');
+        .filter((t) => t.basis.impact !== 'no repo signal matches this loop'
+          || t.loop === 'night-improve'
+          || ((fullMode || unverified) && t.loop === 'night-ideas'));
       if (red) {
         const bug = byMode('bugs')[0];
         if (bug && !tasks.some((t) => t.loop === bug.name)) tasks.push(loopTask(bug, ctx, { objective }));
+      }
+      if (unverified) {
+        warnings.push('no evaluation commands detected yet: run `night bootstrap` first if you want code-writing loops verified on this repo');
       }
     }
   } else if (BUILD_WORDS.includes(mode)) {
     if (!objective) warnings.push('build needs an objective, e.g. /night build add CSV export to the reports page');
     else tasks = [buildTask(objective, ctx, buildSkill)];
   } else {
-    const matches = byMode(mode);
+    const expanded = PLAYLIST_MODES[mode] || [mode];
+    const seen = new Set();
+    const matches = [];
+    for (const m of expanded) {
+      for (const l of byMode(m)) {
+        if (seen.has(l.name)) continue;
+        // Playlist secondary loops (beyond the exact requested mode) require either a matching signal or no signal constraint.
+        if (m !== mode && l.signals.length && !l.signals.some((s) => ctx.signals.includes(s))) continue;
+        seen.add(l.name);
+        matches.push(l);
+      }
+    }
     if (!matches.length) warnings.push(`no loop serves mode "${mode}" (night loops lists the modes)`);
     tasks = matches.map((l) => loopTask(l, ctx, { objective, mode }));
   }
@@ -156,12 +190,12 @@ export function plan({ mode, objective = '', loops, skills = [], env, red = fals
     warnings.push('the baseline is red: kept changes must not add failures, but existing failures stay until a bugs task fixes them');
   }
   tasks.sort((a, b) => b.priority - a.priority);
-  return { tasks: tasks.slice(0, limit), warnings };
+  return { tasks: tasks.slice(0, mode === 'full' || mode === 'overnight' ? Math.max(limit, 16) : limit), warnings };
 }
 
-/** A kept loop task comes back for its next iteration at a lower priority unless the loop said it is done. */
+/** A kept loop task comes back for its next iteration at a lower priority unless it is a one-shot preset task or the loop said it is done. */
 export function requeue(task, loopsByName, ctx, result) {
-  if (!task.loop || result?.done) return null;
+  if (!task.loop || task.once || result?.done) return null;
   const loop = loopsByName.get(task.loop);
   if (!loop) return null;
   const next = loopTask(loop, ctx, {

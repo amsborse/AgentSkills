@@ -40,8 +40,12 @@ metadata:
 ```
 
 Signals the engine detects today: `failing-tests`, `no-tests`, `has-tests`, `frontend`,
-`backend`, `python`, `node`, `docs`, `no-docs`, `todos`, `deps`, `ci`, `skills`, `dirty-tree`,
-`playwright`, `lint`. A loop whose signals match ranks higher in `/night auto`.
+`backend`, `saas`, `game`, `ai`, `python`, `node`, `rust`, `go`, `dotnet`, `swift`, `godot`,
+`docker`, `monorepo`, `docs`, `no-docs`, `todos`, `deps`, `ci`, `skills`, `dirty-tree`,
+`playwright`, `lint`, and lifecycle stage (`stage-seed`, `stage-prototype`, `stage-mvp`,
+`stage-production`). A loop whose signals match ranks higher in `/night auto`. Playlist modes
+(`saas`, `game`, `production`, `hardening`, `security`, `polish`, `creative`, `full`) combine
+complementary loops automatically.
 
 Keep rules (`night-keep`, default `no-regression`): the supervisor always reverts a regression;
 this adds what a kept change must also show. `tests-up`: the passed-test count rises.

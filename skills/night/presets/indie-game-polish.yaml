@@ -1,0 +1,57 @@
+name: indie-game-polish
+mission: |
+  # Indie Game Feel, Balance & Ship-Readiness DAG
+  Upgrade a game repository from functional mechanics to polished, ship-ready craft: deterministic sim tests -> responsive controls & procedural juice -> Monte Carlo balance bots -> versioned save safety & storefront compliance -> frame-time optimization & HUD polish.
+config:
+  max_iterations: 20
+  max_concurrent_agents: 1
+  max_stagnant_iterations: 4
+tasks:
+  - key: game-1-sim-tests
+    title: "Simulation harness: cover deterministic core game state and tick rules"
+    loop: night-tests
+    keep_rule: tests-up
+    estimate_minutes: 20
+    objective: "Add fast headless unit tests exercising core movement, combat, scoring, or state transitions."
+  - key: game-2-feel-juice
+    title: "Control feel & juice: coyote time, input buffer, hitstop, and trauma^2 shake"
+    loop: night-game-lab
+    depends_on: [game-1-sim-tests]
+    keep_rule: no-regression
+    estimate_minutes: 35
+    objective: "Implement frame-rate independent responsiveness (coyote time, input buffering) or procedural impact juice (hitstop, trauma^2 shake, pitch jitter) with reduced-motion/shake sliders."
+  - key: game-3-balance-bots
+    title: "Monte Carlo balance: seeded PRNG and 1,000-run automated playtest simulation"
+    loop: night-game-lab
+    depends_on: [game-2-feel-juice]
+    keep_rule: no-regression
+    estimate_minutes: 35
+    objective: "Thread deterministic RNG seeds and build a fast headless simulation bot testing survival/economy/synergy win-rate bounds without soft-locks."
+  - key: game-4-save-readiness
+    title: "Save safety: versioned save migration chain and corrupt-state recovery"
+    loop: night-readiness
+    depends_on: [game-1-sim-tests]
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Add save_version forward migrations, corrupt save fallback, and out-of-bounds/soft-lock rescue guards with tests."
+  - key: game-5-store-compliance
+    title: "Storefront & asset compliance: OSS/font/audio licenses, Steam AI & loot odds"
+    loop: night-compliance
+    depends_on: [game-1-sim-tests]
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Audit code/asset licenses for commercial distribution, verify loot-table odds transparency if applicable, and document accurate AI disclosure inventory."
+  - key: game-6-chaos-dt
+    title: "Frame & state chaos: extreme dt spikes, background-tab resume, and rapid inputs"
+    loop: night-chaos
+    depends_on: [game-3-balance-bots, game-4-save-readiness]
+    keep_rule: tests-up
+    estimate_minutes: 25
+    objective: "Stress-test dt=0ms, dt=30000ms tab-resume tunneling, rapid pause/unpause spam, and truncated save payloads."
+  - key: game-7-hud-visual
+    title: "HUD & menu craft: tabular-numeral counters, contrast plates, and aspect-ratio scaling"
+    loop: night-visual
+    depends_on: [game-2-feel-juice]
+    keep_rule: no-regression
+    estimate_minutes: 30
+    objective: "Polish HUD readability, pause/upgrade screen hierarchy, gamepad/keyboard focus rings, and responsive viewport scaling."

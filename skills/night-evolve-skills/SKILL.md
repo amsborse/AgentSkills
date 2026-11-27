@@ -1,6 +1,6 @@
 ---
 name: night-evolve-skills
-description: Skill-evolution loop. Improve one catalog skill from recorded failures and repeated corrections, validate the edit, and reserve changes to the active loop or engine for human application. Use for "night-evolve-skills", "night evolve skills" or as /night evolve-skills.
+description: Skill-evolution loop. Improves one catalog skill from recorded failures and corrections while keeping routing evals green. Use for "/night evolve-skills".
 metadata:
   aliases: "night-evolve-skills, night evolve skills"
   keywords: "night, loop, evolve, skills"

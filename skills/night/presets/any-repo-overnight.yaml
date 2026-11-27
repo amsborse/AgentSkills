@@ -1,0 +1,51 @@
+name: any-repo-overnight
+mission: |
+  # Universal Any-Repo Overnight Improvement DAG
+  Stage-adaptive pipeline suitable for any repository (CLI, API, library, SaaS, AI, or game): opportunity blueprint -> behavioral tests -> supply-chain hygiene & readiness -> security faults -> chaos stress.
+config:
+  max_iterations: 18
+  max_concurrent_agents: 2
+  max_stagnant_iterations: 4
+tasks:
+  - key: uni-1-blueprint
+    title: "Opportunity blueprint: benchmark repo stage and rank top improvements"
+    loop: night-ideas
+    writes: report
+    keep_rule: no-regression
+    estimate_minutes: 20
+    objective: "Analyze repository stage, friction points, and replicable industry patterns; emit a cited, priority-scored spec."
+  - key: uni-2-tests
+    title: "Behavioral test safety net: add high-value regression coverage"
+    loop: night-tests
+    depends_on: [uni-1-blueprint]
+    keep_rule: tests-up
+    estimate_minutes: 20
+    objective: "Add focused behavioral tests for the highest-risk uncovered module in the repository's native test runner."
+  - key: uni-3-deps
+    title: "Dependencies & licenses: safe updates, dead-dep pruning, and SPDX check"
+    loop: night-dependencies
+    depends_on: [uni-2-tests]
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Patch advisories, prune unused direct packages, or land one safe lockstep minor upgrade."
+  - key: uni-4-readiness
+    title: "Readiness & compliance: config validation, timeouts, and license/privacy hygiene"
+    loop: night-readiness
+    depends_on: [uni-2-tests]
+    keep_rule: no-regression
+    estimate_minutes: 30
+    objective: "Harden one operational readiness gap (env validation, error boundaries, outbound timeouts, idempotency, or redacted logging)."
+  - key: uni-5-faults
+    title: "Security & boundary faults: authz, concurrency, and parser fuzzing"
+    loop: night-security-faults
+    depends_on: [uni-3-deps, uni-4-readiness]
+    keep_rule: tests-up
+    estimate_minutes: 30
+    objective: "Prove and fix one authorization, race, numeric boundary, deserialization, or path/tool escape fault locally."
+  - key: uni-6-chaos
+    title: "Chaos resilience: fault-inject failures and boundary inputs"
+    loop: night-chaos
+    depends_on: [uni-5-faults]
+    keep_rule: tests-up
+    estimate_minutes: 25
+    objective: "Inject downstream errors, corrupt state, or adversarial inputs and verify clean recovery with tests."

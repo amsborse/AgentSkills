@@ -68,6 +68,7 @@ export function buildPrompt({ task, state, config, p, protectedPaths, checks, cw
     '',
     '## This task',
     `- Loop or mode: ${task.loop || task.mode}`,
+    state.stage ? `- Repository stage: ${state.stage}${state.signals?.length ? ` (signals: ${state.signals.join(', ')})` : ''}` : '',
     task.objective ? `- Objective: ${task.objective}` : '',
     task.acceptance?.length ? `- Acceptance: ${task.acceptance.join('; ')}` : '',
     task.verify?.length ? `- Acceptance commands the supervisor runs after its own checks: ${task.verify.map((v) => v.run).join(' ; ')}` : '',
@@ -172,14 +173,18 @@ class Supervisor {
       iterations: 0, stagnant: 0, restarts: 0,
       usage: { input_tokens: 0, output_tokens: 0, cost_usd: 0, cost_known: true },
       agents_down: {}, warnings: [], tasks: [], head_checks: [], head_sha: null, eval_ms: 0,
-      user_dirty: env.dirty.length, skill_errors: errors,
+      user_dirty: env.dirty.length, skill_errors: errors, stage: env.stage || null, signals: env.signals || [],
       preset: previous?.status === 'planned' ? previous.preset || null : null, rate_streak: 0,
     };
+    this.ledger = ledgerKeys(root);
     if (env.dirty.length) this.state.warnings.push(`the main checkout has ${env.dirty.length} uncommitted change(s); the run starts from HEAD ${baseSha.slice(0, 8)} and never touches them`);
     for (const e of errors) this.state.warnings.push(`skill not loaded: ${e.path}: ${e.error}`);
     for (const l of loops) if (l.missing_sections.length) this.state.warnings.push(`loop ${l.name} lacks sections: ${l.missing_sections.join(', ')}`);
 
-    const planned = previous?.status === 'planned' && !opts.mode && opts.objective == null ? previous.tasks : null;
+    const defaultMode = (!opts.mode || opts.mode === 'auto' || opts.mode === 'preset') && !opts.objective;
+    const planned = previous?.status === 'planned' && defaultMode ? previous.tasks : null;
+    const fromPreset = Boolean(planned && this.state.preset);
+    if (fromPreset) this.state.mode = 'preset';
     this.writeMission(mode, objective);
 
     if (opts.dryRun) {
@@ -231,6 +236,7 @@ class Supervisor {
 
   async resume(state) {
     this.state = state;
+    this.ledger = ledgerKeys(this.root);
     const { root, p } = this;
     state.pid = process.pid;
     state.host = os.hostname();
@@ -316,7 +322,11 @@ class Supervisor {
     if (this.stopRequest()) return 'stop_requested';
     if (Date.now() >= Date.parse(s.deadline)) return 'deadline';
     if (s.iterations >= s.max_iterations) return 'max_iterations';
-    if (s.stagnant >= c.max_stagnant_iterations) return 'stagnant';
+    if (s.stagnant >= c.max_stagnant_iterations) {
+      const untriedLeft = s.tasks.some((t) => t.status === 'pending' && (t.attempts || 0) === 0 && this.dependenciesMet(t));
+      const hardCap = Math.max(c.max_stagnant_iterations * 3, 10);
+      if (!untriedLeft || s.stagnant >= hardCap) return 'stagnant';
+    }
     const tokens = s.usage.input_tokens + s.usage.output_tokens;
     const done = Math.max(1, s.iterations);
     if (c.token_budget != null) {
@@ -342,6 +352,15 @@ class Supervisor {
   /** Minutes a task needs: its estimate plus one evaluation plus the finalize margin. */
   needMs(task) {
     return (task.estimate_minutes || 25) * MIN + (this.state.eval_ms || 0) + this.config.timeouts.finalize_minutes * MIN;
+  }
+
+  dependenciesMet(task) {
+    const deps = task.dependencies?.length ? task.dependencies : task.depends_on;
+    if (!deps?.length) return true;
+    return deps.every((dep) => {
+      const st = dependencyStatus(dep, this.state.tasks, this.ledger);
+      return st === 'done' || st === 'kept';
+    });
   }
 
   eligible() {
@@ -636,14 +655,16 @@ class Supervisor {
     }
 
     const loopsByName = new Map(discoverSkills(this.root).loops.map((l) => [l.name, l]));
-    const ctx = { signals: [], evaluation: this.checks, red: state.head_checks.some((c) => !c.ok && !c.missing_tool) };
+    const ctx = { signals: state.signals || [], evaluation: this.checks, red: state.head_checks.some((c) => !c.ok && !c.missing_tool), stage: state.stage || null };
     if (kept) {
       task.status = 'kept';
+      if (task.key) { recordKey(this.root, { key: task.key, status: 'kept', task_id: task.id, run_id: state.run_id, commit }); this.ledger = ledgerKeys(this.root); }
       const next = requeue(task, loopsByName, ctx, record.claim);
       if (next) state.tasks.push(next);
       state.tasks.push(...followUpTasks(record.claim?.follow_ups, state.tasks, loopsByName, ctx, task.id));
     } else if (finished) {
       task.status = 'done';
+      if (task.key) { recordKey(this.root, { key: task.key, status: 'done', task_id: task.id, run_id: state.run_id, commit: null }); this.ledger = ledgerKeys(this.root); }
     } else {
       const fp = `${d.failure || d.verdict}:${hash(reasons.join('|'), 8)}`;
       const repeated = (task.fingerprints || []).includes(fp);

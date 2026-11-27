@@ -1,6 +1,6 @@
 ---
 name: night-performance
-description: Performance loop. Measure one real bottleneck with repeated baseline and candidate runs, make one bounded optimisation, and retain it only when the measured gain exceeds noise and behaviour stays stable. Use for "night-performance", "night performance" or as /night performance.
+description: Performance loop. Benchmarks one real latency, frame-time or bundle bottleneck and keeps optimizations that beat noise. Use for "/night performance".
 metadata:
   aliases: "night-performance, night performance"
   keywords: "night, loop, performance"

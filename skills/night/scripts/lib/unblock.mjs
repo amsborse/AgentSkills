@@ -11,7 +11,7 @@ import { parseYaml } from '../../../../nightly-evolution/scripts/lib/yaml.mjs';
 import { paths, ensureLayout, loadState, saveState, lockHolder, TERMINAL } from './state.mjs';
 import { newTask, priority } from './plan.mjs';
 
-export const PRESET_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'autonomous-night-loop', 'presets');
+export const PRESET_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'presets');
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
 const text = (v, n = 600) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -198,17 +198,22 @@ export function ownershipConflict(root, { branch = null, runDir = null } = {}) {
   return null;
 }
 
-// ---------------------------------------------------------------- presets
+// ---------------------------------------------------------------- presets (validation & seeding)
 
-export function listPresets() {
-  if (!fs.existsSync(PRESET_DIR)) return [];
-  return fs.readdirSync(PRESET_DIR).filter((f) => f.endsWith('.yaml')).map((f) => f.slice(0, -5)).sort();
+export function listPresets(root = null) {
+  const names = new Set();
+  for (const dir of [PRESET_DIR, root ? path.join(root, '.night', 'presets') : null].filter(Boolean)) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) if (f.endsWith('.yaml')) names.add(f.slice(0, -5));
+  }
+  return [...names].sort();
 }
 
-/** Read and validate a preset by name (from the presets folder) or from a file. */
-export function loadPreset(name, file = null) {
-  const source = file ? path.resolve(file) : path.join(PRESET_DIR, `${name}.yaml`);
-  if (!fs.existsSync(source)) throw fail('NOPRESET', file ? `preset file not found: ${source}` : `no preset "${name}" (available: ${listPresets().join(', ') || 'none'})`);
+/** Read and validate a preset by name (repo .night/presets first, then built-in presets) or from a file. */
+export function loadPreset(name, file = null, root = null) {
+  const repoCandidate = !file && root ? path.join(root, '.night', 'presets', `${name}.yaml`) : null;
+  const source = file ? path.resolve(file) : (repoCandidate && fs.existsSync(repoCandidate) ? repoCandidate : path.join(PRESET_DIR, `${name}.yaml`));
+  if (!fs.existsSync(source)) throw fail('NOPRESET', file ? `preset file not found: ${source}` : `no preset "${name}" (available: ${listPresets(root).join(', ') || 'none'})`);
   const raw = fs.readFileSync(source, 'utf8');
   let y;
   try { y = parseYaml(raw) || {}; } catch (error) { throw fail('NOPRESET', `preset ${source} is not valid YAML: ${error.message}`); }

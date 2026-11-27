@@ -1,0 +1,57 @@
+name: saas-launch
+mission: |
+  # SaaS Launch Overnight DAG
+  Take a SaaS codebase through sequential quality gates: behavioral test foundation -> operational readiness, stateful security fault proofs, and legal/privacy compliance -> high-craft SaaS UX slice -> chaos stress and dual-theme visual polish.
+config:
+  max_iterations: 20
+  max_concurrent_agents: 2
+  max_stagnant_iterations: 4
+tasks:
+  - key: saas-1-tests
+    title: "Tests foundation: cover critical auth, billing, and write routes"
+    loop: night-tests
+    keep_rule: tests-up
+    estimate_minutes: 20
+    objective: "Add focused behavioral tests around the riskiest uncovered auth, billing, or data-mutation paths."
+  - key: saas-2-readiness
+    title: "Production readiness: env validation, outbound timeouts, and webhook idempotency"
+    loop: night-readiness
+    depends_on: [saas-1-tests]
+    keep_rule: no-regression
+    estimate_minutes: 30
+    objective: "Close the highest-risk readiness gap (startup env checks, outbound timeouts, webhook raw-body/idempotency, or redacted structured logging) with tests."
+  - key: saas-3-security-faults
+    title: "Security faults: prove cross-tenant IDOR/BOLA isolation and TOCTOU concurrency safety"
+    loop: night-security-faults
+    depends_on: [saas-1-tests]
+    keep_rule: tests-up
+    estimate_minutes: 30
+    objective: "Audit multi-tenant object/batch access and parallel balance/coupon/claim paths; prove and fix one stateful security fault with local tests."
+  - key: saas-4-compliance
+    title: "Legal & compliance: SPDX license audit, GPC/consent gating, DSAR & click-to-cancel"
+    loop: night-compliance
+    depends_on: [saas-1-tests]
+    keep_rule: no-regression
+    estimate_minutes: 25
+    objective: "Verify SPDX dependency compatibility (flagging any AGPL/GPL/CC-BY-NC), pre-consent/Sec-GPC telemetry gating, PII log redaction, or symmetric cancellation."
+  - key: saas-5-craft-slice
+    title: "SaaS craft slice: ship one Linear/PostHog-bar UX or workflow capability"
+    loop: night-saas-lab
+    depends_on: [saas-2-readiness, saas-3-security-faults, saas-4-compliance]
+    keep_rule: tests-up
+    estimate_minutes: 35
+    objective: "Implement one complete, tested SaaS craft capability suited to this product (Cmd+K palette, sample-data onboarding, CSV/Markdown export, usage meter, audit log viewer, or llms.txt)."
+  - key: saas-6-chaos
+    title: "Chaos resilience: inject 502/timeout, stale async race, and worst-case UI strings"
+    loop: night-chaos
+    depends_on: [saas-5-craft-slice]
+    keep_rule: tests-up
+    estimate_minutes: 25
+    objective: "Inject downstream failure or worst-case UI payloads into primary flows and verify graceful degradation without stuck spinners or crashes."
+  - key: saas-7-visual
+    title: "Visual polish: dual-theme light/dark craft and mobile/desktop screenshot audit"
+    loop: night-visual
+    depends_on: [saas-5-craft-slice]
+    keep_rule: no-regression
+    estimate_minutes: 30
+    objective: "Elevate visual hierarchy, surface layering, and responsive alignment across light and dark modes with real before/after screenshot verification."

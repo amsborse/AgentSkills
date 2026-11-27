@@ -816,7 +816,7 @@
     {
       "name": "night",
       "path": "skills/night",
-      "description": "Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to an agent, verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for \"/night\", \"/night auto\", \"/night tests\", \"run loops overnight\", \"night status\", \"night report\" or \"stop the night run\".",
+      "description": "Autonomous overnight loop orchestrator for any repo and stage. Plans by priority, isolates worktrees, verifies independently, rotates loops, and writes MD/HTML morning reports. Use for \"/night\" or \"run loops overnight\".",
       "aliases": [
         "night",
         "/night",
@@ -826,7 +826,8 @@
         "night status",
         "night report",
         "night stop",
-        "night resume"
+        "night resume",
+        "night bootstrap"
       ],
       "keywords": [
         "night",
@@ -846,7 +847,10 @@
         "review-code",
         "night-tests",
         "night-bug-hunter",
-        "night-improve"
+        "night-improve",
+        "night-readiness",
+        "night-security-faults",
+        "night-visual"
       ],
       "requires": [
         {
@@ -872,7 +876,7 @@
     {
       "name": "night-accessibility",
       "path": "skills/night-accessibility",
-      "description": "Accessibility loop. Repair one evidenced interface barrier and retain it only when violation counts fall, keyboard paths work and no new barriers appear. Use for \"night-accessibility\", \"night accessibility\" or as /night accessibility.",
+      "description": "Accessibility loop. Fixes one evidenced keyboard, focus, contrast or ARIA barrier per iteration and keeps it when violations drop. Use for \"/night accessibility\".",
       "aliases": [
         "night-accessibility",
         "night accessibility"
@@ -903,7 +907,7 @@
     {
       "name": "night-bug-hunter",
       "path": "skills/night-bug-hunter",
-      "description": "Bug-hunting loop. Start from a red baseline, reproduce one failure, add a failing regression test and repair its root cause, keeping the fix only when the original failure and relevant checks pass. Use for \"night-bug-hunter\", \"night bug hunter\" or as /night bugs.",
+      "description": "Bug-hunting loop. Reproduces one failure, writes a failing regression test, and fixes the root cause across any stack. Use for \"/night bugs\".",
       "aliases": [
         "night-bug-hunter",
         "night bug hunter"
@@ -932,9 +936,91 @@
       "workflows": []
     },
     {
+      "name": "night-chaos",
+      "path": "skills/night-chaos",
+      "description": "Chaos stress loop. Injects local timeouts, 500s, corrupt saves, async races or worst-case UI data and fixes crashes with tests. Use for \"/night chaos\".",
+      "aliases": [
+        "night-chaos",
+        "night chaos",
+        "night resilience",
+        "overnight chaos loop"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "chaos",
+        "stress",
+        "resilience",
+        "degradation"
+      ],
+      "composes": [
+        "test-everything",
+        "fix-bug",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/night-chaos/workflows/chaos-matrix.md"
+      ]
+    },
+    {
+      "name": "night-compliance",
+      "path": "skills/night-compliance",
+      "description": "Legal and compliance engineering loop. Enforces SPDX license hygiene, GDPR/CCPA privacy controls, consent gating, and AI/store disclosures. Use for \"/night compliance\".",
+      "aliases": [
+        "night-compliance",
+        "night compliance",
+        "night legal",
+        "night legal compliance",
+        "overnight legal compliance"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "compliance",
+        "legal",
+        "gdpr",
+        "ccpa",
+        "spdx",
+        "sbom",
+        "license",
+        "consent"
+      ],
+      "composes": [
+        "security-audit",
+        "production-ready",
+        "test-everything",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/night-compliance/workflows/compliance-matrix.md"
+      ]
+    },
+    {
       "name": "night-consistency",
       "path": "skills/night-consistency",
-      "description": "Consistency loop. Select one naming, error-handling, component or theme-token inconsistency, align a bounded set with an established repository pattern, and retain it only when checks show no regression. Use for \"night-consistency\", \"night consistency\" or as /night consistency.",
+      "description": "Consistency loop. Aligns one bounded naming, error-handling, component or token drift with established repo patterns. Use for \"/night consistency\".",
       "aliases": [
         "night-consistency",
         "night consistency"
@@ -965,19 +1051,24 @@
     {
       "name": "night-dependencies",
       "path": "skills/night-dependencies",
-      "description": "Dependency loop. Review advisories and update one package or lockstep group with the project package manager, favour patch and minor releases, and keep only a tested change with a consistent lockfile. Use for \"night-dependencies\", \"night dependencies\" or as /night dependencies.",
+      "description": "Polyglot dependency loop. Patches advisories, runs safe bumps or codemods, checks install scripts, and prunes dead packages. Use for \"/night dependencies\".",
       "aliases": [
         "night-dependencies",
-        "night dependencies"
+        "night dependencies",
+        "overnight dependency upgrade"
       ],
       "keywords": [
         "night",
         "loop",
-        "dependencies"
+        "dependencies",
+        "upgrade",
+        "cve",
+        "lockfile"
       ],
       "composes": [
         "security-audit",
-        "test-everything"
+        "test-everything",
+        "improve"
       ],
       "requires": [
         {
@@ -990,12 +1081,14 @@
         }
       ],
       "risk": "high",
-      "workflows": []
+      "workflows": [
+        "skills/night-dependencies/workflows/ecosystems-and-supply-chain.md"
+      ]
     },
     {
       "name": "night-docs",
       "path": "skills/night-docs",
-      "description": "Documentation loop. Find one mismatch between repository instructions and actual code, correct it with precise examples, and retain the edit only when the documented commands and claims are verified locally. Use for \"night-docs\", \"night docs\" or as /night docs.",
+      "description": "Documentation accuracy loop. Fixes one verified mismatch between README/docs commands and actual code behavior. Use for \"/night docs\".",
       "aliases": [
         "night-docs",
         "night docs"
@@ -1025,7 +1118,7 @@
     {
       "name": "night-evolve-skills",
       "path": "skills/night-evolve-skills",
-      "description": "Skill-evolution loop. Improve one catalog skill from recorded failures and repeated corrections, validate the edit, and reserve changes to the active loop or engine for human application. Use for \"night-evolve-skills\", \"night evolve skills\" or as /night evolve-skills.",
+      "description": "Skill-evolution loop. Improves one catalog skill from recorded failures and corrections while keeping routing evals green. Use for \"/night evolve-skills\".",
       "aliases": [
         "night-evolve-skills",
         "night evolve skills"
@@ -1055,17 +1148,63 @@
       "workflows": []
     },
     {
-      "name": "night-ideas",
-      "path": "skills/night-ideas",
-      "description": "Idea loop. Rank product and engineering opportunities from repository evidence with explicit priority scores, returning actionable proposals and follow-ups without writing files. Use for \"night-ideas\", \"night ideas\" or as /night ideas.",
+      "name": "night-game-lab",
+      "path": "skills/night-game-lab",
+      "description": "Game feel and balance loop. Adds coyote/buffer controls, hitstop/trauma juice, seeded runs, synergy math or Monte Carlo sim bots. Use for \"/night game\".",
       "aliases": [
-        "night-ideas",
-        "night ideas"
+        "night-game-lab",
+        "night game",
+        "night game lab",
+        "overnight game lab"
       ],
       "keywords": [
         "night",
         "loop",
-        "ideas"
+        "game",
+        "playtest",
+        "hitstop",
+        "roguelike",
+        "balance"
+      ],
+      "composes": [
+        "build-feature",
+        "build-animation",
+        "add-interactions",
+        "test-everything",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/night-game-lab/workflows/game-feel-and-mechanics.md"
+      ]
+    },
+    {
+      "name": "night-ideas",
+      "path": "skills/night-ideas",
+      "description": "Creative discovery loop. Benchmarks repo stage against proven SaaS, game and systems patterns, returning scored specs. Use for \"/night ideas\".",
+      "aliases": [
+        "night-ideas",
+        "night ideas",
+        "overnight idea research",
+        "creative night research"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "ideas",
+        "creative",
+        "product",
+        "roadmap"
       ],
       "composes": [
         "research",
@@ -1083,12 +1222,14 @@
         }
       ],
       "risk": "low",
-      "workflows": []
+      "workflows": [
+        "skills/night-ideas/workflows/industry-patterns.md"
+      ]
     },
     {
       "name": "night-improve",
       "path": "skills/night-improve",
-      "description": "Improvement loop. Rank small repository improvements by evidence, make the best bounded change, and keep it only when checks prove the intended benefit without regressions. Use for \"night-improve\", \"night improve\" or as /night improve.",
+      "description": "Evidence-ranked improvement loop. Lands one bounded code-quality or reliability gain per iteration with full verification. Use for \"/night improve\".",
       "aliases": [
         "night-improve",
         "night improve"
@@ -1119,7 +1260,7 @@
     {
       "name": "night-performance",
       "path": "skills/night-performance",
-      "description": "Performance loop. Measure one real bottleneck with repeated baseline and candidate runs, make one bounded optimisation, and retain it only when the measured gain exceeds noise and behaviour stays stable. Use for \"night-performance\", \"night performance\" or as /night performance.",
+      "description": "Performance loop. Benchmarks one real latency, frame-time or bundle bottleneck and keeps optimizations that beat noise. Use for \"/night performance\".",
       "aliases": [
         "night-performance",
         "night performance"
@@ -1149,7 +1290,7 @@
     {
       "name": "night-qa",
       "path": "skills/night-qa",
-      "description": "User-flow QA loop. Exercise one main journey end to end, capture reproducible breaks, and add one regression-backed repair or a precise bug-hunter follow-up, with runtime evidence for every claim. Use for \"night-qa\", \"night qa\" or as /night qa.",
+      "description": "End-to-end QA loop. Exercises one critical user or gameplay journey with fixtures and repairs reproducible breaks. Use for \"/night qa\".",
       "aliases": [
         "night-qa",
         "night qa"
@@ -1178,9 +1319,50 @@
       "workflows": []
     },
     {
+      "name": "night-readiness",
+      "path": "skills/night-readiness",
+      "description": "Production-readiness loop. Hardens env validation, timeouts, webhook idempotency, healthz, graceful shutdown or redacted logging. Use for \"/night readiness\".",
+      "aliases": [
+        "night-readiness",
+        "night readiness",
+        "night production",
+        "overnight production readiness"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "readiness",
+        "observability",
+        "idempotency",
+        "shutdown",
+        "resilience"
+      ],
+      "composes": [
+        "production-ready",
+        "security-audit",
+        "test-everything",
+        "improve",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/night-readiness/workflows/readiness-matrix.md"
+      ]
+    },
+    {
       "name": "night-redteam",
       "path": "skills/night-redteam",
-      "description": "Red-team loop. Prove one exploitable trust-boundary failure only with a local failing test, then repair its root cause or record an owner decision when no safe fix fits. Use for \"night-redteam\", \"night redteam\" or as /night redteam.",
+      "description": "Classic trust-boundary red-team loop. Proves one local injection, SSRF, XSS or path-traversal flaw with a failing test and fixes it. Use for \"/night redteam\".",
       "aliases": [
         "night-redteam",
         "night redteam"
@@ -1211,7 +1393,7 @@
     {
       "name": "night-refactor",
       "path": "skills/night-refactor",
-      "description": "Refactoring loop. Characterise existing behaviour before simplifying one bounded area, preserve the public API, and keep the change only when tests and review show equivalent behaviour with less complexity. Use for \"night-refactor\", \"night refactor\" or as /night refactor.",
+      "description": "Characterization-first refactoring loop. Simplifies one complex module (<300 lines) while preserving public APIs and tests. Use for \"/night refactor\".",
       "aliases": [
         "night-refactor",
         "night refactor"
@@ -1242,7 +1424,7 @@
     {
       "name": "night-research",
       "path": "skills/night-research",
-      "description": "Research loop. Investigate one repository question with primary sources and code evidence, then return a cited markdown report with confidence levels and unknowns, without changing any files in the worktree. Use for \"night-research\", \"night research\" or as /night research.",
+      "description": "Read-only technical research loop. Answers one architecture or library question with primary sources and code citations. Use for \"/night research\".",
       "aliases": [
         "night-research",
         "night research"
@@ -1270,9 +1452,132 @@
       "workflows": []
     },
     {
+      "name": "night-saas-lab",
+      "path": "skills/night-saas-lab",
+      "description": "SaaS craft loop. Ships one tested Linear/PostHog-bar slice: Cmd+K, sample onboarding, usage meters, audit logs or HITL queues. Use for \"/night saas\".",
+      "aliases": [
+        "night-saas-lab",
+        "night saas",
+        "night saas lab",
+        "overnight saas lab"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "saas",
+        "onboarding",
+        "metering",
+        "auditlog"
+      ],
+      "composes": [
+        "build-feature",
+        "build-ui",
+        "revamp-ui",
+        "test-everything",
+        "verify"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": [
+        "skills/night-saas-lab/workflows/saas-replication-playbook.md"
+      ]
+    },
+    {
+      "name": "night-security-faults",
+      "path": "skills/night-security-faults",
+      "description": "Stateful security fault loop. Proves multi-tenant IDOR, TOCTOU races, replay, parser fuzzing or AI boundary escapes with local tests. Use for \"/night faults\".",
+      "aliases": [
+        "night-security-faults",
+        "night security faults",
+        "night faults",
+        "overnight security faults"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "faults",
+        "idor",
+        "toctou",
+        "fuzzing",
+        "tenant"
+      ],
+      "composes": [
+        "security-audit",
+        "fix-bug",
+        "test-everything"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "high",
+      "workflows": [
+        "skills/night-security-faults/workflows/fault-catalog.md"
+      ]
+    },
+    {
+      "name": "night-stock-intelligence",
+      "path": "skills/night-stock-intelligence",
+      "description": "Overnight stock intelligence and Fable research loop. Runs bounded walk-forward experiments (news/Fable burst-decay remedies, 90% conformal uncertainty bands, selective abstention, paper-portfolio gating) on an isolated branch, keeps verified improvements, reverts regressions, and writes an easy-to-read morning evaluation report. Use for \"night-stock-intelligence\", \"stock night loop\", or as /night stock-intelligence.",
+      "aliases": [
+        "night-stock-intelligence",
+        "stock night loop",
+        "stock intelligence night loop",
+        "artha night loop"
+      ],
+      "keywords": [
+        "night",
+        "loop",
+        "stock",
+        "artha",
+        "calibration",
+        "conformal",
+        "abstention",
+        "paper portfolio",
+        "news",
+        "fable"
+      ],
+      "composes": [
+        "research",
+        "verify",
+        "improve"
+      ],
+      "requires": [
+        {
+          "capability": "git",
+          "optional": false
+        },
+        {
+          "capability": "node",
+          "optional": false
+        },
+        {
+          "capability": "shell",
+          "optional": false
+        }
+      ],
+      "risk": "medium",
+      "workflows": []
+    },
+    {
       "name": "night-tests",
       "path": "skills/night-tests",
-      "description": "Test-coverage loop. Each iteration finds the riskiest untested behavior, adds one focused test in the project's own style, proves it would catch a break, and keeps it only if the suite stays green. Use for \"night-tests\", \"add tests overnight\", \"grow coverage in a loop\" or as /night tests.",
+      "description": "Polyglot test loop. Adds one behavioral test per iteration across Node, Python, Rust, Go, .NET or Swift, proving it catches breaks. Use for \"/night tests\".",
       "aliases": [
         "night-tests",
         "night tests",
@@ -1310,20 +1615,26 @@
     {
       "name": "night-visual",
       "path": "skills/night-visual",
-      "description": "Visual loop. Improve one evidenced interface issue, compare real screenshots in both themes and configured viewports, and retain the change only when visual review and runtime checks support it. Use for \"night-visual\", \"night visual\" or as /night visual.",
+      "description": "Stage-aware visual polish loop. Lifts UI or HUD craft across themes and viewports with real before/after screenshots and audit guardrails. Use for \"/night visual\".",
       "aliases": [
         "night-visual",
-        "night visual"
+        "night visual",
+        "overnight visual polish"
       ],
       "keywords": [
         "night",
         "loop",
-        "visual"
+        "visual",
+        "ui",
+        "polish"
       ],
       "composes": [
+        "improve-visuals",
+        "audit-design",
         "revamp-ui",
-        "verify",
-        "build-animation"
+        "add-interactions",
+        "build-animation",
+        "verify"
       ],
       "requires": [
         {
@@ -1336,7 +1647,9 @@
         }
       ],
       "risk": "medium",
-      "workflows": []
+      "workflows": [
+        "skills/night-visual/workflows/stage-playbook.md"
+      ]
     },
     {
       "name": "nightly-evolution",

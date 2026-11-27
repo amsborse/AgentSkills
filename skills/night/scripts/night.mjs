@@ -6,34 +6,39 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nowIso, writeAtomic, fmtMs, commandExists } from '../../../nightly-evolution/scripts/lib/util.mjs';
+import { parseYaml, toYaml } from '../../../nightly-evolution/scripts/lib/yaml.mjs';
 import { paths, repoRoot, ensureLayout, loadConfig, loadState, saveState, writeDefaultConfig, lockHolder, event, TERMINAL } from './lib/state.mjs';
-import { detectEnv } from './lib/env.mjs';
+import { detectEnv, detectBootstrapEvaluation } from './lib/env.mjs';
 import { discoverSkills, allModes } from './lib/loops.mjs';
-import { plan, CONTROL_WORDS, BUILD_WORDS, buildTask } from './lib/plan.mjs';
+import { plan, CONTROL_WORDS, BUILD_WORDS, PLAYLIST_MODES, buildTask } from './lib/plan.mjs';
 import { runChecks, measureMetrics } from './lib/evaluate.mjs';
 import { availableAgents, agentEnv } from './lib/agents.mjs';
 import { runNight, evalCommands } from './lib/supervisor.mjs';
-import { renderReport, writeReport } from './lib/report.mjs';
+import { renderReport, renderHtmlReport, writeReport } from './lib/report.mjs';
+import { listPresets, loadPreset, seedPreset, readApprovals, resolveApproval } from './lib/unblock.mjs';
 import { watch } from './lib/watchdog.mjs';
 import * as ws from './lib/workspace.mjs';
 
 const SELF = fileURLToPath(import.meta.url);
 const HELP = `night: autonomous, verified improvement loops on an isolated branch
 
-  night run [mode] [objective...]   start a run (mode: auto, build, a loop mode, or free text)
+  night run [mode] [objective...]   start a run (mode: auto, full, build, a loop/playlist mode, or free text)
       --detach                      run in the background with a watchdog
       --agent NAME  --max-iterations N  --hours H  --dry-run
   night status [--json]             what is running, the queue, the last results
   night stop [--now]                finish the current iteration and stop (--now: kill agents, revert)
   night resume [--detach]           continue an interrupted run
-  night report                      write and print the morning report
+  night report [--html]             write and print the morning report (+ interactive latest.html)
+  night preset [list|NAME] [--file] list or seed a multi-step DAG preset pack (saas-launch, indie-game-polish, ...)
+  night approvals [list|approve|deny ID] inspect or resolve queued owner approvals
   night plan [mode] [objective...]  show the prioritized plan without running anything
   night loops                       list loop skills and the modes they serve
   night init                        create .night/config.yaml with the defaults
+  night bootstrap                   configure starter evaluation commands for a Stage-0 / untested repo
   night baseline                    run the evaluation commands once and print the results
   night task add|list|skip ...      edit the queue of a planned or stopped run
   night watchdog [--once] [--interval S]
-  night doctor                      check git, agents, evaluation commands and disk
+  night doctor                      check git, stage, signals, agents, evaluation commands and disk
 
 Modes: ${'{modes}'}. Anything else is read as an objective.`;
 
@@ -45,7 +50,7 @@ function parseArgs(argv) {
     if (a === '--') { pos.push(...argv.slice(i + 1)); break; }
     if (a.startsWith('--')) {
       const [k, v] = a.slice(2).split('=');
-      const valued = ['agent', 'max-iterations', 'hours', 'interval', 'priority', 'loop'].includes(k);
+      const valued = ['agent', 'max-iterations', 'hours', 'interval', 'priority', 'loop', 'file'].includes(k);
       flags[k] = v ?? (valued ? argv[++i] : true);
     } else pos.push(a);
   }
@@ -54,8 +59,12 @@ function parseArgs(argv) {
 
 const print = (s = '') => process.stdout.write(`${s}\n`);
 
+function knownModes(loops) {
+  return [...new Set(['auto', 'full', 'overnight', ...BUILD_WORDS, ...Object.keys(PLAYLIST_MODES), ...allModes(loops)])];
+}
+
 function modeAndObjective(pos, loops) {
-  const modes = new Set([...allModes(loops), 'auto', ...BUILD_WORDS]);
+  const modes = new Set(knownModes(loops));
   const [first, ...rest] = pos;
   if (first && modes.has(first)) return { mode: first, objective: rest.join(' ').trim() };
   const objective = pos.join(' ').trim();
@@ -83,7 +92,7 @@ function statusText(root) {
   const count = (st) => s.tasks.filter((t) => t.status === st).length;
   const lines = [
     `${s.run_id}: ${s.status}${s.stop_reason ? ` (${s.stop_reason})` : ''}, phase ${s.phase}, ${alive}`,
-    `mode ${s.mode}${s.objective ? `: ${s.objective}` : ''}; branch ${s.branch || 'none'} at ${String(s.head_sha || s.base_sha).slice(0, 8)}`,
+    `mode ${s.mode}${s.stage ? ` (stage ${s.stage})` : ''}${s.objective ? `: ${s.objective}` : ''}; branch ${s.branch || 'none'} at ${String(s.head_sha || s.base_sha).slice(0, 8)}`,
     `iterations ${s.iterations}/${s.max_iterations}, stagnant ${s.stagnant}, restarts ${s.restarts || 0}; deadline ${s.deadline}; heartbeat ${s.heartbeat_at}`,
     `tasks: ${count('running')} running, ${count('pending')} pending, ${count('kept')} kept, ${count('blocked')} blocked, ${count('done')} done`,
   ];
@@ -98,7 +107,7 @@ async function main() {
   const { flags, pos } = parseArgs(rest);
   if (cmd === 'help' || cmd === '--help' || cmd === '-h') {
     let modes = 'auto, build';
-    try { modes = [...new Set(['auto', 'build', ...allModes(discoverSkills(repoRoot()).loops)])].join(', '); } catch { /* outside a repo */ }
+    try { modes = knownModes(discoverSkills(repoRoot()).loops).filter((m) => m !== 'overnight').join(', '); } catch { /* outside a repo */ }
     print(HELP.replace('{modes}', modes));
     return 0;
   }
@@ -111,19 +120,42 @@ async function main() {
       print(writeDefaultConfig(root) ? `night: wrote ${path.relative(root, paths(root).config)}` : 'night: .night/config.yaml already exists; left unchanged');
       return 0;
     }
+    case 'bootstrap': {
+      const p = ensureLayout(root);
+      writeDefaultConfig(root);
+      const config = loadConfig(root);
+      const env = detectEnv(root);
+      const existing = evalCommands(config, env);
+      if (existing.length) {
+        print(`night: stage=${env.stage}; evaluation already active (${existing.map((c) => c.run).join(' | ')})`);
+        return 0;
+      }
+      const starter = detectBootstrapEvaluation(root);
+      if (!starter.length) {
+        print(`night: stage=${env.stage}; no code files to synthesize a check for yet. Report loops (\`night run ideas\`, \`night run research\`) work immediately.`);
+        return 0;
+      }
+      const raw = fs.existsSync(p.config) ? parseYaml(fs.readFileSync(p.config, 'utf8')) || {} : {};
+      raw.evaluation = { ...(raw.evaluation || {}), commands: starter };
+      writeAtomic(p.config, `# Bootstrapped by night bootstrap for stage=${env.stage}\n${toYaml(raw)}`);
+      print(`night: stage=${env.stage}; configured ${starter.length} starter check(s) in ${path.relative(root, p.config)}: ${starter.map((c) => c.name).join(', ')}`);
+      return 0;
+    }
     case 'loops': {
       const { loops, errors } = discoverSkills(root);
-      for (const l of loops) print(`${l.name.padEnd(22)} modes: ${l.modes.join(', ').padEnd(24)} writes: ${l.writes.padEnd(6)} keep: ${l.keep_rule}  (${l.origin})${l.missing_sections.length ? `  MISSING: ${l.missing_sections.join(', ')}` : ''}`);
+      for (const l of loops) print(`${l.name.padEnd(24)} modes: ${l.modes.join(', ').padEnd(28)} writes: ${l.writes.padEnd(6)} keep: ${l.keep_rule}  (${l.origin})${l.missing_sections.length ? `  MISSING: ${l.missing_sections.join(', ')}` : ''}`);
       for (const e of errors) print(`error: ${e.path}: ${e.error}`);
       return errors.length ? 1 : 0;
     }
     case 'plan': {
       const { loops, skills } = discoverSkills(root);
       const env = detectEnv(root);
+      const config = loadConfig(root);
+      const mergedEnv = { ...env, evaluation: evalCommands(config, env) };
       const { mode, objective } = modeAndObjective(pos, loops);
-      const { tasks, warnings } = plan({ mode, objective, loops, skills, env });
-      if (flags.json) { print(JSON.stringify({ mode, objective, tasks, warnings }, null, 2)); return 0; }
-      print(`Plan for ${mode || 'objective'}${objective ? `: ${objective}` : ''} (Priority = Impact x Confidence x RiskReduction / Effort x ExecutionCost)`);
+      const { tasks, warnings } = plan({ mode, objective, loops, skills, env: mergedEnv });
+      if (flags.json) { print(JSON.stringify({ mode, objective, stage: env.stage, signals: env.signals, tasks, warnings }, null, 2)); return 0; }
+      print(`Plan for ${mode || 'objective'} [stage=${env.stage}; signals=${env.signals.join(', ')}]${objective ? `: ${objective}` : ''} (Priority = Impact x Confidence x RiskReduction / Effort x ExecutionCost)`);
       for (const t of tasks) {
         const s = t.scores;
         print(`- ${String(t.priority).padStart(5)}  ${t.title}  [${s.impact}x${s.confidence}x${s.risk_reduction} / ${s.effort}x${s.execution_cost}]`);
@@ -137,7 +169,7 @@ async function main() {
       const config = loadConfig(root);
       const p = ensureLayout(root);
       const checks = evalCommands(config, detectEnv(root));
-      if (!checks.length) { print('night: no evaluation command found; set evaluation.commands in .night/config.yaml'); return 1; }
+      if (!checks.length) { print('night: no evaluation command found; run `night bootstrap` or set evaluation.commands in .night/config.yaml'); return 1; }
       const dir = path.join(p.logs, 'manual');
       fs.mkdirSync(dir, { recursive: true });
       const res = await runChecks(checks, root, { timeoutMs: config.timeouts.evaluation_minutes * 60_000, logDir: dir, repeat: Number(flags.repeat) || 1, env: agentEnv() });
@@ -186,11 +218,77 @@ async function main() {
       return 0;
     }
     case 'report': {
-      if (!loadState(root)) { print(renderReport(root)); return 0; }
-      const { file, text } = writeReport(root);
+      if (!loadState(root)) {
+        if (flags.html) { print(renderHtmlReport(root)); return 0; }
+        print(renderReport(root));
+        return 0;
+      }
+      const { file, htmlFile, text } = writeReport(root);
+      if (flags.html) { print(path.relative(root, htmlFile)); return 0; }
       print(text);
-      print(`\n(written to ${path.relative(root, file)})`);
+      print(`\n(written to ${path.relative(root, file)} and ${path.relative(root, htmlFile)})`);
       return 0;
+    }
+    case 'preset': {
+      const [sub] = pos;
+      if ((!sub || sub === 'list') && !flags.file) {
+        const names = listPresets(root);
+        if (!names.length) { print('night: no presets available'); return 0; }
+        for (const n of names) {
+          const pr = loadPreset(n, null, root);
+          const summary = pr.mission.split(/\r?\n/).map((l) => l.replace(/^#+\s*/, '').trim()).find(Boolean) || '';
+          print(`${n.padEnd(26)} ${String(pr.tasks.length).padStart(2)} tasks  ${summary}`);
+        }
+        return 0;
+      }
+      const preset = loadPreset(sub || null, flags.file || null, root);
+      const { loops } = discoverSkills(root);
+      const seeded = seedPreset(root, preset);
+      for (const t of seeded.state.tasks) {
+        if (t.loop && !t.skill_path) t.skill_path = loops.find((l) => l.name === t.loop)?.path || null;
+      }
+      saveState(root, seeded.state);
+      print(`night: seeded preset "${preset.name}" (${seeded.added.length} added, ${seeded.skipped.length} skipped). Run \`night run --detach\` to execute the DAG.`);
+      for (const t of seeded.state.tasks) {
+        const deps = t.dependencies?.length ? ` <- [${t.dependencies.join(', ')}]` : '';
+        print(`  [${t.status}] ${t.key || t.id}: ${t.title}${deps}`);
+      }
+      return 0;
+    }
+    case 'approvals': {
+      const [sub = 'list', id, ...noteWords] = pos;
+      if (sub === 'list') {
+        const all = readApprovals(root);
+        if (!all.length) { print('night: no approvals recorded'); return 0; }
+        for (const a of all) print(`${a.id}  [${a.status}]  ${a.decision}${a.note ? ` (${a.note})` : ''}`);
+        return 0;
+      }
+      if (sub === 'approve' || sub === 'deny') {
+        if (!id) { print(`night: approvals ${sub} needs an approval id`); return 1; }
+        const status = sub === 'approve' ? 'approved' : 'denied';
+        const resolved = resolveApproval(root, id, status, noteWords.join(' '));
+        const s = loadState(root);
+        if (s) {
+          for (const t of s.tasks || []) {
+            if (t.status === 'waiting_approval' && t.blocker?.approval === resolved.id) {
+              if (status === 'approved') {
+                t.status = 'pending';
+                t.blocker = null;
+                t.blocked_reason = null;
+                t.approved = [...(t.approved || []), resolved.decision];
+              } else {
+                t.status = 'blocked';
+                t.blocked_reason = `approval ${resolved.id} denied`;
+              }
+            }
+          }
+          saveState(root, s);
+        }
+        print(`night: ${resolved.id} marked ${resolved.status}`);
+        return 0;
+      }
+      print(`night: unknown approvals subcommand ${sub}`);
+      return 1;
     }
     case 'watchdog': {
       const config = loadConfig(root);
@@ -221,7 +319,7 @@ async function main() {
         const { loops, skills } = discoverSkills(root);
         const env = detectEnv(root);
         const loop = flags.loop && loops.find((l) => l.name === flags.loop || l.modes.includes(flags.loop));
-        const t = loop ? plan({ mode: loop.modes[0], objective: text, loops: [loop], skills, env }).tasks[0] : buildTask(text, { signals: env.signals, evaluation: env.evaluation }, skills.find((x) => x.name === 'build-feature'));
+        const t = loop ? plan({ mode: loop.modes[0], objective: text, loops: [loop], skills, env }).tasks[0] : buildTask(text, { signals: env.signals, evaluation: env.evaluation, stage: env.stage }, skills.find((x) => x.name === 'build-feature'));
         if (flags.priority) { t.priority = Number(flags.priority); t.basis.override = 'priority set by the owner'; }
         t.created_by = 'owner';
         s.tasks.push(t);
@@ -256,8 +354,10 @@ function doctor(root) {
   const agents = availableAgents(config);
   line(agents.length > 0, `agents available: ${agents.join(', ') || 'none (install claude or codex-bridge, or set agents.commands)'}`);
   const env = detectEnv(root);
+  line(true, `stage: ${env.stage} (signals: ${env.signals.join(', ') || 'none'})`);
   const checks = evalCommands(config, env);
-  if (checks.length) line(true, `evaluation: ${checks.map((c) => c.run).join(' | ')}`); else warn('no evaluation command: code changes will stay inconclusive');
+  if (checks.length) line(true, `evaluation: ${checks.map((c) => c.run).join(' | ')}`);
+  else warn('no evaluation command: run `night bootstrap` to configure starter checks, or run report loops (`night run ideas`)');
   if (env.dirty.length) warn(`${env.dirty.length} uncommitted change(s) in this checkout; runs start from HEAD and never touch them`);
   const free = ws.freeDiskMb(root);
   line(free == null || free >= config.resources.min_free_disk_mb, `free disk: ${free ?? 'unknown'} MB`);

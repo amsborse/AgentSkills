@@ -16,6 +16,32 @@ export function parseCounts(text) {
   let failed = num(/^[ℹ#] fail (\d+)/m);
   let skipped = num(/^[ℹ#] skipped (\d+)/m);
   if (passed != null || failed != null) return { passed: passed ?? 0, failed: failed ?? 0, skipped: skipped ?? 0 };
+  // bun test (" 5 pass\n 0 fail")
+  const bunPass = num(/^\s*(\d+) pass$/m);
+  const bunFail = num(/^\s*(\d+) fail$/m);
+  if (bunPass != null && bunFail != null) {
+    return { passed: bunPass, failed: bunFail, skipped: num(/^\s*(\d+) skip$/m) ?? 0 };
+  }
+  // cargo test ("test result: ok. 12 passed; 0 failed; 1 ignored")
+  const cargo = [...s.matchAll(/test result: (?:ok|FAILED)\. (\d+) passed; (\d+) failed; (\d+) ignored/g)];
+  if (cargo.length) {
+    return cargo.reduce((a, m) => ({ passed: a.passed + Number(m[1]), failed: a.failed + Number(m[2]), skipped: a.skipped + Number(m[3]) }), { passed: 0, failed: 0, skipped: 0 });
+  }
+  // dotnet test ("Passed! - Failed: 0, Passed: 14, Skipped: 0")
+  const dotnet = /(?:Passed!|Failed!)\s*-\s*Failed:\s*(\d+),\s*Passed:\s*(\d+),\s*Skipped:\s*(\d+)/.exec(s);
+  if (dotnet) return { passed: Number(dotnet[2]), failed: Number(dotnet[1]), skipped: Number(dotnet[3]) };
+  // swift test ("Executed 8 tests, with 0 failures" or "Test run with 8 tests passed")
+  const swiftXc = /Executed (\d+) tests?, with (\d+) failures?/.exec(s);
+  if (swiftXc) return { passed: Math.max(0, Number(swiftXc[1]) - Number(swiftXc[2])), failed: Number(swiftXc[2]), skipped: 0 };
+  const swiftTest = /Test run with (\d+) tests? passed/.exec(s);
+  if (swiftTest) return { passed: Number(swiftTest[1]), failed: num(/(\d+) tests? failed/) ?? 0, skipped: 0 };
+  // go test (verbose "--- PASS:" or package-level "ok  pkg")
+  const goPass = (s.match(/^--- PASS:/gm) || []).length;
+  const goFail = (s.match(/^--- FAIL:/gm) || []).length;
+  if (goPass || goFail) return { passed: goPass, failed: goFail, skipped: (s.match(/^--- SKIP:/gm) || []).length };
+  const goPkgOk = (s.match(/^ok\s+\S+/gm) || []).length;
+  const goPkgFail = (s.match(/^FAIL\s+\S+/gm) || []).length;
+  if (goPkgOk || goPkgFail) return { passed: goPkgOk, failed: goPkgFail, skipped: 0 };
   // unittest
   const ran = num(/^Ran (\d+) tests? in/m);
   if (ran != null) {
@@ -75,12 +101,12 @@ export async function measureMetrics(defs, cwd, logDir) {
   return out;
 }
 
-const ASSERT = /\b(assert\w*|expect\s*\(|should\.|\.toBe|\.toEqual|t\.(ok|is|equal|deepEqual|throws)|self\.assert\w*|pytest\.raises)/g;
-const SKIP_ADDED = /(\b(it|test|describe)\.(skip|todo)\(|\bxit\(|\bxdescribe\(|@pytest\.mark\.(skip|xfail)|@unittest\.skip|\{\s*skip:\s*true|\.only\()/;
+const ASSERT = /\b(assert\w*|expect\s*\(|should\.|\.toBe|\.toEqual|t\.(ok|is|equal|deepEqual|throws|Fatal\w*|Error\w*)|require\.\w+|self\.assert\w*|pytest\.raises|Assert\.\w+|XCTAssert\w*)|assert(?:_eq|_ne)?!\s*\(|#expect\s*\(/g;
+const SKIP_ADDED = /(\b(it|test|describe)\.(skip|todo)\(|\bxit\(|\bxdescribe\(|@pytest\.mark\.(skip|xfail)|@unittest\.skip|\{\s*skip:\s*true|\.only\(|#\[ignore\b|\bt\.Skip\w*\(|\[Fact\s*\([^)]*Skip\s*=)/;
 const SECRET_RULE = /KEY|TOKEN|SECRET|PRIVATE|CREDENTIAL|PASSWORD|JWT|BEARER/;
 // Assertions that check nothing; they never balance out a removed real assertion.
-const TRIVIAL_ASSERT = /\b(assert(\.ok)?\(\s*(true|1|True)\s*\)|expect\(\s*(true|1)\s*\)\.toBe(Truthy)?\(\s*(true|1)?\s*\)|self\.assertTrue\(\s*True\s*\)|assert\s+True\b)/g;
-const TEST_FILE = /(^|\/)(tests?|__tests__|spec)\/|[._-](test|spec)\.[^/]+$|(^|\/)test_[^/]+\.py$|_test\.(py|go)$/;
+const TRIVIAL_ASSERT = /\b(assert(\.ok)?\(\s*(true|1|True)\s*\)|expect\(\s*(true|1)\s*\)\.toBe(Truthy)?\(\s*(true|1)?\s*\)|self\.assertTrue\(\s*True\s*\)|assert\s+True\b)|assert!\(\s*true\s*\)/g;
+const TEST_FILE = /(^|\/)(tests?|__tests__|spec|Tests)\/|[._-](test|spec)\.[^/]+$|(^|\/)test_[^/]+\.py$|_test\.(py|go|rs)$|Tests?\.(cs|swift)$/;
 
 /** What changed in `cwd` relative to `baseSha`, tracked and untracked, with the risk checks. */
 export function inspectDiff(cwd, baseSha, { protectedPaths = [] } = {}) {

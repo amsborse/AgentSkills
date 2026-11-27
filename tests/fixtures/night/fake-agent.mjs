@@ -64,6 +64,10 @@ switch (behaviour) {
     result({ summary: `add mul test ${k}` });
     break;
   }
+  case 'report-md': {
+    result({ summary: 'ranked compliance & product blueprint', hypothesis: 'identify highest-ROI slice', report: '# Blueprint\n\n- Evidence: `math.js:1`\n- Priority: 12.0\n' });
+    break;
+  }
   default:
     result({ summary: 'nothing to do', done: true });
 }

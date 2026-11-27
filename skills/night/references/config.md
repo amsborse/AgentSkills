@@ -29,8 +29,7 @@ Codex token counts). They are never invented.
 ```yaml
 agents:
   order: [claude, codex]          # tried in order; unavailable ones are skipped
-  routing:                        # loop -> preferred agent
-    night-visual: codex
+  routing: {}                     # optional loop -> preferred agent override; default {} uses order (claude first)
   claude:
     model: null                   # null = the CLI default
     permission_mode: acceptEdits  # never bypassPermissions by default
