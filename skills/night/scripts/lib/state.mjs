@@ -31,15 +31,21 @@ export const DEFAULT_CONFIG = {
   allow_external_actions: false,
   agents: {
     order: ['claude', 'codex'],
-    routing: { 'night-visual': 'codex', 'night-accessibility': 'codex', 'night-consistency': 'codex', 'night-docs': 'codex' },
+    routing: {
+      'night-visual': 'codex',
+      'night-accessibility': 'codex',
+      'night-consistency': 'codex',
+      'night-docs': 'codex',
+    },
     claude: {
       model: null,
       permission_mode: 'acceptEdits',
       max_budget_usd_per_task: null,
       allowed_tools: [
         'Read', 'Edit', 'Write', 'Glob', 'Grep', 'TodoWrite',
-        'Bash(npm test:*)', 'Bash(npm run:*)', 'Bash(npx:*)', 'Bash(pnpm:*)', 'Bash(yarn:*)', 'Bash(node:*)',
-        'Bash(python:*)', 'Bash(python3:*)', 'Bash(py:*)', 'Bash(pytest:*)', 'Bash(ruff:*)', 'Bash(uv run:*)',
+        'Bash(npm test:*)', 'Bash(npm run:*)', 'Bash(npx:*)', 'Bash(pnpm:*)', 'Bash(yarn:*)', 'Bash(bun:*)', 'Bash(deno:*)', 'Bash(node:*)',
+        'Bash(python:*)', 'Bash(python3:*)', 'Bash(py:*)', 'Bash(pytest:*)', 'Bash(ruff:*)', 'Bash(mypy:*)', 'Bash(uv run:*)',
+        'Bash(cargo:*)', 'Bash(go:*)', 'Bash(dotnet:*)', 'Bash(swift:*)', 'Bash(godot:*)',
         'Bash(git status:*)', 'Bash(git diff:*)', 'Bash(git log:*)', 'Bash(git show:*)', 'Bash(ls:*)', 'Bash(cat:*)',
       ],
       disallowed_tools: [

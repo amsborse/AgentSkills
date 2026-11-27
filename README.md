@@ -17,7 +17,7 @@ Skills format (`SKILL.md` with frontmatter, extra files loaded on demand).
 | "Make this project production ready" | `production-ready` |
 | "Automate this browser workflow" | `automate-browser` |
 | "Run this task autonomously overnight" | `run-autonomous` |
-| "/night tests", "run verified loops while I sleep" | `night` (+ 15 `night-*` loops) |
+| "/night", "/night saas", "/night game", "/night production", "run verified loops while I sleep" | `night` (+ 21 `night-*` loops) |
 | "Review my changes" / "second opinion from Codex" | `review-code` |
 | "Show me the changes" / "UI before and after" | `review-changes` |
 | "Add a hero animation" / "Build a cinematic landing page" | `build-animation` |

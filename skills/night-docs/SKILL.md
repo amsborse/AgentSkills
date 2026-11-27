@@ -1,6 +1,6 @@
 ---
 name: night-docs
-description: Documentation loop. Find one mismatch between repository instructions and actual code, correct it with precise examples, and retain the edit only when the documented commands and claims are verified locally. Use for "night-docs", "night docs" or as /night docs.
+description: Documentation accuracy loop. Fixes one verified mismatch between README/docs commands and actual code behavior. Use for "/night docs".
 metadata:
   aliases: "night-docs, night docs"
   keywords: "night, loop, docs"

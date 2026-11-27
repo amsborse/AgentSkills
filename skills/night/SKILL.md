@@ -1,83 +1,70 @@
 ---
 name: night
-description: Run autonomous, verified improvement loops on a repository overnight or while away. It plans by priority, works on an isolated run branch, delegates each iteration to an agent, verifies and keeps or reverts every change, survives crashes through a watchdog, and writes an evidence-only morning report. Never pushes, merges or deploys. Use for "/night", "/night auto", "/night tests", "run loops overnight", "night status", "night report" or "stop the night run".
+description: Run autonomous, verified improvement loops on any repository overnight. Plans by stage and signals, isolates worktrees, delegates iterations, verifies independently, rotates past blocked tasks, and writes an evidence-only morning report. Use for "/night", "/night auto", "run loops overnight", "night status" or "night report".
 metadata:
-  aliases: "night, /night, night loop, night run, overnight loops, night status, night report, night stop, night resume"
+  aliases: "night, /night, night loop, night run, overnight loops, night status, night report, night stop, night resume, night bootstrap"
   keywords: "night, overnight, loop, autonomous, unattended, watchdog, orchestrator, morning report, keep or revert, experiments"
-  composes: "run-autonomous, coordinate-agents, review-code, night-tests, night-bug-hunter, night-improve"
+  composes: "run-autonomous, coordinate-agents, review-code, night-tests, night-bug-hunter, night-improve, night-readiness, night-security-faults, night-visual"
   requires: "git, node, claude?, codex-bridge?"
   risk: "high"
 ---
 
 # Night
 
-`/night` is the orchestrator. The work itself lives in the loop skills (`night-tests`,
-`night-bug-hunter`, `night-improve`, ...) and in the day skills they compose (`test-everything`,
-`fix-bug`, `improve`, ...), so the same skills run interactively by day and unattended by night.
-The orchestrator only plans, isolates, delegates, verifies, records and reports. It is a
-deterministic Node script: no model decides whether a change is kept.
+`/night` is the deterministic overnight orchestrator. Craft lives in day skills (`production-ready`,
+`improve-visuals`, `security-audit`, `test-everything`, `fix-bug`, ...); loop contracts live in
+`night-*` skills. The orchestrator detects the stack, domain (`saas`, `game`, `ai`, `frontend`,
+`backend`, polyglot languages) and lifecycle stage (`seed` -> `prototype` -> `mvp` -> `production`),
+plans by priority, runs isolated worktree lanes, verifies every diff independently, rotates across
+fresh loops instead of halting early on one stagnant task, and writes an evidence-only morning report.
 
 ## Run it
 
-All commands go through one CLI. From the target repository:
+From the target repository:
 
 ```
 node ~/agent-skills/skills/night/scripts/night.mjs <command> [args]
 ```
 
-Map the user's `/night ARGUMENTS` straight onto it:
-
 | You get | Run |
 | --- | --- |
-| `/night` or `/night auto` | `run auto --detach` |
-| `/night <mode>` (tests, bugs, improve, qa, visual, performance, refactor, research, security, docs, accessibility, consistency, dependencies, redteam, ideas, evolve-skills) | `run <mode> --detach` |
+| `/night` or `/night auto` | `run auto --detach` (stage-aware mix of matching loops) |
+| `/night full` | `run full --detach` (broad overnight playlist: code + creative research loops) |
+| `/night <playlist>` (`saas`, `game`, `production`, `hardening`, `security`, `polish`, `creative`) | `run <playlist> --detach` |
+| `/night <loop-mode>` (`readiness`, `security-faults`, `saas-lab`, `game-lab`, `chaos`, `visual`, `dependencies`, `ideas`, `tests`, `bugs`, `improve`, `qa`, `performance`, `refactor`, `research`, `docs`, `accessibility`, `consistency`, `redteam`, `evolve-skills`) | `run <loop-mode> --detach` |
 | `/night build <objective>` or `/night <free text>` | `run build <objective> --detach` / `run <free text> --detach` |
-| `/night status`, `stop`, `resume`, `report` | the same word (`stop --now` kills agents and reverts their work) |
+| `/night status`, `stop`, `resume`, `report`, `bootstrap`, `doctor` | the same word (`stop --now` kills agents and reverts their work) |
 | "what would it do" | `plan [mode]` |
 
-`security` runs `night-redteam` and `night-dependencies`; `night loops` lists every mode. Options: `--agent claude|codex|<name>`,
-`--max-iterations N`, `--hours H`, `--dry-run`. Without `--detach` the run blocks the session, so
-detach unless the user asked to watch it.
+Options: `--agent claude|codex|<name>`, `--max-iterations N`, `--hours H`, `--dry-run`. Detach
+unless the user asked to watch it.
 
-Before the first run in a repository, run `doctor` and fix what it reports (no agent, no
-evaluation command, low disk). `init` writes `.night/config.yaml` with the defaults; see
-`references/config.md`. After starting, tell the user the run branch and how to check on it,
-then stop; do not poll. When the user comes back, `report` prints the morning report.
+Before the first run in any repository:
+1. Run `doctor` to inspect git, stage (`seed`/`prototype`/`mvp`/`production`), signals, agents,
+   evaluation commands and disk.
+2. If the repository is at `seed` or `prototype` stage with no test runner yet, run `bootstrap` to
+   configure safe deterministic starter checks in `.night/config.yaml` (or run report loops such as
+   `ideas` / `research` immediately).
+3. Start the detached run, tell the user the `night/<date>-<label>` branch and how to check
+   `status` / `report`, then stop without polling.
 
 ## What a run does
 
-1. Detects the stack, evaluation commands, signals (no tests, failing tests, TODOs, UI, ...),
-   uncommitted changes and available agents, and discovers loop skills by their `night-loop`
-   metadata (`references/loop-interface.md`).
-2. Plans tasks with Priority = (Impact x Confidence x RiskReduction) / (Effort x ExecutionCost),
-   each score with a recorded basis.
-3. Creates a run branch `night/<date>-<label>` in its own worktree from HEAD. The user's
-   checkout and uncommitted changes are never touched.
-4. Records a baseline: every evaluation command, repeated to catch flaky ones.
-5. Per task: checkpoint, delegate one iteration to an agent in a lane worktree, then verify
-   independently (re-run checks, inspect the diff for protected paths, removed assertions, new
-   skips, deleted tests and secrets), and keep (commit to the run branch) or revert exactly that
-   task's change, saving a patch. Concurrent tasks never share files.
-6. Stops on any limit: time, iterations, stagnation, budgets, disk, repeated failure, empty
-   queue, stop request. It does not start work that cannot finish in the time left.
-7. Writes `.night/reports/<run>.md` from recorded evidence only (example:
-   `references/sample-report.md`).
-
-The watchdog (started by `--detach`) restarts a dead or stalled supervisor with exponential
-backoff; a long build is not a stall because the heartbeat keeps ticking. Details:
-`references/architecture.md`.
+1. Detects stack (Node/Bun/Deno/TS, Python/uv, Rust, Go, .NET, Swift, Godot), domain signals
+   (`saas`, `game`, `ai`, `frontend`, `backend`, `monorepo`, `docker`), stage (`seed`..`production`)
+   and loop skills (`references/loop-interface.md`).
+2. Scores tasks with `Priority = (Impact x Confidence x RiskReduction) / (Effort x ExecutionCost)`.
+3. Creates an isolated worktree on `night/<date>-<label>`; uncommitted changes in the main checkout
+   are never touched.
+4. Captures baseline checks (repeated to expose flakiness) and metrics.
+5. Per iteration: syncs a lane worktree, runs one fresh agent process with pushes blocked, inspects
+   the diff (protected paths, removed assertions, skips, deleted tests, secrets), re-runs checks,
+   and cherry-picks kept commits onto the run branch or reverts cleanly while saving `.patch` files.
+6. Rotates across untried pending loops if an early task stagnates, stopping only on deadline,
+   budget, disk, stop request, or when the queue has no viable work left.
+7. Writes `.night/reports/<run>.md` and `latest.md` from recorded evidence only.
 
 ## Never
 
-The orchestrator never pushes, merges, deploys, publishes, changes infrastructure, touches
-billing or secrets, sends external messages or runs destructive migrations, and agents run with
-pushes blocked and those tools denied. `allow_external_actions: true` is rejected. It never
-bypasses permissions by default, never weakens a check to keep a change, and never reports a
-number it did not measure. Tests and smoke runs use a fake command agent, never a paid model.
-
-## Adding a loop
-
-Create a skill with `night-loop`, `night-writes`, `night-minutes`, `night-signals` and
-`night-keep` metadata and the sections Activation, Workflow, Evaluation, Stop conditions and
-Examples. It is discovered from this catalog, `.claude/skills` or `.agents/skills` with no change
-to the orchestrator; `scripts/validate.mjs` checks the interface.
+Never pushes, merges, deploys, publishes, edits infrastructure/migrations/secrets, weakens checks,
+or invents metrics. `allow_external_actions: true` is rejected. Tests use deterministic fake agents.

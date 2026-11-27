@@ -1,6 +1,6 @@
 ---
 name: night-redteam
-description: Red-team loop. Prove one exploitable trust-boundary failure only with a local failing test, then repair its root cause or record an owner decision when no safe fix fits. Use for "night-redteam", "night redteam" or as /night redteam.
+description: Classic trust-boundary red-team loop. Proves one local injection, SSRF, XSS or path-traversal flaw with a failing test and fixes it. Use for "/night redteam".
 metadata:
   aliases: "night-redteam, night redteam"
   keywords: "night, loop, redteam"

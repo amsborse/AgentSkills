@@ -1,6 +1,6 @@
 ---
 name: night-qa
-description: User-flow QA loop. Exercise one main journey end to end, capture reproducible breaks, and add one regression-backed repair or a precise bug-hunter follow-up, with runtime evidence for every claim. Use for "night-qa", "night qa" or as /night qa.
+description: End-to-end QA loop. Exercises one critical user or gameplay journey with fixtures and repairs reproducible breaks. Use for "/night qa".
 metadata:
   aliases: "night-qa, night qa"
   keywords: "night, loop, qa"

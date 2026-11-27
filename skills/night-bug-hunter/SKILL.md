@@ -1,6 +1,6 @@
 ---
 name: night-bug-hunter
-description: Bug-hunting loop. Start from a red baseline, reproduce one failure, add a failing regression test and repair its root cause, keeping the fix only when the original failure and relevant checks pass. Use for "night-bug-hunter", "night bug hunter" or as /night bugs.
+description: Bug-hunting loop. Reproduces one failure, writes a failing regression test, and fixes the root cause across any stack. Use for "/night bugs".
 metadata:
   aliases: "night-bug-hunter, night bug hunter"
   keywords: "night, loop, bug, hunter"

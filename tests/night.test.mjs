@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 import { toYaml } from '../nightly-evolution/scripts/lib/yaml.mjs';
 import { assess, tick, MAX_RESTARTS } from '../skills/night/scripts/lib/watchdog.mjs';
 import { priority, scoreLoop, followUpTasks } from '../skills/night/scripts/lib/plan.mjs';
-import { inspectDiff, decide } from '../skills/night/scripts/lib/evaluate.mjs';
+import { inspectDiff, decide, parseCounts } from '../skills/night/scripts/lib/evaluate.mjs';
+import { detectEnv } from '../skills/night/scripts/lib/env.mjs';
 import { checkpoint, revertTo, commitTask } from '../skills/night/scripts/lib/workspace.mjs';
 import { discoverSkills } from '../skills/night/scripts/lib/loops.mjs';
 import { DEFAULT_CONFIG } from '../skills/night/scripts/lib/state.mjs';
@@ -429,4 +430,79 @@ test('a cost budget that cannot be enforced is warned about once', () => {
   assert.equal(r.code, 0, r.out);
   const warned = state(ctx).warnings.filter((w) => /cost budget cannot be enforced/.test(w));
   assert.equal(warned.length, 1, state(ctx).warnings.join('\n'));
+});
+
+test('polyglot test count parser handles cargo, go, dotnet, swift and bun outputs', () => {
+  assert.deepEqual(parseCounts('running 3 tests\ntest result: ok. 3 passed; 0 failed; 1 ignored; 0 measured'), { passed: 3, failed: 0, skipped: 1 });
+  assert.deepEqual(parseCounts('test result: ok. 2 passed; 0 failed; 0 ignored\ntest result: FAILED. 4 passed; 1 failed; 0 ignored'), { passed: 6, failed: 1, skipped: 0 });
+  assert.deepEqual(parseCounts('=== RUN   TestAuth\n--- PASS: TestAuth (0.01s)\n--- FAIL: TestRace (0.02s)\nFAIL\texample.com/api\t0.03s'), { passed: 1, failed: 1, skipped: 0 });
+  assert.deepEqual(parseCounts('Passed!  - Failed:     0, Passed:    14, Skipped:     2, Total:    16'), { passed: 14, failed: 0, skipped: 2 });
+  assert.deepEqual(parseCounts('Executed 8 tests, with 1 failure (0 unexpected) in 0.04s'), { passed: 7, failed: 1, skipped: 0 });
+  assert.deepEqual(parseCounts(' 9 pass\n 1 fail\n 2 skip'), { passed: 9, failed: 1, skipped: 2 });
+});
+
+test('stage and domain detection classifies seed, saas and game repos accurately', () => {
+  const seed = plainRepo('seed-stage', { 'index.js': 'export const ok = true;\n' });
+  const seedEnv = detectEnv(seed);
+  assert.equal(seedEnv.stage, 'seed');
+  assert.ok(seedEnv.signals.includes('stage-seed') && seedEnv.signals.includes('no-tests'));
+
+  const saas = plainRepo('saas-stage', {
+    'package.json': JSON.stringify({ dependencies: { next: '15.0.0', react: '19.0.0', stripe: '17.0.0', '@clerk/nextjs': '6.0.0' }, scripts: { test: 'node --test', lint: 'node -e ""' } }),
+    '.github/workflows/ci.yml': 'on: push\n',
+    'app/dashboard/page.tsx': 'export default function P() { return null; }\n',
+    'app/billing/webhook.ts': 'export const ok = 1;\n',
+  });
+  const saasEnv = detectEnv(saas);
+  assert.equal(saasEnv.stage, 'production');
+  assert.ok(saasEnv.signals.includes('saas') && saasEnv.signals.includes('frontend'), saasEnv.signals.join(','));
+
+  const game = plainRepo('game-stage', {
+    'project.godot': '[application]\nconfig/name="Demo"\n',
+    'scripts/player.gd': 'extends CharacterBody2D\n',
+  });
+  const gameEnv = detectEnv(game);
+  assert.ok(gameEnv.signals.includes('game') && gameEnv.signals.includes('godot'), gameEnv.signals.join(','));
+});
+
+test('night bootstrap configures starter checks on a Stage-0 repo and unverified auto plans night-ideas', () => {
+  const ctx = makeRepo('boot', { 'package.json': '{"type":"module"}\n', 'math.js': MATH });
+  const planned = night(ctx, ['plan', 'auto', '--json']);
+  assert.equal(planned.code, 0, planned.out);
+  const pre = JSON.parse(planned.out);
+  assert.equal(pre.stage, 'seed');
+  assert.ok(pre.tasks.some((t) => t.loop === 'night-ideas'), 'seed repo without tests still plans report-based night-ideas');
+
+  const b = night(ctx, ['bootstrap']);
+  assert.equal(b.code, 0, b.out);
+  assert.match(b.out, /js-syntax/);
+  const base = night(ctx, ['baseline']);
+  assert.equal(base.code, 0, base.out);
+  assert.match(base.out, /PASS js-syntax/);
+});
+
+test('playlist modes expand domain loops and multi-loop runs rotate past an early stagnant task', () => {
+  const ctx = makeRepo('rotate', {
+    'package.json': JSON.stringify({ type: 'module', dependencies: { next: '15.0.0', react: '19.0.0', stripe: '17.0.0' } }),
+    'math.js': MATH,
+    'math.test.js': MATH_TEST,
+    'app/billing/page.tsx': 'export default function Billing() { return null; }\n',
+  }, {
+    // First 3 attempts break tests (task 1 blocks and stagnant hits 3), then subsequent attempts add valid tests!
+    plan: 'break,break,js-test,noop',
+    config: { max_iterations: 6, max_retries_per_task: 1, max_stagnant_iterations: 2 },
+  });
+  const saasPlan = night(ctx, ['plan', 'saas', '--json']);
+  assert.equal(saasPlan.code, 0, saasPlan.out);
+  const { tasks } = JSON.parse(saasPlan.out);
+  const loopNames = tasks.map((t) => t.loop);
+  assert.ok(loopNames.includes('night-saas-lab') && loopNames.includes('night-readiness') && loopNames.includes('night-security-faults'), loopNames.join(','));
+
+  // Run security playlist (night-security-faults + night-redteam + night-dependencies): task 1 fails twice (stagnant == 2 == max_stagnant_iterations),
+  // yet supervisor rotates to the remaining untried loop and lands gen1.test.js instead of halting prematurely!
+  const r = night(ctx, ['run', 'security']);
+  assert.equal(r.code, 0, r.out);
+  const s = state(ctx);
+  assert.ok(s.tasks.some((t) => t.status === 'blocked'), 'first task exhausted retries and blocked');
+  assert.ok(onBranch(ctx, 'gen1.test.js'), `expected later untried loop to run and keep gen1.test.js:\n${r.out}`);
 });

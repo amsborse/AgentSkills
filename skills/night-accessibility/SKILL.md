@@ -1,6 +1,6 @@
 ---
 name: night-accessibility
-description: Accessibility loop. Repair one evidenced interface barrier and retain it only when violation counts fall, keyboard paths work and no new barriers appear. Use for "night-accessibility", "night accessibility" or as /night accessibility.
+description: Accessibility loop. Fixes one evidenced keyboard, focus, contrast or ARIA barrier per iteration and keeps it when violations drop. Use for "/night accessibility".
 metadata:
   aliases: "night-accessibility, night accessibility"
   keywords: "night, loop, accessibility"

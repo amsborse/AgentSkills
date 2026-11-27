@@ -1,6 +1,6 @@
 ---
 name: night-improve
-description: Improvement loop. Rank small repository improvements by evidence, make the best bounded change, and keep it only when checks prove the intended benefit without regressions. Use for "night-improve", "night improve" or as /night improve.
+description: Evidence-ranked improvement loop. Lands one bounded code-quality or reliability gain per iteration with full verification. Use for "/night improve".
 metadata:
   aliases: "night-improve, night improve"
   keywords: "night, loop, improve"

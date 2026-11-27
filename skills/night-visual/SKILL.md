@@ -1,57 +1,72 @@
 ---
 name: night-visual
-description: Visual loop. Improve one evidenced interface issue, compare real screenshots in both themes and configured viewports, and retain the change only when visual review and runtime checks support it. Use for "night-visual", "night visual" or as /night visual.
+description: Stage-aware visual polish loop. Lifts UI or HUD craft across themes and viewports with real before/after screenshots and audit guardrails. Use for "/night visual".
 metadata:
-  aliases: "night-visual, night visual"
-  keywords: "night, loop, visual"
-  composes: "revamp-ui, verify, build-animation"
+  aliases: "night-visual, night visual, overnight visual polish"
+  keywords: "night, loop, visual, ui, polish"
+  composes: "improve-visuals, audit-design, revamp-ui, add-interactions, build-animation, verify"
   requires: "git, shell"
   risk: "medium"
   night-loop: "visual"
   night-writes: "code"
   night-minutes: "30"
-  night-signals: "frontend, playwright"
+  night-signals: "frontend, playwright, game"
 ---
 
 # Night visual
 
-One iteration tackles one bounded hypothesis, using `revamp-ui`, `verify`, `build-animation`
-for the craft. Read the shared contract in `../night/references/loop-interface.md`;
-this skill supplies the target, evidence and stopping rules.
+One iteration elevates **one** evidenced visual weakness—layout hierarchy, typography, surface depth,
+designed light/dark parity, tactile micro-interaction, or game HUD readability—using `improve-visuals`,
+`audit-design`, `revamp-ui`, `add-interactions`, `build-animation` and `verify`. Read
+`../night/references/loop-interface.md` and load `workflows/stage-playbook.md` to adapt to the
+repository's stage and product mode.
 
 ## Activation
 
-- Use for a frontend with a runnable page and configured themes and viewports.
-- Never replace a design the owner liked; add a selectable option instead.
-- Read the handoff first and avoid repeating a target already resolved by earlier iterations.
+- Use when the repository renders a web interface, desktop/mobile view, or game canvas/HUD locally.
+- Adapt to the detected repository stage (`workflows/stage-playbook.md`): fix structural overflow,
+  broken contrast and missing theme tokens at `seed`/`prototype`; run rubric-scored craft upgrades
+  and blind-pair checks at `mvp`/`production`.
+- **Preserve loved designs:** never replace an aesthetic or hero element the owner already chose;
+  expose bold visual directions as selectable variants/toggles (`shared/creative/design-variants.md`).
 
 ## Workflow
 
-1. **Baseline:** Use `verify` to capture real before screenshots in both themes at every configured viewport.
-2. **Choose:** Ask the supervisor to store screenshots under `.night/artifacts`; do not write there yourself.
-3. **One change:** Use `revamp-ui` to fix one visible issue; use `build-animation` only for purposeful calm motion.
-4. **Check:** Capture matching after screenshots; check layout, readable text, interactions and reduced motion.
-5. **Hand back:** run fast checks and report evidence, including failed or unavailable commands.
-   The supervisor re-runs checks and decides keep/revert; never weaken tests or assertions.
+1. **Baseline:** Start the local app/preview without Docker when possible. Capture real before
+   screenshots (`desktop 1440x900`, `mobile 390x844`, both light and dark themes where supported)
+   and run `audit-design`'s `visual-audit.mjs` when Playwright is available.
+2. **Choose one highest-payoff target:** Score the screenshots (never code alone) against
+   `workflows/stage-playbook.md` and `~/agent-skills/working-agreements/ui-quality.md`. Pick the
+   lowest-scoring visible region not yet addressed in the handoff.
+3. **One coherent upgrade:** Extend existing design tokens/CSS variables first. Apply one bounded
+   improvement—sharp typographic hierarchy, warm paper-like light surfaces, deep layered dark mode,
+   compact single-action cards, HUD/menu contrast, or calm 60fps physical transitions (`prefers-reduced-motion`
+   respected, offscreen work paused).
+4. **Verify visually:** Capture matching after screenshots at identical viewports and themes. Run
+   `visual-audit.mjs` (and `improve-visuals` `blind-pairs.mjs` when configured) to confirm zero new
+   contrast, overflow, CLS or frame-rate regressions. Clean up temporary `.visual/` scratch files
+   unless tracked by repo policy.
+5. **Hand back:** Run fast runtime/unit checks and emit `NIGHT_RESULT` with exact commands and
+   before/after metrics. Never weaken assertions.
 
 ## Evaluation
 
-- Keep: All required screenshot pairs show the intended improvement and runtime checks stay green.
-- Revert: A viewport or theme regresses, interactions break, or gimmick motion adds distraction.
-- Inconclusive: missing evidence or unavailable checks cannot count as a successful iteration.
-- Record baseline and candidate results with exact commands so the supervisor can repeat them.
+- Keep: Real before/after screenshots demonstrate a clear craft gain, both themes and mobile/desktop
+  viewports hold cleanly, `prefers-reduced-motion` works, and all checks stay green.
+- Revert: Any theme/viewport regression, washed-out contrast, unbacked translucent chrome, gimmick
+  animation, layout shift, or code-only edit with no visible pixel improvement.
+- Inconclusive: Page/canvas could not be rendered locally to capture real screenshots.
 
 ## Stop conditions
 
-- Missing screenshots make the result inconclusive; never keep on an unsupported visual claim.
-- No evidenced visual issue remains, or the page cannot be rendered with the required settings.
-- Stop at the supplied time or iteration limit; report the next bounded hypothesis.
+- Every primary route/screen reaches high craft across themes and viewports with zero visual-audit
+  blockers/majors, or two consecutive iterations show no clear visual improvement.
+- Rendering requires external credentials or unavailable infrastructure (record exact blocker once).
 
 ## Examples
 
-- Day: "run night-visual on the account page spacing" investigates one target with the owner watching.
-- Night: `/night visual` repeats bounded iterations within the supplied budget, with each
-  outcome independently evaluated by the supervisor.
+- Day: "run night-visual on the billing settings page" upgrades hierarchy, card density and theme
+  parity with before/after screenshots.
+- Night: `/night visual` or `/night polish` iterates across key screens and viewports overnight.
 
 End the final message with `NIGHT_RESULT: {json}` using the shared contract's fields.
-Report evidence rather than grading your own result. Include changed paths and reproducible checks.

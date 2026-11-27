@@ -1,10 +1,10 @@
 ---
 name: night-dependencies
-description: Dependency loop. Review advisories and update one package or lockstep group with the project package manager, favour patch and minor releases, and keep only a tested change with a consistent lockfile. Use for "night-dependencies", "night dependencies" or as /night dependencies.
+description: Polyglot dependency and supply-chain loop. Patches advisories, runs safe lockstep bumps or codemod migrations, checks install scripts, and prunes dead packages. Use for "/night dependencies".
 metadata:
-  aliases: "night-dependencies, night dependencies"
-  keywords: "night, loop, dependencies"
-  composes: "security-audit, test-everything"
+  aliases: "night-dependencies, night dependencies, overnight dependency upgrade"
+  keywords: "night, loop, dependencies, upgrade, cve, lockfile"
+  composes: "security-audit, test-everything, improve"
   requires: "git, shell"
   risk: "high"
   night-loop: "dependencies, security"
@@ -15,43 +15,58 @@ metadata:
 
 # Night dependencies
 
-One iteration tackles one bounded hypothesis, using `security-audit`, `test-everything`
-for the craft. Read the shared contract in `../night/references/loop-interface.md`;
-this skill supplies the target, evidence and stopping rules.
+One iteration executes **one** atomic dependency improvement—patching a security advisory, upgrading
+one package/lockstep family, migrating one deprecated API via codemod/changelog, or removing a
+verified unused dependency—using `security-audit`, `test-everything` and `improve`. Read
+`../night/references/loop-interface.md` and `workflows/ecosystems-and-supply-chain.md`.
 
 ## Activation
 
-- Use when dependency manifests and their package manager are available in the worktree.
-- Never change registries or publish packages; dependency lockfile edits must be authorised by the task.
-- Read the handoff first and avoid repeating a target already resolved by earlier iterations.
+- Use on any repository with package manifests (`package.json`, `pyproject.toml`/`requirements.txt`/`uv.lock`,
+  `Cargo.toml`, `go.mod`, `*.csproj`, `Package.swift`) and its local package manager installed.
+- **Supply-chain invariants:** never switch package registries, never add untrusted git/tarball URLs,
+  never execute newly introduced `preinstall`/`postinstall` scripts uninspected, and never bundle 20
+  unrelated upgrades into one iteration.
 
 ## Workflow
 
-1. **Baseline:** Record installed versions and checks; run `npm audit` or `pip-audit` when available.
-2. **Choose:** Use `security-audit` to choose one package or necessary lockstep group; prefer patch/minor.
-3. **One change:** For a major, read its changelog and migration notes first; proceed only with green tests.
-4. **Check:** Update with the project's own package manager and lockfile; run `test-everything` and advisories again.
-5. **Hand back:** run fast checks and report evidence, including failed or unavailable commands.
-   The supervisor re-runs checks and decides keep/revert; never weaken tests or assertions.
+1. **Baseline & triage (`workflows/ecosystems-and-supply-chain.md`):** Inspect manifests, lockfiles,
+   and ecosystem audit tools (`npm`/`pnpm` audit, `pip-audit`/`uv`, `cargo audit`, `govulncheck`,
+   `dotnet list package --vulnerable`) when available offline/locally. Order candidates:
+   1. Reachable security advisories (CVE/GHSA) with clean patch/minor fixes.
+   2. Unused/dead direct dependencies verified via static import/symbol search across source, build
+      configs, dynamic loaders, and scripts.
+   3. Patch/minor lockstep groups (e.g., framework + adapter, `@types/*`, lint/test plugins).
+   4. Single major upgrade **only** when tests exist (`mvp`/`production`), migration steps are clear,
+      and characterization tests protect every callsite first.
+2. **Supply-chain diff check:** Update with `--ignore-scripts` (where supported) first, inspect lockfile
+   diffs for unexpected transitive explosion, registry URL drift, or lifecycle scripts, then run
+   normal resolution if clean.
+3. **Code adaptation:** Apply official codemods or update deprecated callsites cleanly; remove dead
+   shims left behind by the old version.
+4. **Verify:** Run `test-everything` (unit, typecheck, lint, build) and re-run the advisory scan.
+5. **Hand back:** Emit `NIGHT_RESULT` naming exact `package: old -> new` (or pruned package),
+   advisory IDs closed, lockfile status, and next candidate.
 
 ## Evaluation
 
-- Keep: Tests stay green, the lockfile matches the manifest and the targeted version or advisory is resolved.
-- Revert: New failures, incompatible peer requirements, unexplained lockfile churn or new advisory exposure.
-- Inconclusive: missing evidence or unavailable checks cannot count as a successful iteration.
-- Record baseline and candidate results with exact commands so the supervisor can repeat them.
+- Keep: Manifest and lockfile stay strictly synchronized, advisory count drops or target upgrade/prune
+  succeeds, zero untrusted install scripts/registries appear, and build/typecheck/tests stay green.
+- Revert: Peer-dependency conflicts, `--force` / `--legacy-peer-deps` hacks, unexplained lockfile
+  churn, new CVEs, or failing checks.
+- Inconclusive: Offline cache/network restrictions block package resolution or no test/build check
+  exists to validate a behavioral upgrade.
 
 ## Stop conditions
 
-- No safe update remains, advisory tools are unavailable for a security claim, or migration exceeds scope.
-- Record unavailable advisory evidence as unknown and risky upgrades as owner decisions.
-- Stop at the supplied time or iteration limit; report the next bounded hypothesis.
+- All safe patch/minor updates, dead dependencies, and locally fixable advisories are resolved.
+- Remaining major upgrades require architectural breaking changes or human product sign-off (record
+  in `NIGHT_RESULT` / owner decisions).
 
 ## Examples
 
-- Day: "run night-dependencies on the HTTP client dependency" investigates one target with the owner watching.
-- Night: `/night dependencies` repeats bounded iterations within the supplied budget, with each
-  outcome independently evaluated by the supervisor.
+- Day: "run night-dependencies on the auth and HTTP packages" upgrades one group and verifies lockfile
+  and test integrity.
+- Night: `/night dependencies` or `/night security` lands atomic, bisect-friendly upgrade commits.
 
 End the final message with `NIGHT_RESULT: {json}` using the shared contract's fields.
-Report evidence rather than grading your own result. Include changed paths and reproducible checks.

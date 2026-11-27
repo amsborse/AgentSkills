@@ -1,6 +1,6 @@
 ---
 name: night-refactor
-description: Refactoring loop. Characterise existing behaviour before simplifying one bounded area, preserve the public API, and keep the change only when tests and review show equivalent behaviour with less complexity. Use for "night-refactor", "night refactor" or as /night refactor.
+description: Characterization-first refactoring loop. Simplifies one complex module (<300 lines) while preserving public APIs and tests. Use for "/night refactor".
 metadata:
   aliases: "night-refactor, night refactor"
   keywords: "night, loop, refactor"
